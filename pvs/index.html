@@ -2091,8 +2091,9 @@ window.PVS_DATA = {
   // tpRaw = TP công bố; tpAdj = đã chia 1,2 nếu báo cáo trước ngày ĐKCC cổ tức CP (25/08/2026)
   consensusFY: ["2026F","2027F"],
   consensusBase: { rev: 32718, revLabel: "DT 2025", np: 1850, npLabel: "LNST 2025" },
-  consensusFcstNote: "Dự phóng lấy từ chính báo cáo của CTCK (Wifeed co_reports, cập nhật 23/09/2026). TP điều chỉnh = chia 1,2 cho báo cáo ra trước ĐKCC cổ tức cổ phiếu 20% (25/08/2026).",
+  consensusFcstNote: "Dự phóng lấy từ chính báo cáo của CTCK (Wifeed co_reports, cập nhật 28/09/2026). TP điều chỉnh = chia 1,2 cho báo cáo ra trước ĐKCC cổ tức cổ phiếu 20% (25/08/2026).",
   consensus: [
+    { broker:"VFS",      date:"2026-09-24", rating:"MUA",       tpRaw:48000, tpAdj:48000, adjusted:false, revF:34940, revF1:null,  npF:2084, npF1:null, thesis:"Báo cáo phân tích doanh nghiệp", src:"https://cdn02.wigroup.vn/baocaophantich/ar_25568_PVS_VFS_2026-09-24.pdf" },
     { broker:"VCBS",     date:"2026-09-17", rating:"MUA",       tpRaw:41759, tpAdj:41759, adjusted:false, revF:39102, revF1:null,  npF:2209, npF1:null, thesis:"Backlog vững chắc, mở rộng dư địa tăng trưởng", src:"" },
     { broker:"Vietcap",  date:"2026-09-15", rating:"MUA",       tpRaw:58800, tpAdj:49006, adjusted:true,  revF:41924, revF1:48282, npF:2193, npF1:2243, thesis:"Qatar EPIC-1 ~3 tỷ USD; backlog dài hạn lớn hơn trong chu kỳ tăng trưởng ngành", src:"https://nguoiquansat.vn/co-phieu-dang-chu-y-ngay-16-9-pvs-pvd-dcm-316461.html" },
     { broker:"VPBS",     date:"2026-08-26", rating:"MUA",       tpRaw:48200, tpAdj:40167, adjusted:true,  revF:null,  revF1:null,  npF:null, npF1:null, thesis:"Lợi nhuận khác hỗ trợ đà tăng lợi nhuận", src:"" },
@@ -4475,7 +4476,7 @@ const profiles={
  MWG:{business:'Bán lẻ ICT-CE và thực phẩm; vốn lưu động nằm ở tồn kho, hiệu quả phụ thuộc từng chuỗi.',questions:["Doanh thu/cửa hàng BHX tăng có đủ bù chi phí mở rộng để biên ròng BHX cải thiện, hay chỉ là tăng quy mô?", "ICT-CE tăng doanh thu có đi kèm biên lợi nhuận vận hành tốt hơn, hay phải đánh đổi bằng giá bán/khuyến mại?", "Tồn kho và chu kỳ tiền mặt có kéo dài khi hai chuỗi tăng trưởng, làm giảm chất lượng lợi nhuận và khả năng tự tài trợ không?"],selected:['Biên HĐKD','Ngày tồn kho','CCC','Tiền ròng','Hiệu quả từng chuỗi'],deprioritized:['Ratio tài chính tổng quát'],limitations:['Ngày tồn kho/CCC trong bảng hiện có mới đủ 2024–2025 và 4 quý; không nội suy lịch sử.','Các ratio ngày giữ phương pháp của nguồn, chưa tính lại từ BCTC.']},
  PVS:{business:'Nhà thầu dự án và dịch vụ dầu khí; lợi nhuận liên doanh, khách ứng trước và thu tiền dự án có vai trò riêng.',questions:["Backlog M&C chuyển thành doanh thu và LN gộp theo tiến độ nào; biên dự án có đủ giữ forecast khi quy mô tăng?", "Lãi liên doanh/liên kết và các mảng tàu/kho nổi đóng góp bao nhiêu vào LNST mẹ, thay vì coi toàn bộ tăng trưởng là từ M&C?", "Tiền ròng sau khách ứng trước và vốn giam ở phải thu dự án còn bao nhiêu cho định giá SOTP?"],selected:['Lãi liên doanh/LNTT','Tiền ròng sau ứng trước','Phải thu khách hàng','Ngày phải thu','Người mua trả trước'],deprioritized:[],limitations:['Giữ nguyên toàn bộ bảng, chart và phương pháp hiện tại theo yêu cầu người dùng.','Không coi toàn bộ tiền gửi là tiền dư có thể phân phối.']},
  HPG:{business:'Sản xuất thép với chu kỳ giá/nguyên liệu, tồn kho và vốn đầu tư nhà máy lớn.',questions:["Sản lượng thép sau Dung Quất 2 tăng có đi cùng biên đủ bù khấu hao/vốn mới, hay chỉ kéo doanh thu?", "Tồn kho và giá vốn có làm biên thép nhạy hơn giả định sản lượng/giá bán trong forecast không?", "CFO sau chi đầu tư và nợ ròng có cho phép giai đoạn tăng công suất mà không gây áp lực định giá không?"],selected:['Biên gộp','Lợi nhuận lõi công bố','Tồn kho','CFO/CAPEX','Nợ ròng'],deprioritized:[],limitations:['Giữ nguyên tất cả nội dung hiện có; chỉ thêm chart CFO/chi đầu tư và dòng tiền sau đầu tư.','Không tính thêm EBITDA khi thiếu đủ khấu hao theo quý.']},
- PVT:{business:'Vận tải biển; mua tàu cần vốn lớn, cước và số tàu hoạt động quyết định khả năng tạo tiền.',questions:["Tàu bổ sung và cước thuê tạo thêm doanh thu/lợi nhuận đủ bù CAPEX, lãi vay và khấu hao, hay chỉ tăng quy mô đội tàu?", "Nếu cước hoặc tỷ lệ khai thác giảm, dòng tiền từ đội tàu hiện hữu còn đủ tài trợ lịch nhận tàu không?", "Nợ ròng và chi phí lãi vay hợp nhất tăng tới mức nào sẽ làm giả định biên LNST/định giá kém bền?"],selected:['CFO/CAPEX','CFO−CAPEX','Nợ ròng/EBITDA','Nợ ngắn/dài hạn','Chi phí vay/lãi suất ngụ ý'],deprioritized:['Lợi nhuận tài chính/LNST mẹ'],limitations:['Không gán toàn bộ nợ hợp nhất là nợ tàu.','Các quý thiếu CFO/CAPEX để trống; ratio EBITDA chỉ vẽ năm đủ dữ liệu.']},
+ PVT:{business:'Vận tải biển; mua tàu cần vốn lớn, cước và số tàu hoạt động quyết định khả năng tạo tiền.',questions:["Tàu bổ sung và cước thuê tạo thêm doanh thu/lợi nhuận đủ bù CAPEX, lãi vay và khấu hao, hay chỉ tăng quy mô đội tàu?", "Nếu cước hoặc tỷ lệ khai thác giảm, dòng tiền từ đội tàu hiện hữu còn đủ tài trợ lịch nhận tàu không?", "Nợ ròng và chi phí lãi vay hợp nhất tăng tới mức nào sẽ làm giả định biên LNST/định giá kém bền?"],selected:['CFO/CAPEX','CAPEX thực hiện/khấu hao','Nợ ròng/EBITDA','Nợ ngắn/dài hạn','Chi phí vay/lãi suất ngụ ý'],deprioritized:['Lợi nhuận tài chính/LNST mẹ','Chart CFO−CAPEX trùng câu hỏi tài trợ'],limitations:['Không gán toàn bộ nợ hợp nhất là nợ tàu.','Các quý thiếu CFO/CAPEX để trống; ratio EBITDA chỉ vẽ năm đủ dữ liệu.']},
  GAS:{business:'Khí khô, LPG, LNG và hạ tầng; cơ cấu sản phẩm ảnh hưởng biên, tiền gửi lớn và đầu tư tuyến/kho ảnh hưởng dòng tiền.',questions:["Cơ cấu khí khô/LNG/LPG thay đổi có kéo biên gộp hợp nhất khác giả định từng sản phẩm không?", "CFO sau đầu tư tuyến/kho khí còn đủ duy trì tiền ròng, hay phải tăng nợ để tài trợ mở rộng?", "Thu nhập tài chính đang hỗ trợ bao nhiêu lợi nhuận khi dòng tiền nhàn rỗi đổi theo chu kỳ CAPEX?"],selected:['Biên gộp','CFO/CAPEX','CFO−CAPEX','Tiền ròng','Nợ ngắn/dài hạn','Thu nhập tài chính'],deprioritized:['DT tài chính/LNST mẹ (chỉ là đối chiếu)'],limitations:['Thu nhập tài chính không đồng nhất lãi tiền gửi.','Quý 2026 trong mô hình vẫn cần đối chiếu BCTC soát xét.']},
  PVD:{business:'Cho thuê giàn và dịch vụ khoan; dayrate/utilization quyết định lợi nhuận, đầu tư giàn tạo nhu cầu vay và khấu hao.',questions:["Dayrate và số ngày giàn hoạt động tăng có chuyển thành LN gộp khoan, hay biên bị chi phí thuê ngoài/lấp đầy ăn mòn?", "CAPEX giàn mới, khấu hao và lãi vay có làm LNST mẹ tăng chậm hơn doanh thu dự phóng không?", "CFO sau đầu tư và nợ ròng có đủ dư địa nếu thời điểm đưa giàn vào khai thác chậm hơn giả định?"],selected:['CFO/CAPEX','CFO−CAPEX','Nợ ròng/EBITDA','Nợ ngắn/dài hạn','Chi phí vay/lãi suất ngụ ý'],deprioritized:['Chart CAPEX/nợ vay lặp'],limitations:['Không dùng forecast CAPEX làm thực tế.','Chưa đủ BCTC quý để tính EBITDA TTM: ratio đòn bẩy chỉ theo năm.']},
  FPT:{business:'Dịch vụ CNTT, giáo dục và đầu tư; cần đọc biên LNTT theo mảng và lợi nhuận liên kết sau thay đổi hợp nhất FOX.',questions:["Tăng trưởng CNTT nước ngoài có giữ được biên LNTT khi cơ cấu thị trường/dịch vụ thay đổi không?", "Đầu tư CNTT trong nước có tạo doanh thu đủ nhanh để bù sức ép lên biên LNTT ngắn hạn không?", "Thay đổi phạm vi hợp nhất FOX làm lợi nhuận LDLK và LNST mẹ khác đi bao nhiêu so với tăng trưởng kinh doanh cốt lõi?"],selected:['Biên LNTT CNTT','LDLK/LNTT','CFO/CAPEX','CFO−CAPEX','Tiền ròng'],deprioritized:['Thuế/giá vốn chi tiết trong bảng key (chuyển dropdown)'],limitations:['Từ 2026 FOX dùng vốn chủ sở hữu; 2021–2025 trong mô hình giữ phạm vi cũ, không so sánh tăng trưởng trực tiếp.','CFO/CAPEX Q1–Q2/2026 thiếu: để trống.']}
@@ -4484,7 +4485,7 @@ if(profiles[ticker])d.financialProfile=Object.assign({src:d.financials.src||d.ba
 if(d.financialProfile&&!d.financialProfile.src)d.financialProfile.src=d.financials?.src||d.balance?.src||'';
 const questionLayouts={
  MWG:[['mwgFinanceOperatingMargin','mwgFinanceInventory'],['mwgFinanceCCC','netCashChart']],
- PVT:[['finChart','pvtDebt'],['pvtFinanceCashAfter','pvtFinanceLeverage'],['cashChart']],
+ PVT:[['finChart','pvtDebt'],['pvtFinanceCapexDepreciation','pvtFinanceLeverage'],['cashChart']],
  GAS:[['gasFinanceMargin','finChart'],['gasFinanceCashAfter','cashChart'],['gasDebt']],
  PVD:[['finChart','pvdCapexDebt'],['pvdFinanceLeverage','cashChart'],['pvdFinanceCashAfter']],
  FPT:[['fptFinanceITMargin','fptFinanceAssociates'],['finChart','fptFinanceCashAfter'],['cashChart']]
@@ -4506,7 +4507,7 @@ const questionTests={
   {evidence:['hpgFinanceFunding','cashChart'],forecast:'Rủi ro dòng tiền sau CAPEX/nợ ròng đối với giai đoạn tăng công suất'}],
  PVT:[
   {evidence:['pvtFleetChart','pvtRental','pvtModelResult','finChart','pvtDebt'],forecast:'Mua tàu, cước, tỷ lệ khai thác và biên LNST; CFO/nợ là đối chiếu hợp nhất, chưa phải suất sinh lời từng tàu'},
-  {evidence:['pvtRental','pvtFinanceCashAfter'],forecast:'Giảm rate/util trong mô hình tàu; so CFO sau chi đầu tư với lịch nhận tàu'},
+  {evidence:['pvtRental','pvtFinanceCapexDepreciation'],forecast:'Giảm rate/util trong mô hình tàu; so CAPEX thực hiện và khấu hao với lịch nhận tàu'},
   {evidence:['pvtFinanceLeverage','pvtDebt'],forecast:'Biên LNST và rủi ro đòn bẩy/chi phí vay trong định giá'}],
  GAS:[
   {evidence:['gasFinanceMargin'],forecast:'Biên theo cơ cấu khí khô/LNG/LPG; không lấy biên hợp nhất làm biên từng sản phẩm'},
@@ -4556,13 +4557,19 @@ if(cfo&&capex){
  const sign=ticker==='FPT'?-1:1;
  const cp={l:'CAPEX / chi đầu tư',a:map(capex.a,v=>sign*v),q:map(capex.q,v=>sign*v)};
  cashAfter={l:'CFO − chi đầu tư',a:combine(cfo.a,cp.a,(x,y)=>x-y),q:combine(cfo.q,cp.q,(x,y)=>x-y)};
- const note='CFO và chi đầu tư theo bảng tài chính/mô hình; năm là cả năm, quý là riêng 3 tháng. CFO − chi đầu tư chưa gồm các khoản đầu tư khác, cổ tức và trả nợ; không phải FCFF trong DCF. '+(f.note||'');
+ const note=ticker==='PVT'?'CFO: lưu chuyển tiền thuần HĐKD. Chi đầu tư: tiền mua TSCĐ và tài sản dài hạn theo lưu chuyển tiền tệ. CFO/chi đầu tư = CFO ÷ chi đầu tư cùng kỳ khi mẫu số dương. Năm và quý đều là dòng trong kỳ.':'CFO và chi đầu tư theo bảng tài chính/mô hình; năm là cả năm, quý là riêng 3 tháng. CFO − chi đầu tư chưa gồm các khoản đầu tư khác, cổ tức và trả nợ; không phải FCFF trong DCF. '+(f.note||'');
  if(['PVT','PVD','GAS','FPT'].includes(ticker)){
-  b.finSeries={title:'CFO và chi đầu tư (tỷ VND)',labels:f.annual,bars:[{label:'CFO',values:cfo.a,color:'blue'},{label:'Chi đầu tư',values:cp.a,color:'green'}],ratio:{title:'CFO / chi đầu tư (%)',label:'CFO / chi đầu tư',values:combine(cfo.a,cp.a,(x,y)=>y>0?100*x/y:null),note:'Khả năng tài trợ đầu tư bằng dòng tiền kinh doanh; không phải CFO/LNST. Không tính khi chi đầu tư ≤ 0.'},note};
+  b.finSeries={title:'CFO và chi đầu tư (tỷ VND)',labels:f.annual,bars:[{label:'CFO',values:cfo.a,color:'blue'},{label:'Chi đầu tư',values:cp.a,color:'green'}],ratio:{title:'CFO / chi đầu tư (%)',label:'CFO / chi đầu tư',values:combine(cfo.a,cp.a,(x,y)=>y>0?100*x/y:null),note:ticker==='PVT'?'Tỷ lệ = CFO ÷ chi đầu tư cùng kỳ.':'Khả năng tài trợ đầu tư bằng dòng tiền kinh doanh; không phải CFO/LNST. Không tính khi chi đầu tư ≤ 0.'},note};
   b.finSeriesQ={labels:f.quarterly,bars:[{label:'CFO',values:cfo.q,color:'blue'},{label:'Chi đầu tư',values:cp.q,color:'green'}],ratio:{values:combine(cfo.q,cp.q,(x,y)=>y>0?100*x/y:null)}};
   addRow(cashAfter.l,cashAfter.a,cashAfter.q);
  }else if(ticker==='HPG')add('Funding','CFO và chi đầu tư · tỷ VND',[series(cfo),series(cp)],'tỷ VND',note);
- add('CashAfter','Dòng tiền sau chi đầu tư · tỷ VND',[series(cashAfter)],'tỷ VND',note);
+ if(ticker!=='PVT')add('CashAfter','Dòng tiền sau chi đầu tư · tỷ VND',[series(cashAfter)],'tỷ VND',note);
+}
+if(ticker==='PVT'&&d.capexDebt?.depreciation){
+ add('CapexDepreciation','CAPEX thực hiện & khấu hao · tỷ VND',[
+  {label:'CAPEX thực hiện',a:d.capexDebt.capex},
+  {label:'Khấu hao',a:d.capexDebt.depreciation}
+ ],'tỷ VND','CAPEX: tiền chi mua/xây TSCĐ và tài sản dài hạn trong lưu chuyển tiền tệ. Khấu hao: điều chỉnh khấu hao TSCĐ/BĐSĐT trong CFO gián tiếp; cùng năm, không phải dòng tiền đầu tư.',false);
 }
 if(ticker==='MWG'){
  const note='Nguồn: bảng tài chính hiện có. Chuỗi năm 2021–2023 chưa đủ dữ liệu, hiển thị —; không điền 0 hoặc nội suy. Ngày tồn kho/CCC giữ phương pháp công bố của nguồn, chưa tính lại. '+f.src;
@@ -4577,7 +4584,7 @@ if(['PVT','PVD'].includes(ticker)){
  const e=addRow('EBITDA (PBT + khấu hao CF + chi phí vay)',x.ebitdaExcel);
  const leverage=addRow('Nợ ròng / EBITDA năm',combine(net.a,e.a,(a,b)=>b>0?a/b:null),null,'x');
  const cover=addRow('EBIT proxy / chi phí vay',combine(x.pbt,x.interest,(a,b)=>b>0?(a+b)/b:null),null,'x');
- add('Leverage','Nợ ròng / EBITDA năm · lần',[series(leverage)],'x','Nợ ròng = vay NH + DH − tiền − ĐTTC NH. EBITDA = PBT + khấu hao CF + chi phí đi vay CF (mô hình Tài chính dòng 5, Raw data 19 + 173 + 178). Tự tính ratio, không dùng Tài chính dòng 31 vốn chỉ trừ tiền. Chưa đủ quý để tính EBITDA TTM.',false);
+ add('Leverage','Nợ ròng / EBITDA năm · lần',[series(leverage)],'x',ticker==='PVT'?'Nợ ròng = vay ngắn + dài hạn − tiền − đầu tư tài chính ngắn hạn. EBITDA proxy = LNTT + khấu hao + chi phí đi vay cùng năm. Chỉ vẽ năm đủ số liệu.':'Nợ ròng = vay NH + DH − tiền − ĐTTC NH. EBITDA = PBT + khấu hao CF + chi phí đi vay CF (mô hình Tài chính dòng 5, Raw data 19 + 173 + 178). Tự tính ratio, không dùng Tài chính dòng 31 vốn chỉ trừ tiền. Chưa đủ quý để tính EBITDA TTM.',false);
  if(ticker==='PVD')add('BorrowingCost','Chi phí đi vay CF · tỷ VND',[{label:'Chi phí đi vay',a:x.interest}],'tỷ VND',x.source+' dòng 25; không phải toàn bộ chi phí tài chính.',false);
  add('Coverage','EBIT proxy / chi phí vay · lần',[series(cover)],'x','EBIT proxy = PBT + chi phí đi vay CF. Chia chi phí đi vay cùng năm; không phải DSCR. '+x.source,false);
 }
@@ -4846,8 +4853,8 @@ document.addEventListener('DOMContentLoaded',()=>{
  const build=s=>({labels:s.labels,datasets:[...retain(s.bars).map((x,i)=>({type:'bar',label:x.label,data:x.values,yAxisID:'y',backgroundColor:['#2938A8','#59C5C8','#FFD45D'][i],borderRadius:3,maxBarThickness:28})),{type:'line',label:fs.ratio.label,data:s.ratio.values,yAxisID:'ratio',borderColor:'#861C52',backgroundColor:'#861C52',borderWidth:2.5,pointRadius:3,tension:0,spanGaps:false,order:-1}]});
  const spec={def:'y',y:build(fs),cfg:(labels,datasets)=>({type:'bar',financialCombo:true,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y)+(c.dataset.yAxisID==='ratio'?'%':' tỷ VND')}}},scales:{x:{stacked:false,grid:{display:false}},y:{position:'left',stacked:false,beginAtZero:true,title:{display:true,text:'Tỷ VND'},ticks:{callback:fmt},grid:{color:'#EEF0F6'}},ratio:{position:'right',beginAtZero:true,title:{display:true,text:'%'},ticks:{callback:v=>fmt(v)+'%'},grid:{drawOnChartArea:false}}}}})};
  if(q?.bars?.length&&q.ratio?.values?.length===q.labels.length)spec.q=build(q);
- const heading=document.getElementById('finTitle');if(heading)heading.textContent=financial?'Thu nhập tài chính & tỷ trọng trong lợi nhuận':'CFO, chi đầu tư & tỷ lệ tài trợ';
- const note=document.getElementById('finNote');if(note){note.textContent=[fs.note,fs.ratio.note,'Cột: tỷ VND, trục trái. Đường: '+fs.ratio.label+' (%), trục phải. Giá trị và tỷ lệ cùng kỳ; các cột không cộng thành một tổng.'].filter(Boolean).join(' ');note.className='note';delete note.dataset.done;}
+ const heading=document.getElementById('finTitle');if(heading){heading.querySelectorAll('.info').forEach(icon=>icon.remove());heading.textContent=financial?'Thu nhập tài chính & tỷ trọng trong lợi nhuận':'CFO, chi đầu tư & tỷ lệ tài trợ';}
+ const note=document.getElementById('finNote');if(note){note.textContent=d.meta.ticker==='PVT'?fs.note:[fs.note,fs.ratio.note,'Cột: tỷ VND, trục trái. Đường: '+fs.ratio.label+' (%), trục phải. Giá trị và tỷ lệ cùng kỳ; các cột không cộng thành một tổng.'].filter(Boolean).join(' ');note.className='note';delete note.dataset.done;}
  const old=document.getElementById('finRatioChart');if(old){if(charts.finRatioChart)charts.finRatioChart.destroy();delete charts.finRatioChart;delete chartBase.finRatioChart;delete TSREG.finRatioChart;const card=old.closest('.card'),parent=card?.parentElement;card?.remove();if(parent?.classList.contains('grid')&&![...parent.children].some(x=>!x.hidden&&x.style.display!=='none'))parent.style.display='none';if(parent?.tagName==='DETAILS'&&parent.children.length===1)parent.hidden=true;}
  mkTS('finChart',spec);applyChartTips();
  window.FINANCE_COMBO_AUDIT={ticker:d.meta.ticker,kind:financial?'financial-income':'investment-funding',labels:spec.y.datasets.map(x=>x.label),ratio:fs.ratio.label};
@@ -4869,7 +4876,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     return spec.segmentPeriods?['m','q','y'].filter(p=>p!=='m'||hasData(spec.m)):originalAvail(spec);
   };
   mkTS=function(id,spec){
-    if(!isSegment(id))return originalMkTS(id,spec);
+    if(!isSegment(id)||spec.operationalSnapshot)return originalMkTS(id,spec);
     const prepared={...spec,segmentPeriods:true};
     for(const p of ['q','y'])if(!hasData(prepared[p]))prepared[p]={labels:[],datasets:[]};
     // Open on actual data; a saved or explicitly selected missing period stays selected.
