@@ -461,8 +461,8 @@ table.analyst-table tr:hover td{background:#FAFBFF}
     </div>
   </div>
   <div class="grid g2" style="margin-top:16px">
-    <div class="card"><h3 class="sub">KQKD theo quý — doanh thu (tỷ VND)</h3><div class="chart"><canvas id="qRev"></canvas></div></div>
-    <div class="card"><h3 class="sub">KQKD theo quý — LNST báo cáo vs. LNST lõi (tỷ VND)</h3><div class="chart"><canvas id="qNP"></canvas></div><div class="note" id="qNote"></div></div>
+    <div class="card"><h3 class="sub">KQKD — Doanh thu (tỷ VND)</h3><div class="chart"><canvas id="qRev"></canvas></div></div>
+    <div class="card"><h3 class="sub">KQKD — LNST báo cáo vs. LNST lõi (tỷ VND)</h3><div class="chart"><canvas id="qNP"></canvas></div><div class="note" id="qNote"></div></div>
   </div>
   <div class="card" style="margin-top:16px"><h3 class="sub">Ghi chú gần nhất của analyst</h3><div id="recentNotes"></div></div>
 </section>
@@ -492,7 +492,7 @@ table.analyst-table tr:hover td{background:#FAFBFF}
   <h2 class="sec">Backlog hiện tại & tương lai — điểm rơi nằm ở lúc thi công, không phải lúc ký</h2>
   <div class="grid g4" id="blKpi"></div>
   <div class="grid g2" style="margin-top:16px">
-    <div class="card"><h3 class="sub">Giá trị backlog thực hiện theo năm (tỷ VND)</h3><div class="chart"><canvas id="blExec"></canvas></div><div class="note" id="blExecNote"></div></div>
+    <div class="card"><h3 class="sub">Giá trị backlog thực hiện (tỷ VND)</h3><div class="chart"><canvas id="blExec"></canvas></div><div class="note" id="blExecNote"></div></div>
     <div class="card"><h3 class="sub">Milestone</h3><ul class="list" id="milestones"></ul></div>
   </div>
   <div class="card" style="margin-top:16px">
@@ -529,7 +529,7 @@ table.analyst-table tr:hover td{background:#FAFBFF}
     <div class="card" id="bsFocus"></div>
   </div>
   <div class="grid g2" style="margin-top:16px" id="bsSeriesRow" hidden>
-    <div class="card"><h3 class="sub" id="ncTitle">Tiền mặt ròng qua các năm (tỷ VND)</h3><div class="chart tall"><canvas id="netCashChart"></canvas></div><div class="note" id="ncNote"></div></div>
+    <div class="card"><h3 class="sub" id="ncTitle">Tiền mặt ròng (tỷ VND)</h3><div class="chart tall"><canvas id="netCashChart"></canvas></div><div class="note" id="ncNote"></div></div>
     <div class="card" id="finCard"><h3 class="sub" id="finTitle">Doanh thu tài chính vs LNST (tỷ VND)</h3><div class="chart tall"><canvas id="finChart"></canvas></div><div class="note" id="finNote"></div></div>
   </div>
   <div class="grid g2" style="margin-top:16px" id="bsSeriesRow2" hidden>
@@ -820,7 +820,7 @@ function renderSeg(){
   if(s.monthly){
     const m=s.monthly; const wrap=$('segMonthly');
     const metric=m.metricLabel||'doanh thu', unit=m.unitLabel||'tỷ VND';
-    wrap.innerHTML='<div class="grid g2" style="margin-bottom:16px">'+m.chains.map((c,i)=>`<div class="card"><h3 class="sub">${esc(c.name)} — ${esc(metric)} hằng tháng (${esc(unit)})</h3><div class="chart tall"><canvas id="segM${i}"></canvas></div></div>`).join('')+'</div>'
+    wrap.innerHTML='<div class="grid g2" style="margin-bottom:16px">'+m.chains.map((c,i)=>`<div class="card"><h3 class="sub">${esc(c.name)} — ${esc(metric)} (${esc(unit)})</h3><div class="chart tall"><canvas id="segM${i}"></canvas></div></div>`).join('')+'</div>'
       +`<div class="card" style="margin-bottom:16px"><details class="dd"><summary>Bảng ${esc(metric)} tháng (${esc(unit)}) <span class="hint">bấm để mở/đóng</span></summary><div class="body"><div class="filters" id="segMFilters"></div><div class="tbl-wrap"><table id="segMTable"></table></div><div class="note">${esc(m.note||'')}</div></div></details></div>`;
     m.chains.forEach((c,i)=>{
       const years=Object.keys(c.data);
@@ -1921,7 +1921,7 @@ function business(){
  const tab=document.getElementById('tab3btn');if(tab)tab.style.display='none';
  buttons.onclick=e=>{const b=e.target.closest('[data-biz]');if(!b)return;buttons.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));overview.hidden=b.dataset.biz!=='overview';rigs.hidden=b.dataset.biz!=='rigs';Object.values(Chart.instances||{}).forEach(c=>{try{c.resize()}catch{}})};
  const rd=p.rigDays;
- rigs.innerHTML=`<h2 class="sec">Năng lực giàn & giá thuê</h2><div class="grid g2"><div class="card"><h3 class="sub">Ngày giàn được đặt theo quý </h3><div class="chart tall"><canvas id="pvdDays"></canvas></div><div class="note">Q1–Q4/2026 là giả định analyst. Ngày đã đặt được nhân trực tiếp với dayrate; không nhân thêm hiệu suất để tránh tính hai lần.</div></div><div class="card"><h3 class="sub">Dayrate JU — nghìn USD/ngày</h3><div class="chart tall"><canvas id="pvdRate"></canvas></div><div class="note">2021–2024 là dữ liệu/ước tính năm trong mô hình; các quý 2025–2026 là chuỗi giả định riêng. Công ty cho biết dayrate khoảng 90 nghìn USD/ngày 6T/2026.</div></div></div><div class="card" style="margin-top:16px"><h3 class="sub">Danh mục giàn trong mô hình</h3><div class="tbl-wrap"><table><tr><th>Giàn</th><th>Loại</th><th>Năm đóng</th><th class="num">Vốn đầu tư (triệu USD)</th><th>Vào khai thác</th></tr>${p.rigs.map(r=>`<tr><td>${esc(r.name)}</td><td>${esc(r.type)}</td><td>${esc(r.built)}</td><td class="num">${fmt(r.cost)}</td><td>${esc(r.entered)}</td></tr>`).join('')}</table></div><div class="src">Nguồn: Tổng hợp FinSuccess. PVD X mới được công bố trong 2026, dự kiến hoạt động Q2/2027; chưa có ngày giàn trong forecast 2026.</div></div>`;
+ rigs.innerHTML=`<h2 class="sec">Năng lực giàn & giá thuê</h2><div class="grid g2"><div class="card"><h3 class="sub">Ngày giàn được đặt (ngày)</h3><div class="chart tall"><canvas id="pvdDays"></canvas></div><div class="note">Q1–Q4/2026 là giả định analyst. Ngày đã đặt được nhân trực tiếp với dayrate; không nhân thêm hiệu suất để tránh tính hai lần.</div></div><div class="card"><h3 class="sub">Dayrate JU — nghìn USD/ngày</h3><div class="chart tall"><canvas id="pvdRate"></canvas></div><div class="note">2021–2024 là dữ liệu/ước tính năm trong mô hình; các quý 2025–2026 là chuỗi giả định riêng. Công ty cho biết dayrate khoảng 90 nghìn USD/ngày 6T/2026.</div></div></div><div class="card" style="margin-top:16px"><h3 class="sub">Danh mục giàn trong mô hình</h3><div class="tbl-wrap"><table><tr><th>Giàn</th><th>Loại</th><th>Năm đóng</th><th class="num">Vốn đầu tư (triệu USD)</th><th>Vào khai thác</th></tr>${p.rigs.map(r=>`<tr><td>${esc(r.name)}</td><td>${esc(r.type)}</td><td>${esc(r.built)}</td><td class="num">${fmt(r.cost)}</td><td>${esc(r.entered)}</td></tr>`).join('')}</table></div><div class="src">Nguồn: Tổng hợp FinSuccess. PVD X mới được công bố trong 2026, dự kiến hoạt động Q2/2027; chưa có ngày giàn trong forecast 2026.</div></div>`;
  const contractBox=document.createElement('div');contractBox.className='card';contractBox.style.marginTop='16px';contractBox.innerHTML=`<details class="dd"><summary>Lịch hợp đồng giàn 2026 — ghi chú từ dữ liệu tổng hợp</summary><div class="body"><div class="tbl-wrap"><table><tr><th>Giàn</th><th>Ghi chú công việc trong model</th></tr>${p.contracts.map(r=>`<tr><td>${esc(r.name)}</td><td>${r.notes.map(esc).join(' · ')}</td></tr>`).join('')}</table></div><div class="src">Nguồn: Tổng hợp FinSuccess. Đây là lịch analyst trong mô hình, cần đối chiếu từng hợp đồng đã ký khi cập nhật.</div></div></details>`;rigs.append(contractBox);
  chart('pvdDays','bar',rd.labels,[{label:'JU',data:rd.ju,backgroundColor:C.blue,stack:'days'},{label:'TAD',data:rd.tad,backgroundColor:C.teal,stack:'days'},{label:'Giàn thuê ngoài',data:rd.partner,backgroundColor:C.purple,stack:'days'}],{scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,beginAtZero:true,grid:{color:'#EEF0F6'}}}});
  chart('pvdRate','line',p.dayrates.labels,[{label:'JU',data:p.dayrates.ju,borderColor:C.blue,backgroundColor:C.blue,pointRadius:3,tension:.15}]);

@@ -480,8 +480,8 @@ table.analyst-table tr:hover td{background:#FAFBFF}
     </div>
   </div>
   <div class="grid g2" style="margin-top:16px">
-    <div class="card"><h3 class="sub">KQKD theo quý — doanh thu (tỷ VND)</h3><div class="chart"><canvas id="qRev"></canvas></div></div>
-    <div class="card"><h3 class="sub">KQKD theo quý — LNST báo cáo vs. LNST lõi (tỷ VND)</h3><div class="chart"><canvas id="qNP"></canvas></div><div class="note" id="qNote"></div></div>
+    <div class="card"><h3 class="sub">KQKD — Doanh thu (tỷ VND)</h3><div class="chart"><canvas id="qRev"></canvas></div></div>
+    <div class="card"><h3 class="sub">KQKD — LNST báo cáo vs. LNST lõi (tỷ VND)</h3><div class="chart"><canvas id="qNP"></canvas></div><div class="note" id="qNote"></div></div>
   </div>
   <div class="card" style="margin-top:16px"><h3 class="sub">Ghi chú gần nhất của analyst</h3><div id="recentNotes"></div></div>
 </section>
@@ -511,7 +511,7 @@ table.analyst-table tr:hover td{background:#FAFBFF}
   <h2 class="sec">Backlog hiện tại & tương lai — điểm rơi nằm ở lúc thi công, không phải lúc ký</h2>
   <div class="grid g4" id="blKpi"></div>
   <div class="grid g2" style="margin-top:16px">
-    <div class="card"><h3 class="sub">Giá trị backlog thực hiện theo năm (tỷ VND)</h3><div class="chart"><canvas id="blExec"></canvas></div><div class="note" id="blExecNote"></div></div>
+    <div class="card"><h3 class="sub">Giá trị backlog thực hiện (tỷ VND)</h3><div class="chart"><canvas id="blExec"></canvas></div><div class="note" id="blExecNote"></div></div>
     <div class="card"><h3 class="sub">Milestone</h3><ul class="list" id="milestones"></ul></div>
   </div>
   <div class="card" style="margin-top:16px">
@@ -548,7 +548,7 @@ table.analyst-table tr:hover td{background:#FAFBFF}
     <div class="card" id="bsFocus"></div>
   </div>
   <div class="grid g2" style="margin-top:16px" id="bsSeriesRow" hidden>
-    <div class="card"><h3 class="sub" id="ncTitle">Tiền mặt ròng qua các năm (tỷ VND)</h3><div class="chart tall"><canvas id="netCashChart"></canvas></div><div class="note" id="ncNote"></div></div>
+    <div class="card"><h3 class="sub" id="ncTitle">Tiền mặt ròng (tỷ VND)</h3><div class="chart tall"><canvas id="netCashChart"></canvas></div><div class="note" id="ncNote"></div></div>
     <div class="card" id="finCard"><h3 class="sub" id="finTitle">Doanh thu tài chính vs LNST (tỷ VND)</h3><div class="chart tall"><canvas id="finChart"></canvas></div><div class="note" id="finNote"></div></div>
   </div>
   <div class="grid g2" style="margin-top:16px" id="bsSeriesRow2" hidden>
@@ -839,7 +839,7 @@ function renderSeg(){
   if(s.monthly){
     const m=s.monthly; const wrap=$('segMonthly');
     const metric=m.metricLabel||'doanh thu', unit=m.unitLabel||'tỷ VND';
-    wrap.innerHTML='<div class="grid g2" style="margin-bottom:16px">'+m.chains.map((c,i)=>`<div class="card"><h3 class="sub">${esc(c.name)} — ${esc(metric)} hằng tháng (${esc(unit)})</h3><div class="chart tall"><canvas id="segM${i}"></canvas></div></div>`).join('')+'</div>'
+    wrap.innerHTML='<div class="grid g2" style="margin-bottom:16px">'+m.chains.map((c,i)=>`<div class="card"><h3 class="sub">${esc(c.name)} — ${esc(metric)} (${esc(unit)})</h3><div class="chart tall"><canvas id="segM${i}"></canvas></div></div>`).join('')+'</div>'
       +`<div class="card" style="margin-bottom:16px"><details class="dd"><summary>Bảng ${esc(metric)} tháng (${esc(unit)}) <span class="hint">bấm để mở/đóng</span></summary><div class="body"><div class="filters" id="segMFilters"></div><div class="tbl-wrap"><table id="segMTable"></table></div><div class="note">${esc(m.note||'')}</div></div></details></div>`;
     m.chains.forEach((c,i)=>{
       const years=Object.keys(c.data);

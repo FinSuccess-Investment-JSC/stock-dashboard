@@ -191,7 +191,7 @@ window.PVS_DATA = {
     // cashBridge & focus đã bỏ theo yêu cầu analyst (21/09/2026) — chỉ giữ KPI + 2 chuỗi thời gian
 
     netCashSeries: {
-      title: "Tiền mặt ròng qua các năm (tỷ VND)",
+      title: "Tiền mặt ròng (tỷ VND)",
       labels: ["2019","2020","2021","2022","2023","2024","2025"],
       stacks: [
         { label:"Tiền & TĐT",            color:"blue",   values:[3115,7348,4944,5061,5366,5697,5000] },
@@ -205,7 +205,7 @@ window.PVS_DATA = {
       note: "Tiền mặt ròng = Tiền & TĐT + Đầu tư TC ngắn hạn + Cho vay ngắn hạn (tiền gửi/ủy thác hạch toán ở phải thu) + Đầu tư HTM dài hạn − Vay ngắn hạn − Vay dài hạn. Nguồn: BCTC hợp nhất cuối năm (CafeF); 2024: vay dài hạn về 0 do trái phiếu chuyển sang ngắn hạn. Điểm chuyển: từ âm ~5–8 nghìn tỷ (2019–2022) sang dương từ 2023 và +24 nghìn tỷ giữa 2026."
     },
     netCashSeriesQ: {
-      title: "Tiền mặt ròng theo quý (tỷ VND)",
+      title: "Tiền mặt ròng (tỷ VND)",
       labels: ["Q1/19", "Q2/19", "Q3/19", "Q4/19", "Q1/20", "Q2/20", "Q3/20", "Q4/20", "Q1/21", "Q2/21", "Q3/21", "Q4/21", "Q1/22", "Q2/22", "Q3/22", "Q4/22", "Q1/23", "Q2/23", "Q3/23", "Q4/23", "Q1/24", "Q2/24", "Q3/24", "Q4/24", "Q1/25", "Q2/25", "Q3/25", "Q4/25", "Q1/26", "Q2/26"],
       stacks: [
         { label:"Tiền & TĐT",            color:"blue",   values:[2839,3293,3697,3177,3273,2166,2591,7348,2204,4618,3215,4944,3259,2898,7065,5061,2781,3442,2352,5366,5571,5776,9752,5697,2658,6030,5511,5000,4554,4679] },
@@ -881,8 +881,8 @@ table.analyst-table tr:hover td{background:#FAFBFF}
     </div>
   </div>
   <div class="grid g2" style="margin-top:16px">
-    <div class="card"><h3 class="sub">KQKD theo quý — doanh thu (tỷ VND)</h3><div class="chart"><canvas id="qRev"></canvas></div></div>
-    <div class="card"><h3 class="sub">KQKD theo quý — LNST báo cáo vs. LNST lõi (tỷ VND)</h3><div class="chart"><canvas id="qNP"></canvas></div><div class="note" id="qNote"></div></div>
+    <div class="card"><h3 class="sub">KQKD — Doanh thu (tỷ VND)</h3><div class="chart"><canvas id="qRev"></canvas></div></div>
+    <div class="card"><h3 class="sub">KQKD — LNST báo cáo vs. LNST lõi (tỷ VND)</h3><div class="chart"><canvas id="qNP"></canvas></div><div class="note" id="qNote"></div></div>
   </div>
   <div class="card" style="margin-top:16px"><h3 class="sub">Ghi chú gần nhất của analyst</h3><div id="recentNotes"></div></div>
 </section>
@@ -912,7 +912,7 @@ table.analyst-table tr:hover td{background:#FAFBFF}
   <h2 class="sec">Backlog hiện tại & tương lai — điểm rơi nằm ở lúc thi công, không phải lúc ký</h2>
   <div class="grid g4" id="blKpi"></div>
   <div class="grid g2" style="margin-top:16px">
-    <div class="card"><h3 class="sub">Giá trị backlog thực hiện theo năm (tỷ VND)</h3><div class="chart"><canvas id="blExec"></canvas></div><div class="note" id="blExecNote"></div></div>
+    <div class="card"><h3 class="sub">Giá trị backlog thực hiện (tỷ VND)</h3><div class="chart"><canvas id="blExec"></canvas></div><div class="note" id="blExecNote"></div></div>
     <div class="card"><h3 class="sub">Milestone</h3><ul class="list" id="milestones"></ul></div>
   </div>
   <div class="card" style="margin-top:16px">
@@ -949,7 +949,7 @@ table.analyst-table tr:hover td{background:#FAFBFF}
     <div class="card" id="bsFocus"></div>
   </div>
   <div class="grid g2" style="margin-top:16px" id="bsSeriesRow" hidden>
-    <div class="card"><h3 class="sub" id="ncTitle">Tiền mặt ròng qua các năm (tỷ VND)</h3><div class="chart tall"><canvas id="netCashChart"></canvas></div><div class="note" id="ncNote"></div></div>
+    <div class="card"><h3 class="sub" id="ncTitle">Tiền mặt ròng (tỷ VND)</h3><div class="chart tall"><canvas id="netCashChart"></canvas></div><div class="note" id="ncNote"></div></div>
     <div class="card" id="finCard"><h3 class="sub" id="finTitle">Doanh thu tài chính vs LNST (tỷ VND)</h3><div class="chart tall"><canvas id="finChart"></canvas></div><div class="note" id="finNote"></div></div>
   </div>
   <div class="grid g2" style="margin-top:16px" id="bsSeriesRow2" hidden>
@@ -1246,7 +1246,7 @@ function renderSeg(){
   // --- monthly revenue by chain (retail) ---
   if(s.monthly){
     const m=s.monthly; const wrap=$('segMonthly');
-    wrap.innerHTML='<div class="grid g2" style="margin-bottom:16px">'+m.chains.map((c,i)=>`<div class="card"><h3 class="sub">${esc(c.name)} — doanh thu hằng tháng (tỷ VND)</h3><div class="chart tall"><canvas id="segM${i}"></canvas></div></div>`).join('')+'</div>'
+    wrap.innerHTML='<div class="grid g2" style="margin-bottom:16px">'+m.chains.map((c,i)=>`<div class="card"><h3 class="sub">${esc(c.name)} — Doanh thu (tỷ VND)</h3><div class="chart tall"><canvas id="segM${i}"></canvas></div></div>`).join('')+'</div>'
       +'<div class="card" style="margin-bottom:16px"><details class="dd"><summary>Bảng doanh thu tháng (tỷ VND) <span class="hint">bấm để mở/đóng</span></summary><div class="body"><div class="filters" id="segMFilters"></div><div class="tbl-wrap"><table id="segMTable"></table></div><div class="note">'+esc(m.note||'')+'</div></div></details></div>';
     m.chains.forEach((c,i)=>{
       const years=Object.keys(c.data);
