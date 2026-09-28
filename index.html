@@ -192,17 +192,17 @@ window.PVS_DATA = {
 
     netCashSeries: {
       title: "Tiền mặt ròng qua các năm (tỷ VND)",
-      labels: ["2019","2020","2021","2022","2023","2024","2025","6T/2026"],
+      labels: ["2019","2020","2021","2022","2023","2024","2025"],
       stacks: [
-        { label:"Tiền & TĐT",            color:"blue",   values:[3115,7348,4944,5061,5366,5697,5000,4679] },
-        { label:"Đầu tư TC ngắn hạn",    color:"navy",   values:[3137,8057,13435,10059,18937,28524,33874,45665] },
-        { label:"Cho vay ngắn hạn",      color:"grey",   values:[0,80,962,17,2086,6038,6910,0] },
-        { label:"Đầu tư HTM dài hạn",    color:"purple", values:[0,0,0,50,460,0,2765,2964] },
-        { label:"Vay ngắn hạn",          color:"neg",    values:[-13031,-15625,-21879,-10688,-19129,-27300,-29931,-29090] },
-        { label:"Vay dài hạn",           color:"gold",   values:[-1122,-1127,-2768,-5901,-5985,0,0,0] }
+        { label:"Tiền & TĐT",            color:"blue",   values:[3115,7348,4944,5061,5366,5697,5000] },
+        { label:"Đầu tư TC ngắn hạn",    color:"navy",   values:[3137,8057,13435,10059,18937,28524,33874] },
+        { label:"Cho vay ngắn hạn",      color:"grey",   values:[0,80,962,17,2086,6038,6910] },
+        { label:"Đầu tư HTM dài hạn",    color:"purple", values:[0,0,0,50,460,0,2765] },
+        { label:"Vay ngắn hạn",          color:"neg",    values:[-13031,-15625,-21879,-10688,-19129,-27300,-29931] },
+        { label:"Vay dài hạn",           color:"gold",   values:[-1122,-1127,-2768,-5901,-5985,0,0] }
       ],
-      net: { label:"Tiền mặt ròng", values:[-7901,-1267,-5306,-1402,1735,12959,18618,24218] },
-      note: "Tiền mặt ròng = Tiền & TĐT + Đầu tư TC ngắn hạn + Cho vay ngắn hạn (tiền gửi/ủy thác hạch toán ở phải thu) + Đầu tư HTM dài hạn − Vay ngắn hạn − Vay dài hạn. Nguồn: BCTC hợp nhất cuối năm (CafeF); 6T/2026 theo BCTC soát xét (cho vay đã gộp vào HTM; chưa cộng 13.315 tỷ tiền IPO DMX phong tỏa). 2024: vay dài hạn về 0 do trái phiếu chuyển sang ngắn hạn. Điểm chuyển: từ âm ~5–8 nghìn tỷ (2019–2022) sang dương từ 2023 và +24 nghìn tỷ giữa 2026."
+      net: { label:"Tiền mặt ròng", values:[-7901,-1267,-5306,-1402,1735,12959,18618] },
+      note: "Tiền mặt ròng = Tiền & TĐT + Đầu tư TC ngắn hạn + Cho vay ngắn hạn (tiền gửi/ủy thác hạch toán ở phải thu) + Đầu tư HTM dài hạn − Vay ngắn hạn − Vay dài hạn. Nguồn: BCTC hợp nhất cuối năm (CafeF); 2024: vay dài hạn về 0 do trái phiếu chuyển sang ngắn hạn. Điểm chuyển: từ âm ~5–8 nghìn tỷ (2019–2022) sang dương từ 2023 và +24 nghìn tỷ giữa 2026."
     },
     netCashSeriesQ: {
       title: "Tiền mặt ròng theo quý (tỷ VND)",
@@ -219,13 +219,13 @@ window.PVS_DATA = {
       note: "Ghép 2 nguồn: 2019Q1–2025Q4 từ BCTC quý CafeF (đối chiếu khớp số cuối năm kiểm toán, sai số &lt;20 tỷ); Q1–Q2/2026 từ Wifeed (CafeF lệch dòng ở các cột 2026 — xem §6 CLAUDE.md). Công thức giống bản theo năm."
     },
     finSeries: {
-      labels: ["2019","2020","2021","2022","2023","2024","2025","6T/2026"],
+      labels: ["2019","2020","2021","2022","2023","2024","2025"],
       tableRows: [
-        { label:"Doanh thu tài chính", values:[631,794,1288,1313,2167,2377,3107,1815] },
-        { label:"Chi phí tài chính",   values:[570,594,715,1383,1556,1189,1543,875] },
-        { label:"LNST hợp nhất",       values:[3836,3920,4901,4102,168,3733,7073,6112] }
+        { label:"Doanh thu tài chính", values:[631,794,1288,1313,2167,2377,3107] },
+        { label:"Chi phí tài chính",   values:[570,594,715,1383,1556,1189,1543] },
+        { label:"LNST hợp nhất",       values:[3836,3920,4901,4102,168,3733,7073] }
       ],
-      ratio: { title:"Lợi nhuận tài chính / LNST (%)", label:"LN tài chính / LNST", values:[1.6,5.1,11.7,-1.7,null,31.8,22.1,15.4], note:"LN tài chính = doanh thu tài chính − chi phí tài chính (gồm lãi vay). 2023 bỏ khỏi chart vì LNST chỉ 168 tỷ (tỷ lệ 364%). Nguồn: BCTC hợp nhất theo năm (CafeF); 6T/2026 theo BCTC soát xét." }
+      ratio: { title:"Lợi nhuận tài chính / LNST (%)", label:"LN tài chính / LNST", values:[1.6,5.1,11.7,-1.7,null,31.8,22.1], note:"LN tài chính = doanh thu tài chính − chi phí tài chính (gồm lãi vay). 2023 bỏ khỏi chart vì LNST chỉ 168 tỷ (tỷ lệ 364%). Nguồn: BCTC hợp nhất theo năm (CafeF)." }
     },
     finSeriesQ: {
       labels: ["Q1/19", "Q2/19", "Q3/19", "Q4/19", "Q1/20", "Q2/20", "Q3/20", "Q4/20", "Q1/21", "Q2/21", "Q3/21", "Q4/21", "Q1/22", "Q2/22", "Q3/22", "Q4/22", "Q1/23", "Q2/23", "Q3/23", "Q4/23", "Q1/24", "Q2/24", "Q3/24", "Q4/24", "Q1/25", "Q2/25", "Q3/25", "Q4/25", "Q1/26", "Q2/26"],
@@ -365,7 +365,7 @@ window.PVS_DATA = {
     equityValue: 112131,
     scenarios: { labels:["Worst","Base","Best"], gp:[null,null,null], np:[9500,11500,12500], mcap:[95000,145000,175000] },
     note: "Bản nháp SOTP: equity ~112.000 tỷ ↔ ~76.000đ/cp trên 1.475,8 tr cp. Kịch bản (Worst/Base/Best) = P/E 10x/12,6x/14x trên LNST 2026F 9.500/11.500/12.500 tỷ — analyst chỉnh lại theo model riêng.",
-    src: "Analyst dựng nhanh 21/09/2026 từ giá thị trường DMX + hướng dẫn playbook; CHƯA có model Excel"
+    src: "Analyst dựng nhanh 21/09/2026 từ giá thị trường DMX + hướng dẫn playbook; CHƯA có mô hình dự phóng"
   },
 
   // ---------- MÔ HÌNH DỰ PHÓNG & SOTP (analyst nhập biến trên dashboard; lưu localStorage <KEY>_model) ----------
@@ -719,6 +719,24 @@ tr.total td{background:#f5f8ff}
 table.fintbl thead th.gq{background:var(--blue)}
 .brkctl button.on,.subnav button.on{background:var(--navy);border-color:var(--navy);color:#fff}
 
+/* PVS-style analyst entry tables across all stock dashboards. */
+.analyst-grid.analyst-grid{display:block!important;margin:14px 0}
+table.analyst-table{width:100%;min-width:520px;font-size:14px;table-layout:fixed}
+table.analyst-table th:first-child{width:44%}
+table.analyst-table th{background:#F0F3FF;color:#1D2678;font-weight:700;padding:12px 10px;text-transform:none;letter-spacing:normal}
+table.analyst-table td{padding:8px 10px;height:42px;border-bottom:1px solid #DDE2ED;background:#fff;color:var(--ink);font-weight:400}
+table.analyst-table input[type=number]{width:94px!important;max-width:100%;height:26px;padding:2px 8px!important;font:inherit!important;text-align:right;border:1px solid #CFD3E6!important;border-radius:6px!important;background:#FFFBEA!important;color:var(--ink)!important}
+table.analyst-table input:focus{outline:2px solid #1D2678;outline-offset:2px}
+table.analyst-table tr:hover td{background:#FAFBFF}
+
+/* Shared icon notes: hover/focus, click on touch screens, original text in print. */
+.icon-note{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;padding:0;border:0;border-radius:50%;background:#EEF1FB;color:#1D2678;font:700 17px Arial,sans-serif;cursor:help;vertical-align:middle;flex:none}
+.icon-note:focus-visible{outline:2px solid #59C5C8;outline-offset:2px}
+.icon-note-popup{position:fixed;z-index:9999;box-sizing:border-box;max-height:70vh;overflow:auto;padding:12px 14px;border:1px solid #D9DEF4;border-radius:10px;background:#1D2678;color:#fff;font:400 12px/1.6 Arial,sans-serif;box-shadow:0 6px 22px rgba(29,38,120,.2);white-space:normal}
+.icon-note-popup[hidden],.icon-note-original{display:none!important}
+.icon-note-popup a{color:#FFD45D;text-decoration:underline}
+@media print{.icon-note,.icon-note-popup{display:none!important}.icon-note-original{display:block!important}}
+
 </style>
 <style>
 .stock-search{max-width:1440px;margin:16px auto 0;padding:0 24px}
@@ -762,7 +780,7 @@ table.fintbl thead th.gq{background:var(--blue)}
   const input=document.getElementById('stockQuery');
   const options=document.getElementById('stockOptions');
   const message=document.getElementById('stockMessage');
-  const stocks=[{code:'MWG',name:'Thế Giới Di Động',path:'./'},{code:'PVS',name:'Dịch vụ Kỹ thuật Dầu khí',path:'./pvs/'},{code:'HPG',name:'Tập đoàn Hòa Phát',path:'./hpg/'}];
+  const stocks=[{code:'MWG',name:'Thế Giới Di Động',path:'./'},{code:'PVS',name:'Dịch vụ Kỹ thuật Dầu khí',path:'./pvs/'},{code:'HPG',name:'Tập đoàn Hòa Phát',path:'./hpg/'},{code:'PVT',name:'Vận tải Dầu khí',path:'./pvt/'},{code:'GAS',name:'Tổng Công ty Khí Việt Nam',path:'./gas/'},{code:'PVD',name:'PV Drilling',path:'./pvd/'},{code:'FPT',name:'Tập đoàn FPT',path:'./fpt/'},{code:'POW',name:'Điện lực Dầu khí Việt Nam',path:'./pow/'},{code:'REE',name:'Cơ Điện Lạnh',path:'./ree/'},{code:'VNM',name:'Vinamilk',path:'./vnm/'},{code:'QNS',name:'Đường Quảng Ngãi',path:'./qns/'},{code:'VHC',name:'Vĩnh Hoàn',path:'./vhc/'}];
   const catalogPath='./stocks.json', catalogBase='./';
   async function refreshStocks(){
     try{
@@ -972,6 +990,7 @@ table.fintbl thead th.gq{background:var(--blue)}
     <div class="card">
       <div class="row" style="justify-content:space-between"><h3 class="sub" style="margin:0">Dự phóng — biến đầu vào</h3><div class="row"><span class="saved" id="modelSaved"></span><button class="btn ghost sm" onclick="setModelDefault('inputs','modelSaved')">Set làm mặc định</button></div></div>
       <div class="tbl-wrap" style="margin-top:10px"><table id="modelInputs"></table></div>
+      <details class="dd"><summary>Doanh thu, lợi nhuận khác & cơ sở kịch bản</summary><div class="tbl-wrap"><table id="modelOtherInputs"></table></div></details>
       <div class="note" id="modelNote"></div>
     </div>
     <div class="card" style="margin-top:16px"><h3 class="sub">Kết quả dự phóng (tỷ VND)</h3><div class="tbl-wrap"><table id="modelIS"></table></div></div>
@@ -1102,6 +1121,20 @@ function applyType(cfg,t){
     c.type='bar'; c.data.datasets=[{label:'Giá trị',data:cfg.data.datasets[0].data,backgroundColor:cfg.data.datasets[0].backgroundColor,borderRadius:4,maxBarThickness:60}];
     c.options={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:cfg.options?.plugins?.tooltip||{}},scales:{x:{grid:{display:false}},y:{grid:{color:'#EEF0F6'},ticks:{callback:v=>vnd(v)}}}};
     if(t==='barh'){ c.options.indexAxis='y'; } return c; }
+  if(cfg.financialCombo){
+    const horizontal=t==='barh', stacked=t==='stacked';
+    c.type=t==='line'?'line':'bar';c.options.indexAxis=horizontal?'y':'x';
+    c.data.datasets.forEach(d=>{
+      const ratio=d.yAxisID==='ratio';d.type=ratio||t==='line'?'line':'bar';
+      delete d.stack;if(stacked&&!ratio)d.stack='amount';
+      if(d.type==='line'){d.borderColor=d.borderColor||d.backgroundColor;d.borderWidth=2.5;d.pointRadius=3;d.tension=0;d.fill=false;}
+      if(horizontal){d.xAxisID=ratio?'ratio':'x';d.yAxisID='y';d.indexAxis='y';}
+    });
+    if(horizontal){const amount=c.options.scales.y,ratio=c.options.scales.ratio;c.options.scales={x:{...amount,axis:'x',position:'bottom',stacked:false},y:{axis:'y',grid:{display:false}},ratio:{...ratio,axis:'x',position:'top',stacked:false}};}
+    else {c.options.scales.x.stacked=stacked;c.options.scales.y.stacked=stacked;c.options.scales.ratio.stacked=false;}
+    c.options.plugins.tooltip.callbacks.label=x=>{const value=horizontal?x.parsed.x:x.parsed.y;return x.dataset.label+': '+(value==null?'—':Number(value).toLocaleString('vi-VN',{maximumFractionDigits:2}))+(x.dataset.yAxisID==='ratio'||x.dataset.xAxisID==='ratio'?'%':' tỷ VND');};
+    return c;
+  }
   const isRef=d=>d.type==='line'&&d.borderDash; // reference lines stay
   c.data.datasets.forEach((d,i)=>{ if(isRef(d))return; if(t==='line'){ d.type='line'; d.borderColor=d.borderColor||(Array.isArray(d.backgroundColor)?BLUE:d.backgroundColor); d.backgroundColor=Array.isArray(d.backgroundColor)?BLUE:d.backgroundColor; d.tension=.25; d.pointRadius=3; d.borderWidth=2; d.fill=false; } else { d.type='bar'; delete d.tension; delete d.pointRadius; if(cfg.data.datasets[i].type!=='line'){ delete d.borderColor; delete d.borderWidth; } d.borderRadius=d.borderRadius??3; if(t==='stacked')d.stack='s'; else delete d.stack; } });
   const st=t==='stacked'; ['x','y'].forEach(ax=>{ c.options.scales[ax]=c.options.scales[ax]||{}; c.options.scales[ax].stacked=st; });
@@ -1111,7 +1144,7 @@ function applyType(cfg,t){
 }
 function defaultType(cfg){ if(cfg.type==='pie')return 'pie'; if(cfg.type==='doughnut')return 'doughnut'; if(cfg.options?.indexAxis==='y')return 'barh'; const ds=cfg.data.datasets; if(ds.some(d=>d.stack)||cfg.options?.scales?.x?.stacked)return 'stacked'; if(cfg.type==='line'||ds.every(d=>d.type==='line'))return 'line'; return 'column'; }
 function mk(id,cfg){
-  chartBase[id]=cfg; const opts=cfg.type==='pie'?['pie']:cfg.type==='doughnut'?['doughnut','column','barh']:['column','stacked','barh','line'];
+  chartBase[id]=cfg; const opts=cfg.lockChartType?[]:cfg.type==='pie'?['pie']:cfg.type==='doughnut'?['doughnut','column','barh']:['column','stacked','barh','line'];
   const t=opts.includes(chartTypes[id])?chartTypes[id]:defaultType(cfg);
   if(charts[id])charts[id].destroy(); charts[id]=new Chart($(id),t===defaultType(cfg)?cfg:applyType(cfg,t));
   const card=$(id).closest('.card'); const h=card&&card.querySelector('h3.sub'); if(!h)return;
@@ -1169,7 +1202,7 @@ function evalSignal(s){
 function renderSignal(){
   const m=D.meta, myTP=Number(S.tp)||D.myView.tpAdj;
   const latest=latestConsensus(); const tps=latest.map(c=>c.tpAdj).filter(Boolean).sort((a,b)=>a-b);
-  const med=tps.length?tps[Math.floor(tps.length/2)]:null;
+  const med=tps.length?(tps.length%2?tps[Math.floor(tps.length/2)]:(tps[tps.length/2-1]+tps[tps.length/2])/2):null;
   const upMy=myTP?(myTP/m.price-1)*100:null, upCons=med?(med/m.price-1)*100:null;
   $('kpiRow').innerHTML=[
     ['Giá hiện tại',vnd(m.price)+'đ',m.priceNote||('đóng cửa '+m.priceDate.split('-').reverse().join('/')),''],
@@ -1416,7 +1449,7 @@ function renderCons(){
   const data=[...lat.map(c=>c.tpAdj),myTP,m.price];
   const cols=[...lat.map(()=>BLUE),PURPLE,NEG];
   mk('tpChart',{type:'bar',data:{labels,datasets:[{label:'đ/cp',data,backgroundColor:cols,borderRadius:4,maxBarThickness:22}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>vnd(c.parsed.x)+'đ ('+pct((c.parsed.x/m.price-1)*100,0)+' vs giá)'}}},scales:{x:{grid:{color:'#EEF0F6'},ticks:{callback:v=>vnd(v)}},y:{grid:{display:false}}}}});
-  const tps=lat.map(c=>c.tpAdj).sort((a,b)=>a-b); const med=tps[Math.floor(tps.length/2)], avg=tps.reduce((a,b)=>a+b,0)/tps.length;
+  const tps=lat.map(c=>c.tpAdj).sort((a,b)=>a-b); const med=tps.length%2?tps[Math.floor(tps.length/2)]:(tps[tps.length/2-1]+tps[tps.length/2])/2, avg=tps.reduce((a,b)=>a+b,0)/tps.length;
   const buys=lat.filter(c=>/MUA|KHẢ QUAN|OUTPERFORM/i.test(c.rating)).length;
   $('consSummary').innerHTML=`<div class="grid g2" style="gap:10px">
     <div class="kpi"><div class="l">Median TP (adj)</div><div class="v">${vnd(med)}đ</div><div class="s">${pct((med/m.price-1)*100,0)} vs giá</div></div>
@@ -1466,7 +1499,10 @@ function renderModel(){
   const cols=['2026F','Worst','Base','Best'];
   const VARS=[['g_ict','Tăng trưởng ICT-CE (% YoY)'],['stores','Số cửa hàng BHX'],['rps','Doanh thu TB/cửa hàng/tháng BHX (triệu)'],['m_ict','Biên LN ròng ICT-CE (%)'],['m_bhx','Biên LN ròng BHX (%)'],['rev_other','Doanh thu khác (tỷ)'],['np_pharm','LN ròng nhà thuốc (tỷ)'],['np_other','LN ròng khác (tỷ)'],['ict_base','DT ICT-CE cơ sở cho case (tỷ; 0 = dùng 2026F)']];
   const inp=(c,k)=>(c==='2026F'&&k==='ict_base')?'—':`<input class="cell" type="number" step="any" value="${M.inputs[c][k]??0}" onchange="M.inputs['${c}']['${k}']=Number(this.value);previewModel()">`;
-  $('modelInputs').innerHTML='<tr><th>Biến</th>'+cols.map(c=>`<th class="num">${c==='2026F'?'2026F':c+' case'}</th>`).join('')+'</tr>'+VARS.map(([k,l],i)=>`<tr ${i>=5?'style="color:var(--muted)"':''}><td>${l}</td>${cols.map(c=>`<td class="num">${inp(c,k)}</td>`).join('')}</tr>`).join('');
+  const inputHead='<tr><th>Biến</th>'+cols.map(c=>`<th class="num">${c==='2026F'?'2026F':c+' case'}</th>`).join('')+'</tr>';
+  const inputRows=items=>items.map(([k,l])=>`<tr><td>${l}</td>${cols.map(c=>`<td class="num">${inp(c,k)}</td>`).join('')}</tr>`).join('');
+  $('modelInputs').innerHTML=inputHead+inputRows(VARS.slice(0,5));
+  $('modelOtherInputs').innerHTML=inputHead+inputRows(VARS.slice(5));
   $('modelNote').textContent=md.note||'';
   const o=calcModel(); const h=md.hist; const hc=h.cols; const n=hc.length;
   const f0=v=>v==null?'—':money(v), f1=v=>v==null?'—':Number(v).toFixed(1)+'%';
@@ -1653,7 +1689,7 @@ function tsState(id,spec){
 }
 function tsCut(labels,datasets,n){
   if(n==='all')return {labels,datasets};
-  const k=Math.max(2,+n);
+  const k=Math.max(1,+n);
   if(labels.length<=k)return {labels,datasets};
   const c=labels.length-k;
   return {labels:labels.slice(c),datasets:datasets.map(d=>Object.assign({},d,{data:d.data.slice(c)}))};
@@ -2093,11 +2129,10 @@ function buildFinSuccessTab(){
     <div class="subnav" id="fsNav">
       <button data-s="decision">1 · Quyết định & vị thế định giá</button>
       <button data-s="model">2 · Mô hình, định giá & rủi ro</button>
-      <button data-s="journal">3 · Thesis & nhật ký</button>
     </div>
     <div class="subpane" id="fsDecision"><div id="valZone"></div></div>
     <div class="subpane" id="fsModel"></div>
-    <div class="subpane" id="fsJournal"></div>`;
+    <div class="subpane" id="fsJournal" style="display:none" aria-hidden="true"></div>`;
   const model=$('fsModel'), journal=$('fsJournal'), decision=$('fsDecision');
   kids.forEach(k=>{ if(k.tagName==='H2')return; model.appendChild(k); });
   const nk=[...notes.children];
@@ -2108,13 +2143,19 @@ function buildFinSuccessTab(){
   // đánh số lại các mục trong pane nhật ký (mục 1 đã chuyển sang pane Quyết định)
   let k=0; journal.querySelectorAll('h3.sub').forEach(h=>{ if(/^\d+ · /.test(h.textContent)){ k++; h.textContent=h.textContent.replace(/^\d+ · /,k+' · '); } });
   notes.remove();
+  // Tạm ẩn các khối thesis/ghi chú; giữ DOM và localStorage để có thể bật lại.
+  const thesisCard=$('thesisList')?.closest('.card'); if(thesisCard)thesisCard.style.display='none';
+  const recentNotesCard=$('recentNotes')?.closest('.card'); if(recentNotesCard)recentNotesCard.style.display='none';
+  const checklistNote=$('checklist')?.closest('.card')?.querySelector('.note');
+  if(checklistNote)checklistNote.textContent='Điều kiện được tính theo bộ ngưỡng đang áp dụng.';
   $('fsNav').onclick=e=>{ const x=e.target.closest('button[data-s]'); if(!x)return; setSubTab(x.dataset.s); };
   const qp=new URLSearchParams(location.search).get('sub');
-  setSubTab(qp&&['decision','model','journal'].includes(qp)?qp:subTab);
+  setSubTab(qp&&['decision','model'].includes(qp)?qp:subTab);
 }
 function setSubTab(s){
+  if(!['decision','model'].includes(s))s='decision';
   subTab=s; try{ localStorage.setItem(SUBKEY,s); }catch(e){}
-  const map={decision:'fsDecision',model:'fsModel',journal:'fsJournal'};
+  const map={decision:'fsDecision',model:'fsModel'};
   Object.entries(map).forEach(([k,id])=>{ const e=$(id); if(e)e.style.display=k===s?'':'none'; });
   document.querySelectorAll('#fsNav button').forEach(b=>b.classList.toggle('on',b.dataset.s===s));
   Object.values(charts).forEach(c=>{try{c.resize()}catch(e){}});
@@ -2150,12 +2191,12 @@ function tsWire(){
   const q=D.quarterly, qa=q&&q.annual;
   if(q){
     const revSets=lbl=>[{label:'Doanh thu',data:lbl,backgroundColor:BLUE,borderRadius:4,maxBarThickness:42}];
-    mkTS('qRev',{q:{labels:q.labels,datasets:revSets(q.revenue)},
+    mkTS('qRev',{def:qa?.labels?.length>=5?'y':'q',q:{labels:q.labels,datasets:revSets(q.revenue)},
       y:qa?{labels:qa.labels,datasets:revSets(qa.revenue)}:null,
       cfg:(labels,datasets)=>({type:'bar',data:{labels,datasets},options:baseOpts({plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>money(c.parsed.y)+' tỷ'}}}})})});
     const npSets=(a,b)=>[{label:'LNST báo cáo',data:a,backgroundColor:GREEN,borderRadius:4,maxBarThickness:36},
                          {label:'LNST lõi (loại bất thường)',data:b,backgroundColor:NAVY,borderRadius:4,maxBarThickness:36}];
-    mkTS('qNP',{q:{labels:q.labels,datasets:npSets(q.npat,q.npatCore)},
+    mkTS('qNP',{def:qa?.labels?.length>=5?'y':'q',q:{labels:q.labels,datasets:npSets(q.npat,q.npatCore)},
       y:qa?{labels:qa.labels,datasets:npSets(qa.npat,qa.npatCore||qa.npat)}:null,
       cfg:(labels,datasets)=>({type:'bar',data:{labels,datasets},options:baseOpts()})});
   }
@@ -2276,5 +2317,593 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 
 //V2JS-END</script>
+
+<script>window.FINANCE_INPUTS = {
+  "PVT": {
+    "source": "Dầu Khí /PVT/Tổng hợp FinSuccess",
+    "years": [
+      "2021",
+      "2022",
+      "2023",
+      "2024",
+      "2025"
+    ],
+    "ebitdaExcel": [
+      2112.6000000000004,
+      2866.7,
+      3258.1,
+      4084.7,
+      4280.1
+    ],
+    "pbt": [
+      1040.2,
+      1456.9,
+      1548.6,
+      1868.4,
+      1653.6
+    ],
+    "interest": [
+      142.7,
+      214.5,
+      355.2,
+      417.7,
+      435.3
+    ]
+  },
+  "PVD": {
+    "source": "Dầu Khí /PVD/Tổng hợp FinSuccess",
+    "years": [
+      "2021",
+      "2022",
+      "2023",
+      "2024",
+      "2025"
+    ],
+    "ebitdaExcel": [
+      706.2,
+      812.5,
+      1765.6,
+      2058.5,
+      2436.7
+    ],
+    "pbt": [
+      62.5,
+      -138.5,
+      658.4,
+      937.2,
+      1386.3
+    ],
+    "interest": [
+      109.3,
+      168,
+      250.5,
+      237.8,
+      190.8
+    ]
+  }
+}
+;
+/* Company-specific finance layer. Runs after ticker enhancements; preserves HPG/PVS blocks. */
+(function(){
+'use strict';
+const d=window.PVS_DATA;if(!d)return;
+const ticker=d.meta.ticker;
+const fmt=(value,digits=1)=>Number(value).toLocaleString('en-US',{minimumFractionDigits:digits,maximumFractionDigits:digits});
+const profiles={
+ MWG:{business:'Bán lẻ ICT-CE và thực phẩm; vốn lưu động nằm ở tồn kho, hiệu quả phụ thuộc từng chuỗi.',questions:["Doanh thu/cửa hàng BHX tăng có đủ bù chi phí mở rộng để biên ròng BHX cải thiện, hay chỉ là tăng quy mô?", "ICT-CE tăng doanh thu có đi kèm biên lợi nhuận vận hành tốt hơn, hay phải đánh đổi bằng giá bán/khuyến mại?", "Tồn kho và chu kỳ tiền mặt có kéo dài khi hai chuỗi tăng trưởng, làm giảm chất lượng lợi nhuận và khả năng tự tài trợ không?"],selected:['Biên HĐKD','Ngày tồn kho','CCC','Tiền ròng','Hiệu quả từng chuỗi'],deprioritized:['Ratio tài chính tổng quát'],limitations:['Ngày tồn kho/CCC trong bảng hiện có mới đủ 2024–2025 và 4 quý; không nội suy lịch sử.','Các ratio ngày giữ phương pháp của nguồn, chưa tính lại từ BCTC.']},
+ PVS:{business:'Nhà thầu dự án và dịch vụ dầu khí; lợi nhuận liên doanh, khách ứng trước và thu tiền dự án có vai trò riêng.',questions:["Backlog M&C chuyển thành doanh thu và LN gộp theo tiến độ nào; biên dự án có đủ giữ forecast khi quy mô tăng?", "Lãi liên doanh/liên kết và các mảng tàu/kho nổi đóng góp bao nhiêu vào LNST mẹ, thay vì coi toàn bộ tăng trưởng là từ M&C?", "Tiền ròng sau khách ứng trước và vốn giam ở phải thu dự án còn bao nhiêu cho định giá SOTP?"],selected:['Lãi liên doanh/LNTT','Tiền ròng sau ứng trước','Phải thu khách hàng','Ngày phải thu','Người mua trả trước'],deprioritized:[],limitations:['Giữ nguyên toàn bộ bảng, chart và phương pháp hiện tại theo yêu cầu người dùng.','Không coi toàn bộ tiền gửi là tiền dư có thể phân phối.']},
+ HPG:{business:'Sản xuất thép với chu kỳ giá/nguyên liệu, tồn kho và vốn đầu tư nhà máy lớn.',questions:["Sản lượng thép sau Dung Quất 2 tăng có đi cùng biên đủ bù khấu hao/vốn mới, hay chỉ kéo doanh thu?", "Tồn kho và giá vốn có làm biên thép nhạy hơn giả định sản lượng/giá bán trong forecast không?", "CFO sau chi đầu tư và nợ ròng có cho phép giai đoạn tăng công suất mà không gây áp lực định giá không?"],selected:['Biên gộp','Lợi nhuận lõi công bố','Tồn kho','CFO/CAPEX','Nợ ròng'],deprioritized:[],limitations:['Giữ nguyên tất cả nội dung hiện có; chỉ thêm chart CFO/chi đầu tư và dòng tiền sau đầu tư.','Không tính thêm EBITDA khi thiếu đủ khấu hao theo quý.']},
+ PVT:{business:'Vận tải biển; mua tàu cần vốn lớn, cước và số tàu hoạt động quyết định khả năng tạo tiền.',questions:["Tàu bổ sung và cước thuê tạo thêm doanh thu/lợi nhuận đủ bù CAPEX, lãi vay và khấu hao, hay chỉ tăng quy mô đội tàu?", "Nếu cước hoặc tỷ lệ khai thác giảm, dòng tiền từ đội tàu hiện hữu còn đủ tài trợ lịch nhận tàu không?", "Nợ ròng và chi phí lãi vay hợp nhất tăng tới mức nào sẽ làm giả định biên LNST/định giá kém bền?"],selected:['CFO/CAPEX','CFO−CAPEX','Nợ ròng/EBITDA','Nợ ngắn/dài hạn','Chi phí vay/lãi suất ngụ ý'],deprioritized:['Lợi nhuận tài chính/LNST mẹ'],limitations:['Không gán toàn bộ nợ hợp nhất là nợ tàu.','Các quý thiếu CFO/CAPEX để trống; ratio EBITDA chỉ vẽ năm đủ dữ liệu.']},
+ GAS:{business:'Khí khô, LPG, LNG và hạ tầng; cơ cấu sản phẩm ảnh hưởng biên, tiền gửi lớn và đầu tư tuyến/kho ảnh hưởng dòng tiền.',questions:["Cơ cấu khí khô/LNG/LPG thay đổi có kéo biên gộp hợp nhất khác giả định từng sản phẩm không?", "CFO sau đầu tư tuyến/kho khí còn đủ duy trì tiền ròng, hay phải tăng nợ để tài trợ mở rộng?", "Thu nhập tài chính đang hỗ trợ bao nhiêu lợi nhuận khi dòng tiền nhàn rỗi đổi theo chu kỳ CAPEX?"],selected:['Biên gộp','CFO/CAPEX','CFO−CAPEX','Tiền ròng','Nợ ngắn/dài hạn','Thu nhập tài chính'],deprioritized:['DT tài chính/LNST mẹ (chỉ là đối chiếu)'],limitations:['Thu nhập tài chính không đồng nhất lãi tiền gửi.','Quý 2026 trong mô hình vẫn cần đối chiếu BCTC soát xét.']},
+ PVD:{business:'Cho thuê giàn và dịch vụ khoan; dayrate/utilization quyết định lợi nhuận, đầu tư giàn tạo nhu cầu vay và khấu hao.',questions:["Dayrate và số ngày giàn hoạt động tăng có chuyển thành LN gộp khoan, hay biên bị chi phí thuê ngoài/lấp đầy ăn mòn?", "CAPEX giàn mới, khấu hao và lãi vay có làm LNST mẹ tăng chậm hơn doanh thu dự phóng không?", "CFO sau đầu tư và nợ ròng có đủ dư địa nếu thời điểm đưa giàn vào khai thác chậm hơn giả định?"],selected:['CFO/CAPEX','CFO−CAPEX','Nợ ròng/EBITDA','Nợ ngắn/dài hạn','Chi phí vay/lãi suất ngụ ý'],deprioritized:['Chart CAPEX/nợ vay lặp'],limitations:['Không dùng forecast CAPEX làm thực tế.','Chưa đủ BCTC quý để tính EBITDA TTM: ratio đòn bẩy chỉ theo năm.']},
+ FPT:{business:'Dịch vụ CNTT, giáo dục và đầu tư; cần đọc biên LNTT theo mảng và lợi nhuận liên kết sau thay đổi hợp nhất FOX.',questions:["Tăng trưởng CNTT nước ngoài có giữ được biên LNTT khi cơ cấu thị trường/dịch vụ thay đổi không?", "Đầu tư CNTT trong nước có tạo doanh thu đủ nhanh để bù sức ép lên biên LNTT ngắn hạn không?", "Thay đổi phạm vi hợp nhất FOX làm lợi nhuận LDLK và LNST mẹ khác đi bao nhiêu so với tăng trưởng kinh doanh cốt lõi?"],selected:['Biên LNTT CNTT','LDLK/LNTT','CFO/CAPEX','CFO−CAPEX','Tiền ròng'],deprioritized:['Thuế/giá vốn chi tiết trong bảng key (chuyển dropdown)'],limitations:['Từ 2026 FOX dùng vốn chủ sở hữu; 2021–2025 trong mô hình giữ phạm vi cũ, không so sánh tăng trưởng trực tiếp.','CFO/CAPEX Q1–Q2/2026 thiếu: để trống.']}
+};
+if(profiles[ticker])d.financialProfile=Object.assign({src:d.financials.src||d.balance.src},profiles[ticker]);
+if(d.financialProfile&&!d.financialProfile.src)d.financialProfile.src=d.financials?.src||d.balance?.src||'';
+const questionLayouts={
+ MWG:[['mwgFinanceOperatingMargin','mwgFinanceInventory'],['mwgFinanceCCC','netCashChart']],
+ PVT:[['finChart','pvtDebt'],['pvtFinanceCashAfter','pvtFinanceLeverage'],['cashChart']],
+ GAS:[['gasFinanceMargin','finChart'],['gasFinanceCashAfter','cashChart'],['gasDebt']],
+ PVD:[['finChart','pvdCapexDebt'],['pvdFinanceLeverage','cashChart'],['pvdFinanceCashAfter']],
+ FPT:[['fptFinanceITMargin','fptFinanceAssociates'],['finChart','fptFinanceCashAfter'],['cashChart']]
+};
+if(questionLayouts[ticker])d.financialProfile.layout={chartRows:questionLayouts[ticker]};
+// The question is retained only when its observation can change a forecast input or a valuation risk.
+const questionTests={
+ MWG:[
+  {evidence:['segRev','mwgFinanceOperatingMargin'],forecast:'BHX: stores, rps, m_bhx; kiểm tra tăng trưởng có đi cùng hiệu quả cửa hàng'},
+  {evidence:['segRev','mwgFinanceOperatingMargin'],forecast:'ICT-CE: g_ict, m_ict; phân biệt tăng doanh thu với cải thiện lợi nhuận'},
+  {evidence:['mwgFinanceInventory','mwgFinanceCCC'],forecast:'Rủi ro vốn lưu động/định giá; model hiện chưa forecast CFO, không suy ra dòng tiền tương lai'}],
+ PVS:[
+  {evidence:['pvsRevenue','pvsReceivables'],forecast:'Growth và biên M&C theo backlog; phải thu/tiến độ thu tiền kiểm tra chất lượng chuyển đổi'},
+  {evidence:['pvsJv'],forecast:'Tách LN liên doanh khỏi forecast lợi nhuận theo mảng hợp nhất'},
+  {evidence:['pvsNetCash','pvsFunding'],forecast:'Adjusted Net Cash trong SOTP sau ứng trước khách hàng'}],
+ HPG:[
+  {evidence:['hpgSales','segProfitCard','hpgFinanceFunding'],forecast:'Sản lượng, giá bán và biên thép; kiểm tra vốn mới trước khi nâng giả định lợi nhuận'},
+  {evidence:['segProfitCard'],forecast:'Biên thép và rủi ro tồn kho/giá vốn; thiếu chuỗi biên thép đồng phạm vi thì không kết luận từ biên hợp nhất'},
+  {evidence:['hpgFinanceFunding','cashChart'],forecast:'Rủi ro dòng tiền sau CAPEX/nợ ròng đối với giai đoạn tăng công suất'}],
+ PVT:[
+  {evidence:['pvtFleetChart','pvtRental','pvtModelResult','finChart','pvtDebt'],forecast:'Mua tàu, cước, tỷ lệ khai thác và biên LNST; CFO/nợ là đối chiếu hợp nhất, chưa phải suất sinh lời từng tàu'},
+  {evidence:['pvtRental','pvtFinanceCashAfter'],forecast:'Giảm rate/util trong mô hình tàu; so CFO sau chi đầu tư với lịch nhận tàu'},
+  {evidence:['pvtFinanceLeverage','pvtDebt'],forecast:'Biên LNST và rủi ro đòn bẩy/chi phí vay trong định giá'}],
+ GAS:[
+  {evidence:['gasFinanceMargin'],forecast:'Biên theo cơ cấu khí khô/LNG/LPG; không lấy biên hợp nhất làm biên từng sản phẩm'},
+  {evidence:['finChart','gasFinanceCashAfter','gasDebt'],forecast:'Rủi ro tài trợ đầu tư tuyến/kho và tiền ròng'},
+  {evidence:['cashChart'],forecast:'Thu nhập tài chính phụ thuộc số dư tiền sau CAPEX; hiện chưa tách riêng lãi tiền gửi'}],
+ PVD:[
+  {evidence:['pvdDays','pvdRate','segProfitCard'],forecast:'Ngày giàn, dayrate, biên khoan; chi phí thuê ngoài có thể làm lệch biên'},
+  {evidence:['pvdCapexDebt','pvdFinanceLeverage'],forecast:'CAPEX, khấu hao và lãi vay so với LNST mẹ dự phóng'},
+  {evidence:['finChart','pvdFinanceCashAfter'],forecast:'Rủi ro dòng tiền nếu thời điểm khai thác giàn chậm'}],
+ FPT:[
+  {evidence:['fptFinanceITMargin'],forecast:'Geo growth nước ngoài và foreignPBT'},
+  {evidence:['fptFinanceITMargin'],forecast:'DomGrowth và domesticPBT; kiểm tra doanh thu đầu tư mới so với áp lực biên'},
+  {evidence:['fptFinanceAssociates'],forecast:'Lợi nhuận LDLK và phạm vi FOX, không quy thành tăng trưởng hữu cơ CNTT'}],
+ POW:[
+  {evidence:['powQC','powVolume','powSpread'],forecast:'Qc/sản lượng, giá điện và spread nhiên liệu trong forecast; chart tài chính chỉ đối chiếu vốn, đọc cùng tab Mảng kinh doanh'},
+  {evidence:['powCapex','powLeverage'],forecast:'NT3&4 volume, khấu hao và loanRate; thiếu phân bổ riêng thì không gán toàn bộ nợ cho NT3&4'},
+  {evidence:['powReceivables','powDSO'],forecast:'Working capital, CFO và nhu cầu vay nếu thu tiền chậm'}],
+ REE:[
+  {evidence:['reeJV'],forecast:'Lợi nhuận thuộc REE và tỷ lệ sở hữu trong forecast/SOTP'},
+  {evidence:['reeParentCash','reeParentReceipts'],forecast:'Cash bridge tại mẹ, không dùng tiền hợp nhất thay tiền sẵn có'},
+  {evidence:['reeCF','reeCWIP'],forecast:'CAPEX/XDCB, NCI và cầu nối EV sang equity thuộc mẹ'}],
+ VNM:[
+  {evidence:['vnmGm','vnmSga'],forecast:'DomGrowth/intlGrowth, domGm/intlGm và sellPct/adminPct'},
+  {evidence:['finChart'],forecast:'FinIncome, debtRate và LNST mẹ; tách LN tài chính ròng khỏi doanh thu kinh doanh'},
+  {evidence:['vnmWorkingCapital'],forecast:'Rủi ro tồn kho/phải thu; model hiện chưa nối vốn lưu động vào CFO dự phóng'}],
+ QNS:[
+  {evidence:['qnsMargins','qnsSga'],forecast:'Growth và GM mảng Đường/Sữa đậu nành, không dùng biên hợp nhất thay biên mảng'},
+  {evidence:['qnsWorkingCapital','qnsCashFlow'],forecast:'Rủi ro vốn lưu động mùa vụ/cổ tức; model hiện chưa forecast bảng dòng tiền'},
+  {evidence:['finChart'],forecast:'FinIncome, debtRate và LNST mẹ, tách lợi nhuận tài chính khỏi LN gộp'}]
+};
+if(d.financialProfile&&questionTests[ticker])d.financialProfile.questionTests=questionTests[ticker];
+// POW already has its source-specific profile and finance implementation.
+if(ticker==='POW'||!profiles[ticker])return;
+const f=d.financials, b=d.balance;
+const rows=()=>f.sections.flatMap(s=>s.rows);
+const row=label=>rows().find(r=>r.l===label);
+const map=(a,fn)=>a.map((v,i)=>v==null?null:fn(v,i));
+const combine=(a,c,fn)=>a.map((v,i)=>v==null||c[i]==null?null:fn(v,c[i]));
+const series=r=>({label:r.l,a:r.a,q:r.q});
+const specs=[];
+function add(id,title,ss,unit,note,quarterly=true){specs.push({id:ticker.toLowerCase()+'Finance'+id,title,ss,unit,note,quarterly});}
+function addRow(label,a,q,u){const r={l:label,a,q:q||f.quarterly.map(()=>null)};if(u)r.u=u;f.sections.at(-1).rows.push(r);return r;}
+const cfo=row('CFO')||row('Dòng tiền kinh doanh'),capex=row('CAPEX')||row('CAPEX tiền mặt')||row('Chi đầu tư TSCĐ (âm)')||row('Chi mua TSCĐ & tài sản dài hạn');
+const originalFinancial=b.finSeries?JSON.parse(JSON.stringify(b.finSeries)):null;
+let cashAfter;
+if(cfo&&capex){
+ const sign=ticker==='FPT'?-1:1;
+ const cp={l:'CAPEX / chi đầu tư',a:map(capex.a,v=>sign*v),q:map(capex.q,v=>sign*v)};
+ cashAfter={l:'CFO − chi đầu tư',a:combine(cfo.a,cp.a,(x,y)=>x-y),q:combine(cfo.q,cp.q,(x,y)=>x-y)};
+ const note='CFO và chi đầu tư theo bảng tài chính/mô hình; năm là cả năm, quý là riêng 3 tháng. CFO − chi đầu tư chưa gồm các khoản đầu tư khác, cổ tức và trả nợ; không phải FCFF trong DCF. '+(f.note||'');
+ if(['PVT','PVD','GAS','FPT'].includes(ticker)){
+  b.finSeries={title:'CFO và chi đầu tư (tỷ VND)',labels:f.annual,bars:[{label:'CFO',values:cfo.a,color:'blue'},{label:'Chi đầu tư',values:cp.a,color:'green'}],ratio:{title:'CFO / chi đầu tư (%)',label:'CFO / chi đầu tư',values:combine(cfo.a,cp.a,(x,y)=>y>0?100*x/y:null),note:'Khả năng tài trợ đầu tư bằng dòng tiền kinh doanh; không phải CFO/LNST. Không tính khi chi đầu tư ≤ 0.'},note};
+  b.finSeriesQ={labels:f.quarterly,bars:[{label:'CFO',values:cfo.q,color:'blue'},{label:'Chi đầu tư',values:cp.q,color:'green'}],ratio:{values:combine(cfo.q,cp.q,(x,y)=>y>0?100*x/y:null)}};
+  addRow(cashAfter.l,cashAfter.a,cashAfter.q);
+ }else if(ticker==='HPG')add('Funding','CFO và chi đầu tư · tỷ VND',[series(cfo),series(cp)],'tỷ VND',note);
+ add('CashAfter','Dòng tiền sau chi đầu tư · tỷ VND',[series(cashAfter)],'tỷ VND',note);
+}
+if(ticker==='MWG'){
+ const note='Nguồn: bảng tài chính hiện có. Chuỗi năm 2021–2023 chưa đủ dữ liệu, hiển thị —; không điền 0 hoặc nội suy. Ngày tồn kho/CCC giữ phương pháp công bố của nguồn, chưa tính lại. '+f.src;
+ // Keep a five-year axis, showing missing years explicitly.
+ for(const label of ['Số ngày tồn kho','Chu kỳ tiền mặt (CCC)']){const r=row(label);if(r)add(label==='Số ngày tồn kho'?'Inventory':'CCC',label+' · ngày',[{label:r.l,a:[null,null,null,...r.a],q:r.q}],'ngày',note);}
+ const r=row('Biên lợi nhuận từ HĐKD');if(r)add('OperatingMargin','Biên lợi nhuận HĐKD · %',[{label:r.l,a:[null,null,null,...r.a],q:r.q}],'%',note);
+}
+if(['PVT','PVD'].includes(ticker)){
+ const x=window.FINANCE_INPUTS[ticker];
+ const net=row('Nợ vay ròng')||addRow('Nợ vay ròng',combine(combine(row('Vay ngắn hạn').a,row('Vay dài hạn').a,(a,b)=>a+b),combine(row('Tiền & tương đương').a,row('Đầu tư TC ngắn hạn').a,(a,b)=>a+b),(a,b)=>a-b),combine(combine(row('Vay ngắn hạn').q,row('Vay dài hạn').q,(a,b)=>a+b),combine(row('Tiền & tương đương').q,row('Đầu tư TC ngắn hạn').q,(a,b)=>a+b),(a,b)=>a-b));
+ addRow('Chi phí đi vay CF',x.interest);
+ const e=addRow('EBITDA (PBT + khấu hao CF + chi phí vay)',x.ebitdaExcel);
+ const leverage=addRow('Nợ ròng / EBITDA năm',combine(net.a,e.a,(a,b)=>b>0?a/b:null),null,'x');
+ const cover=addRow('EBIT proxy / chi phí vay',combine(x.pbt,x.interest,(a,b)=>b>0?(a+b)/b:null),null,'x');
+ add('Leverage','Nợ ròng / EBITDA năm · lần',[series(leverage)],'x','Nợ ròng = vay NH + DH − tiền − ĐTTC NH. EBITDA = PBT + khấu hao CF + chi phí đi vay CF (mô hình Tài chính dòng 5, Raw data 19 + 173 + 178). Tự tính ratio, không dùng Tài chính dòng 31 vốn chỉ trừ tiền. Chưa đủ quý để tính EBITDA TTM.',false);
+ if(ticker==='PVD')add('BorrowingCost','Chi phí đi vay CF · tỷ VND',[{label:'Chi phí đi vay',a:x.interest}],'tỷ VND',x.source+' dòng 25; không phải toàn bộ chi phí tài chính.',false);
+ add('Coverage','EBIT proxy / chi phí vay · lần',[series(cover)],'x','EBIT proxy = PBT + chi phí đi vay CF. Chia chi phí đi vay cùng năm; không phải DSCR. '+x.source,false);
+}
+if(ticker==='GAS'){
+ const r=row('Biên gộp');add('Margin','Biên lợi nhuận gộp hợp nhất · %',[series(r)],'%','Biên gộp chịu tác động cơ cấu khí khô/LNG/LPG; không suy biên từng sản phẩm từ tỷ lệ hợp nhất. '+f.src);
+}
+if(ticker==='FPT'){
+ const a=d.fpt.actuals;
+ add('ITMargin','Biên LNTT dịch vụ CNTT · %',[{label:'CNTT nước ngoài',a:a.foreignPBTmargin},{label:'CNTT trong nước',a:a.domesticPBTmargin}],'%','mô hình: LNTT từng mảng / doanh thu cùng mảng. Không dùng LNST hợp nhất hay biên FOX làm biên CNTT. 2021–2025 thực tế.',false);
+ const j=row('Lợi nhuận liên doanh/liên kết'),p=row('LNTT');
+ const jr=addRow('Liên doanh/liên kết / LNTT',combine(j.a,p.a,(a,b)=>b>0?100*a/b:null),combine(j.q,p.q,(a,b)=>b>0?100*a/b:null),'p');
+ add('Associates','Liên doanh/liên kết / LNTT · %',[series(jr)],'%','LDLK / LNTT cùng kỳ. Từ 2026 FOX dùng vốn chủ sở hữu, tạo thay đổi phạm vi hợp nhất; không coi tăng tỷ trọng này là tăng trưởng hữu cơ. Nguồn mô hình và FPT IR.');
+ d.financialProfile.detailRows=f.sections[0].rows.filter(r=>['Giá vốn','Thuế hiện hành','Thuế hoãn lại','Lợi nhuận khác'].includes(r.l));
+ f.sections[0].rows=f.sections[0].rows.filter(r=>!d.financialProfile.detailRows.includes(r));
+}
+d.financialProfile.charts=specs;
+document.addEventListener('DOMContentLoaded',()=>{
+ const host=document.getElementById('bs');if(!host)return;
+ const secondary=document.createElement('details');secondary.id='financeSupplemental';secondary.className='card';secondary.style.marginTop='16px';
+ const summary=document.createElement('summary');summary.className='sub';summary.textContent='Chỉ tiêu đối chiếu & chi tiết';secondary.appendChild(summary);
+ const extra=document.createElement('div');extra.className='grid g2';extra.style.minWidth='0';extra.style.marginTop='16px';extra.id='financeProfileCharts';
+ host.appendChild(extra);host.appendChild(secondary);
+ function move(id){const card=document.getElementById(id)?.closest('.card');if(card)secondary.appendChild(card);}
+ if(['MWG','PVT','PVD','GAS','FPT'].includes(ticker))move('finRatioChart');
+ // Remove CAPEX-only duplicates; retain debt and borrowing charts.
+ for(const id of ({PVT:['pvtCapex'],GAS:['gasCapex']}[ticker]||[])){const card=document.getElementById(id)?.closest('.card');if(card)card.hidden=true;}
+ if(ticker==='PVT'){move('pvtInterest');move('pvtRate');}
+ if(ticker==='PVD')move('pvdInterest');
+ const cols=['#2938A8','#59C5C8','#861C52','#FFD45D'];
+ function draw(s,target=extra){
+  const card=document.createElement('div');card.className='card';card.innerHTML='<h3 class="sub">'+esc(s.title)+'</h3><div class="chart tall"><canvas id="'+s.id+'"></canvas></div><div class="note">'+esc(s.note)+'</div>';target.appendChild(card);
+  const datasets=k=>s.ss.map((r,i)=>({label:r.label,data:r[k],borderColor:cols[i%cols.length],backgroundColor:cols[i%cols.length],borderWidth:2.5,pointRadius:3,tension:.15}));
+  const labels=ticker==='MWG'?['2021','2022','2023','2024','2025']:f.annual;
+  const spec={def:'y',y:{labels,datasets:datasets('a')},cfg:(labels,datasets)=>({type:'line',data:{labels,datasets},options:baseOpts({scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:'#EEF0F6'},ticks:{callback:v=>fmt(v,1)+(s.unit==='%'?'%':s.unit==='x'?'x':'')}}}})})};
+  if(s.quarterly&&s.ss.every(r=>r.q?.length===f.quarterly.length)&&s.ss.some(r=>r.q.some(v=>v!=null)))spec.q={labels:f.quarterly,datasets:datasets('q')};
+  mkTS(s.id,spec);
+ }
+ specs.forEach(s=>draw(s,(s.id.endsWith('Coverage')||s.id.endsWith('BorrowingCost'))?secondary:extra));
+ if(ticker==='GAS'&&originalFinancial){draw({id:'gasFinanceFinancialIncome',title:'Thu nhập và chi phí tài chính · tỷ VND',ss:originalFinancial.bars.slice(0,2).map(x=>({label:x.label,a:x.values})),unit:'tỷ VND',note:originalFinancial.note+' Doanh thu tài chính gồm nhiều khoản, không đồng nhất lãi tiền gửi.',quarterly:false},secondary);}
+ if(d.financialProfile.detailRows?.length){const box=document.createElement('div');box.className='tbl-wrap';box.innerHTML='<table class="tbl"><thead><tr><th>Chi tiết KQKD · tỷ VND</th>'+f.annual.map(v=>'<th>'+esc(v)+'</th>').join('')+f.quarterly.map(v=>'<th>'+esc(v)+'</th>').join('')+'</tr></thead><tbody>'+d.financialProfile.detailRows.map(r=>'<tr><td>'+esc(r.l)+'</td>'+[...r.a,...r.q].map(v=>'<td class="num">'+(v==null?'—':fmt(v,0))+'</td>').join('')+'</tr>').join('')+'</tbody></table>';secondary.appendChild(box);}
+ if(!secondary.children[1])secondary.hidden=true;
+ if(!specs.length)extra.hidden=true;
+ applyChartTips();
+});
+})();
+
+</script>
+<script>
+/* Shared analyst entry presentation. Keep the original input nodes and model handlers. */
+(()=>{
+  const round=v=>v===''?v:Number.isFinite(Number(v))?String(Number(Number(v).toFixed(2))):v;
+  function convertGrid(grid){
+    const labels=[...grid.children].filter(x=>x.matches('label')&&x.querySelector('input[type="number"]'));
+    if(!labels.length)return;
+    const rows=new Map(),periods=new Set();
+    labels.forEach(label=>{
+      const input=label.querySelector('input'),copy=label.cloneNode(true);copy.querySelector('input').remove();
+      const title=copy.textContent.trim().replace(/\s+/g,' '),match=title.match(/\b(202[6-9]F?|Q[34])\b/);
+      const period=match?(match[0].startsWith('202')?match[0].replace(/F?$/,'F'):match[0]):'Giả định';
+      const name=match?title.replace(match[0],'').replace(/\s+/g,' ').trim():title;
+      periods.add(period);
+      // Distinct parameters with identical labels must remain separate editable rows.
+      let key=name;if(rows.get(key)?.has(period))key=name+' · '+(input.dataset.path||input.dataset.key||rows.size);
+      if(!rows.has(key))rows.set(key,new Map());rows.get(key).set(period,{input,label,title});
+    });
+    const columns=[...periods].sort((a,b)=>a==='Giả định'?1:b==='Giả định'?-1:a.localeCompare(b));
+    const wrap=document.createElement('div');wrap.className='tbl-wrap';
+    const table=document.createElement('table');table.className='analyst-table';
+    const head=table.insertRow();['Driver / giả định',...columns].forEach((title,i)=>{const th=document.createElement('th');th.textContent=title;if(i)th.className='num';head.append(th)});
+    rows.forEach((values,name)=>{
+      const row=table.insertRow();row.insertCell().textContent=name;
+      columns.forEach(period=>{const cell=row.insertCell();cell.className='num';const field=values.get(period);if(!field){cell.textContent='—';return;}
+        field.input.setAttribute('aria-label',field.title);field.input.classList.add('cell');cell.append(field.input);
+      });
+    });
+    labels.forEach(label=>label.remove());wrap.append(table);
+    grid.classList.add('analyst-grid');grid.prepend(wrap);
+  }
+  function refresh(){
+    document.querySelectorAll('.fpt-inputs:not(.analyst-grid),.pow-inputs:not(.analyst-grid),.ree-inputs:not(.analyst-grid),.pvd-fields:not(.analyst-grid)').forEach(convertGrid);
+    const scope=document.querySelector('#fsModel')||document.querySelector('#val');
+    if(!scope)return;
+    scope.querySelectorAll('table').forEach(table=>{if(table.querySelector('input[type="number"]')){table.classList.add('analyst-table');const count=table.rows[0]?.cells.length||2;table.style.minWidth=Math.max(520,Math.ceil((count-1)*110/.56))+'px'}});
+    scope.querySelectorAll('input[type="number"]').forEach(input=>{
+      if(input===document.activeElement)return;
+      input.value=round(input.value);
+    });
+  }
+  let queued=false;
+  const schedule=()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;refresh()})};
+  document.addEventListener('DOMContentLoaded',()=>{
+    refresh();
+    const scope=document.querySelector('#fsModel')||document.querySelector('#val');
+    if(scope)new MutationObserver(records=>{if(records.some(r=>r.addedNodes.length))schedule()}).observe(scope,{childList:true,subtree:true});
+  });
+  document.addEventListener('click',schedule);
+  document.addEventListener('focusout',e=>{
+    const input=e.target;if(!input.matches('input[type="number"]')||!input.closest('#fsModel,#val'))return;
+    const value=round(input.value);if(value===input.value)return;input.value=value;
+    input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));
+  });
+})();
+
+</script>
+<script>
+/* Historical anchors for forecast drivers. Only comparable, actual series are offered. */
+(()=>{
+  const d=window.PVS_DATA,t=d?.meta?.ticker;
+  if(!d||!t)return;
+  const exact=(x)=>x!=null&&Number.isFinite(Number(x));
+  const series=(years,values,unit='%')=>years&&values&&years.length===values.length?{years,values,unit}:null;
+  const margin=(revenue,profit)=>revenue?.map((v,i)=>exact(v)&&Number(v)>0&&exact(profit?.[i])?Number(profit[i])/Number(v)*100:null);
+  const growth=revenue=>revenue?.map((v,i)=>i&&exact(v)&&exact(revenue[i-1])&&Number(revenue[i-1])>0?(Number(v)/Number(revenue[i-1])-1)*100:null);
+  const bySegment=(i,kind='growth',profit)=>{const s=d.segments;if(i<0||!s?.years)return null;return series(s.years,kind==='growth'?growth(s.revenue?.[i]):kind==='margin'?margin(s.revenue?.[i],profit||s.grossProfit?.[i]):kind==='revenue'?s.revenue?.[i]:profit?.[i],kind==='revenue'||kind==='profit'?'tỷ':'%')};
+  function reference(input,row){
+    const k=input.dataset.key,path=input.dataset.path||'',label=(input.getAttribute('aria-label')||''),s=d.segments;
+    if(t==='QNS'&&input.dataset.group==='operations')return bySegment(Number(k.match(/\d+$/)?.[0]),k.startsWith('growth')?'growth':'margin');
+    if(t==='VNM'&&input.dataset.group==='operations'){
+      const i=k.startsWith('dom')?0:1,a=d.vnm.actuals;
+      return series(a.years,k.endsWith('Growth')?growth(a.segRevenue[i]):margin(a.segRevenue[i],a.segGP[i]));
+    }
+    if(t==='PVS'&&label.includes(' · ')){
+      const name=label.split(' · ')[0],i=s.names.indexOf(name),a=s.periods?.annual;
+      if(i<0||!a)return null;
+      return series(a.labels,label.includes('Tăng trưởng')?growth(a.revenue[i]):margin(a.revenue[i],a.grossProfit[i]));
+    }
+    if(t==='MWG'&&row?.closest('#modelInputs')){
+      const index=[...row.parentElement.children].indexOf(row)-1,h=d.model?.hist;if(!h)return null;
+      const vals={0:growth(h.rev_ict),1:h.bhx_stores,2:h.bhx_rps,3:margin(h.rev_ict,h.np_ict),4:margin(h.rev_bhx,h.np_bhx),5:h.rev_other,6:h.np_pharm,7:h.np_other,8:h.rev_ict}[index];
+      return series(h.cols,vals,[0,3,4].includes(index)?'%':index===2?'triệu':index===1?'cửa hàng':'tỷ');
+    }
+    if(t==='FPT'&&input.dataset.path){
+      const a=d.fpt.actuals,segments=s,part=path.split('.'),i=Number(part.at(-1));let vals=null,unit='%';
+      if(part[0]==='geoGrowth')vals=growth(a.geo[i]);
+      else if(path==='domGrowth')vals=growth(segments.revenue[1]);
+      else if(path==='foreignPBT')vals=a.foreignPBTmargin;
+      else if(path==='domesticPBT')vals=a.domesticPBTmargin;
+      else if(part[0]==='foxGrowth26'||part[0]==='foxGrowth27')vals=growth(a.foxServices[i]);
+      else if(path==='eduGrowth')vals=growth(a.eduStandalone);
+      else if(part[0]==='foxGP')vals=a.foxGP;
+      return series(a.years,vals,unit);
+    }
+    if(t==='REE'&&input.dataset.group==='operations'){
+      const a=d.ree.actuals,p=path.split('.'),i=Number(p.at(-1)),kind=p[0];let vals=null,unit='%';
+      if(kind==='revenue')return bySegment(i,'revenue');
+      if(kind==='netMargin')vals=a.segmentMargins[i];
+      else if(kind==='energyProfit')return bySegment(2,'profit',s.grossProfit[2]);
+      else if(kind==='waterProfit')return bySegment(3,'profit',s.grossProfit[3]);
+      else if(kind==='officeRevenue'){vals=a.officeRevenue;unit='tỷ';}
+      else if(kind==='officeNetMargin')vals=a.officeNetMargin;
+      return series(a.years,vals,unit);
+    }
+    if(t==='HPG'&&input.dataset.hpgKey){
+      const key=input.dataset.hpgKey,profit=s.profit;
+      if(key==='steelMargin')return bySegment(0,'margin',profit[0]);
+      if(key==='otherRevenue')return series(s.years,s.years.map((_,i)=>s.revenue[1][i]+s.revenue[2][i]),'tỷ');
+      if(key==='otherNpat')return series(s.years,s.years.map((_,i)=>profit[1][i]+profit[2][i]),'tỷ');
+    }
+    if(t==='GAS'){
+      const a=d.gasDetail;
+      if(input.classList.contains('gas-margin'))return series(s.years,s.marginSeries.map(x=>x.values[s.names[Number(input.dataset.seg)]]));
+      const values={dryVol:a.volume.gasSold.map(x=>x/1000),lpgVol:a.volume.lpg,condVol:a.volume.condensate,lpgPrice:a.price.lpg,condPrice:a.price.condensate,cng:s.revenue[3],transport:s.revenue[5],other:s.revenue[6]};
+      if(input.classList.contains('gas-input')&&values[k])return series(k==='lpgPrice'||k==='condPrice'?a.price.years:s.years,values[k],['lpgVol','condVol','dryVol'].includes(k)?'sản lượng':['lpgPrice','condPrice'].includes(k)?'giá':'tỷ');
+    }
+    if(t==='PVT'&&input.classList.contains('pvt-model-input')){
+      const id=input.dataset.id,key=input.dataset.key;
+      if(key==='revenue'){const pos={fso:1,trade:2,other:3}[id];if(pos!=null)return bySegment(pos,'revenue');}
+    }
+    if(t==='PVD'&&path){
+      const p=path.split('.'),i=Number(p[1]);
+      if(p[0]==='margin')return bySegment(i,'margin');
+      if(path==='trade')return bySegment(1,'revenue');
+      if(path==='well')return bySegment(2,'revenue');
+    }
+    if(t==='POW'&&input.dataset.group==='operations'){
+      const p=path.split('.'),kind=p[0],i=Number(p.at(-1)),a=d.pow.actual,y=s.years;
+      if(kind==='qc')return series(y,a.qc[i],'triệu kWh');
+      if(kind==='ratio')return series(y,margin(a.volume[i],a.qc[i]));
+      if(kind==='price26')return series(y,a.revenue[i]?.map((v,j)=>exact(v)&&exact(a.volume[i]?.[j])&&a.volume[i][j]>0?v/a.volume[i][j]:null),'nghìn đ/kWh');
+    }
+    return null;
+  }
+  function choices(ref){
+    if(!ref)return [];
+    const rows=ref.years.map((year,i)=>({label:year,value:ref.values[i]})).filter(x=>/^\d{4}$/.test(String(x.label))&&exact(x.value));
+    for(const n of [2,3,5]){
+      const latest=ref.years.slice(-n),values=ref.values.slice(-n);
+      if(latest.length===n&&values.length===n&&values.every(exact))rows.push({label:`Bình quân ${latest[0]}–${latest.at(-1)}`,value:values.reduce((a,b)=>a+Number(b),0)/n});
+    }
+    return rows;
+  }
+  const fmt=(v,unit)=>Number(v).toLocaleString('vi-VN',{maximumFractionDigits:2})+(unit==='%'?'%':'');
+  function decorate(table){
+    if(table.dataset.driverHistory==='off')return;
+    if(table.dataset.driverHistory==='1'&&table.querySelector('select.driver-history')||table.closest('[hidden],#bs,#seg'))return;
+    const rows=[...table.querySelectorAll('tr')].filter(r=>r.querySelector('input[type="number"]'));
+    const items=rows.map(row=>{
+      const all=[...row.querySelectorAll('input[type="number"]')];
+      const inputs=t==='PVT'?all.filter(input=>input.dataset.key==='revenue'):all;
+      const ref=inputs.length?reference(inputs[0],row):null;
+      const opts=choices(ref).filter(o=>inputs.every(input=>{
+        const min=input.getAttribute('min'),max=input.getAttribute('max');
+        return (min==null||o.value>=Number(min))&&(max==null||o.value<=Number(max));
+      }));
+      return opts.length?{row,inputs,positions:inputs.map(input=>all.indexOf(input)),opts,unit:ref.unit}:null;
+    });
+    if(!items.some(Boolean))return;
+    const header=table.querySelector('tr');if(!header)return;
+    const reuse=['QNS','VNM'].includes(t)&&/Thực tế 2025|Mốc lịch sử/.test(header.children[1]?.textContent||'');
+    if(reuse)header.children[1].textContent='Mốc lịch sử';
+    else {const th=document.createElement('th');th.textContent='Mốc lịch sử';header.insertBefore(th,header.children[1]||null);}
+    rows.forEach((row,i)=>{
+      const td=reuse?row.children[1]:document.createElement('td'),item=items[i];
+      if(reuse&&!item)return;
+      if(item){
+        const select=document.createElement('select');select.className='driver-history';select.setAttribute('aria-label','Chọn mốc lịch sử: '+row.cells[0]?.textContent.trim());
+        const selected=item.opts.find(o=>item.inputs.every(input=>Math.abs(Number(input.value)-Number(o.value))<.005));
+        const custom=document.createElement('option');custom.value='custom';custom.textContent='Nhập riêng';select.append(custom);
+        item.opts.forEach((o,j)=>{const option=document.createElement('option');option.value=String(j);option.textContent=o.label+' · '+fmt(o.value,item.unit);select.append(option)});
+        select.value=selected?String(item.opts.indexOf(selected)):'custom';
+        let applying=false;
+        select.addEventListener('change',()=>{
+          if(select.value==='custom'){item.inputs[0]?.focus();return;}
+          const chosen=item.opts[Number(select.value)];if(!chosen)return;
+          const value=String(Number(Number(chosen.value).toFixed(2)));
+          const rowIndex=[...table.querySelectorAll('tr')].indexOf(row);
+          applying=true;
+          item.inputs.forEach((_,i)=>{
+            const input=table.querySelectorAll('tr')[rowIndex]?.querySelectorAll('input[type="number"]')[item.positions[i]];
+            if(!input)return;
+            if(input.min!==''&&Number(value)<Number(input.min)||input.max!==''&&Number(value)>Number(input.max))return;
+            input.value=value;
+            input.dispatchEvent(new Event('input',{bubbles:true}));
+            input.dispatchEvent(new Event('change',{bubbles:true}));
+          });
+          applying=false;
+        });
+        item.inputs.forEach(input=>input.addEventListener('input',()=>{if(!applying&&select.isConnected)select.value='custom'}));
+        td.replaceChildren(select);
+      }else td.textContent='—';
+      if(!reuse)row.insertBefore(td,row.children[1]||null);
+    });
+    table.dataset.driverHistory='1';table.classList.add('driver-history-table');
+  }
+  const style=document.createElement('style');style.textContent='.driver-history-table .driver-history{width:100%;min-width:155px;max-width:245px;border:1px solid #cbd1e0;border-radius:6px;padding:4px 6px;background:#fff;color:#1D2678;font:inherit;font-size:12px}.driver-history-table th:nth-child(2){min-width:165px}@media(max-width:600px){#fsModel .info::after{position:fixed;left:14px;right:14px;bottom:16px;top:auto;width:auto;max-width:calc(100vw - 28px);box-sizing:border-box}}';document.head.append(style);
+  let scheduled=false;
+  const refresh=()=>{scheduled=false;const scope=document.getElementById('fsModel');if(scope)scope.querySelectorAll('table').forEach(decorate)};
+  const schedule=()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(refresh)};
+  document.addEventListener('DOMContentLoaded',()=>{refresh();const scope=document.getElementById('fsModel');if(scope)new MutationObserver(records=>{if(records.some(r=>r.addedNodes.length))schedule()}).observe(scope,{childList:true,subtree:true});});
+})();
+
+</script>
+<script>
+/* One financial question per chart: underlying amounts + derived ratio. */
+(function(){
+'use strict';
+const fmt=v=>v==null?'—':Number(v).toLocaleString('vi-VN',{maximumFractionDigits:2});
+document.addEventListener('DOMContentLoaded',()=>{
+ const d=window.PVS_DATA,b=d.balance||{},fs=b.finSeries,q=b.finSeriesQ;
+ if(!fs?.bars?.length||!fs.ratio?.values?.length)return;
+ const financial=fs.bars.some(x=>/tài chính|DT.?TC|Doanh thu TC/i.test(x.label))&&/tài chính|DT.?TC|DTTC/i.test(fs.ratio.label||'');
+ const funding=fs.bars.some(x=>/^CFO$/i.test(x.label))&&fs.bars.some(x=>/chi đầu tư|CAPEX/i.test(x.label))&&/CFO.*chi đầu tư|CFO.*CAPEX/i.test(fs.ratio.label||'');
+ if(!financial&&!funding)return;
+ const cv=document.getElementById('finChart');if(!cv)return;
+ const retain=bars=>financial?bars.filter(x=>!/LNST|lợi nhuận sau thuế/i.test(x.label)):bars;
+ const build=s=>({labels:s.labels,datasets:[...retain(s.bars).map((x,i)=>({type:'bar',label:x.label,data:x.values,yAxisID:'y',backgroundColor:['#2938A8','#59C5C8','#FFD45D'][i],borderRadius:3,maxBarThickness:28})),{type:'line',label:fs.ratio.label,data:s.ratio.values,yAxisID:'ratio',borderColor:'#861C52',backgroundColor:'#861C52',borderWidth:2.5,pointRadius:3,tension:0,spanGaps:false,order:-1}]});
+ const spec={def:'y',y:build(fs),cfg:(labels,datasets)=>({type:'bar',financialCombo:true,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y)+(c.dataset.yAxisID==='ratio'?'%':' tỷ VND')}}},scales:{x:{stacked:false,grid:{display:false}},y:{position:'left',stacked:false,beginAtZero:true,title:{display:true,text:'Tỷ VND'},ticks:{callback:fmt},grid:{color:'#EEF0F6'}},ratio:{position:'right',beginAtZero:true,title:{display:true,text:'%'},ticks:{callback:v=>fmt(v)+'%'},grid:{drawOnChartArea:false}}}}})};
+ if(q?.bars?.length&&q.ratio?.values?.length===q.labels.length)spec.q=build(q);
+ const heading=document.getElementById('finTitle');if(heading)heading.textContent=financial?'Thu nhập tài chính & tỷ trọng trong lợi nhuận':'CFO, chi đầu tư & tỷ lệ tài trợ';
+ const note=document.getElementById('finNote');if(note){note.textContent=[fs.note,fs.ratio.note,'Cột: tỷ VND, trục trái. Đường: '+fs.ratio.label+' (%), trục phải. Giá trị và tỷ lệ cùng kỳ; các cột không cộng thành một tổng.'].filter(Boolean).join(' ');note.className='note';delete note.dataset.done;}
+ const old=document.getElementById('finRatioChart');if(old){if(charts.finRatioChart)charts.finRatioChart.destroy();delete charts.finRatioChart;delete chartBase.finRatioChart;delete TSREG.finRatioChart;const card=old.closest('.card'),parent=card?.parentElement;card?.remove();if(parent?.classList.contains('grid')&&![...parent.children].some(x=>!x.hidden&&x.style.display!=='none'))parent.style.display='none';if(parent?.tagName==='DETAILS'&&parent.children.length===1)parent.hidden=true;}
+ mkTS('finChart',spec);applyChartTips();
+ window.FINANCE_COMBO_AUDIT={ticker:d.meta.ticker,kind:financial?'financial-income':'investment-funding',labels:spec.y.datasets.map(x=>x.label),ratio:fs.ratio.label};
+});
+})();
+
+</script>
+<script>
+// Business segment period controls: keep Quarter/Year selectable, including missing data.
+(function(){
+  const originalAvail=tsAvail, originalMkTS=mkTS;
+  const hasData=series=>!!series?.labels?.length&&series.datasets?.some(d=>d.data?.some(v=>v!=null&&Number.isFinite(v)));
+  const isSegment=id=>!!document.getElementById(id)?.closest('#seg');
+  const style=document.createElement('style');
+  style.textContent='.segment-no-data{height:100%;display:flex;align-items:center;justify-content:center;text-align:center;color:#697284;font-size:14px;padding:24px;box-sizing:border-box}@media(max-width:600px){#seg .info::after{position:fixed;left:14px;right:14px;bottom:16px;top:auto;width:auto;max-width:calc(100vw - 28px);box-sizing:border-box}}';
+  document.head.appendChild(style);
+
+  tsAvail=function(spec){
+    return spec.segmentPeriods?['m','q','y'].filter(p=>p!=='m'||hasData(spec.m)):originalAvail(spec);
+  };
+  mkTS=function(id,spec){
+    if(!isSegment(id))return originalMkTS(id,spec);
+    const prepared={...spec,segmentPeriods:true};
+    for(const p of ['q','y'])if(!hasData(prepared[p]))prepared[p]={labels:[],datasets:[]};
+    // Open on actual data; a saved or explicitly selected missing period stays selected.
+    if(!hasData(prepared[prepared.def]))prepared.def=['m','q','y'].find(p=>hasData(prepared[p]))||'y';
+    TSREG[id]=prepared;
+    const state=tsState(id,prepared),canvas=document.getElementById(id),box=canvas.closest('.chart');
+    let empty=box.querySelector('.segment-no-data');
+    const ctl=canvas.closest('.card')?.querySelector('h3.sub .ctl');
+    if(!hasData(prepared[state.p])){
+      if(charts[id]){charts[id].destroy();delete charts[id];}
+      canvas.style.display='none';
+      if(!empty){empty=document.createElement('div');empty.className='segment-no-data';empty.setAttribute('role','status');box.appendChild(empty);}
+      empty.textContent='Không có dữ liệu theo '+TS_NAME[state.p];
+      if(ctl)ctl.style.visibility='hidden';
+      tsControls(id,prepared,state);
+      return;
+    }
+    canvas.style.display='';
+    if(empty)empty.remove();
+    if(ctl)ctl.style.visibility='';
+    return originalMkTS(id,prepared);
+  };
+
+  // Register legacy annual charts too. Split mixed year/quarter labels without deriving numbers.
+  document.addEventListener('DOMContentLoaded',()=>{
+    document.querySelectorAll('#seg .chart canvas').forEach(canvas=>{
+      const id=canvas.id,base=chartBase[id];
+      if(TSREG[id]){mkTS(id,TSREG[id]);return;}
+      if(!base||['pie','doughnut'].includes(base.type))return;
+      const spec={def:'y',cfg:(labels,datasets)=>({...deep(base),data:{labels,datasets}})};
+      for(const [p,pattern] of [['y',/^\d{4}$/],['q',/^(?:Q[1-4]\/\d{2,4}|\d{4}Q[1-4])$/]]){
+        const indices=base.data.labels.flatMap((label,i)=>pattern.test(String(label))?[i]:[]);
+        if(indices.length)spec[p]={labels:indices.map(i=>base.data.labels[i]),datasets:base.data.datasets.map(d=>({...deep(d),data:indices.map(i=>d.data[i])}))};
+      }
+      if(spec.y||spec.q)mkTS(id,spec);
+    });
+  });
+})();
+
+</script>
+<script>
+/* Secondary notes and segment drivers use the shared icon-note presentation. */
+(function(){
+'use strict';
+let serial=0,active=null,hideTimer;
+const popup=document.createElement('div');popup.className='icon-note-popup';popup.hidden=true;popup.setAttribute('role','tooltip');
+function close(){popup.hidden=true;if(active)active.setAttribute('aria-expanded','false');active=null;}
+function show(button,content){clearTimeout(hideTimer);if(!popup.isConnected)document.body.append(popup);if(active&&active!==button)active.setAttribute('aria-expanded','false');active=button;popup.id=button.getAttribute('aria-describedby');popup.replaceChildren(content.cloneNode(true));popup.hidden=false;button.setAttribute('aria-expanded','true');const r=button.getBoundingClientRect(),width=Math.min(400,window.innerWidth-24);popup.style.width=width+'px';popup.style.left=Math.max(12,Math.min(r.left,window.innerWidth-width-12))+'px';const height=popup.getBoundingClientRect().height;popup.style.top=(r.bottom+8+height>window.innerHeight?Math.max(12,r.top-height-8):r.bottom+8)+'px';}
+function icon(content,label){const button=document.createElement('button');button.type='button';button.className='icon-note';button.textContent='ⓘ';button.setAttribute('aria-label',label||'Xem ghi chú');button.setAttribute('aria-describedby','icon-note-tip-'+(++serial));button.setAttribute('aria-expanded','false');button.addEventListener('mouseenter',()=>show(button,content));button.addEventListener('focus',()=>show(button,content));button.addEventListener('mouseleave',()=>{hideTimer=setTimeout(close,180);});button.addEventListener('blur',()=>{hideTimer=setTimeout(close,180);});let wasOpen=false;button.addEventListener('pointerdown',()=>{wasOpen=active===button&&!popup.hidden;});button.addEventListener('click',e=>{if(e.detail===0?active===button&&!popup.hidden:wasOpen)close();else show(button,content);});return button;}
+function refresh(){
+ const drivers=window.PVS_DATA?.segments?.drivers||{};
+ document.querySelectorAll('#segTable tr > td:first-child').forEach(cell=>{
+  if(cell.dataset.driverIcon)return;
+  const name=(cell.querySelector('b')?.textContent||cell.textContent).trim(),text=drivers[name];
+  if(!text)return;
+  const content=document.createElement('div');content.textContent=text;
+  const original=content.cloneNode(true);original.className='icon-note-original';
+  cell.append(' ',icon(content,'Driver '+name),original);cell.dataset.driverIcon='1';
+ });
+ const driverCard=document.getElementById('segDriversCard');
+ if(driverCard){
+  driverCard.style.display='none';
+  const grid=driverCard.parentElement;
+  if(grid?.classList.contains('grid')){
+   const cards=[...grid.children].filter(x=>x.classList.contains('card'));
+   const visible=cards.filter(x=>x.style.display!=='none'&&!x.hidden);
+   if(!visible.length)grid.style.display='none';
+   else if(visible.length===1)visible[0].style.gridColumn='1/-1';
+  }
+ }
+ document.querySelectorAll('.card > .note,.card > .src,.card > .tip-print').forEach(note=>{
+  if(note.dataset.iconNote||!note.textContent.trim()||note.querySelector('input,select,button')||note.hasAttribute('data-status')||note.closest('.icon-note-popup'))return;
+  // Existing chart notes already have an icon. Keep that presentation.
+  if(note.dataset.done)return;
+  const content=document.createElement('div');content.innerHTML=note.innerHTML;const button=icon(content,'Ghi chú: '+note.textContent.trim());note.dataset.iconNote='1';note.classList.add('icon-note-original');const heading=note.parentElement.querySelector(':scope > h3.sub');if(heading){heading.append(' ',button);}else note.before(button);
+ });
+}
+popup.addEventListener('mouseenter',()=>clearTimeout(hideTimer));popup.addEventListener('mouseleave',close);popup.addEventListener('focusin',()=>clearTimeout(hideTimer));popup.addEventListener('focusout',close);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')close();});window.addEventListener('scroll',close,true);window.addEventListener('resize',close);
+document.addEventListener('DOMContentLoaded',()=>{refresh();let queued=false;new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;refresh();});}).observe(document.body,{childList:true,subtree:true});});
+})();
+
+</script>
+<script>
+/* Related financial charts first, income statement review next, valuation multiples last. */
+(function(){
+'use strict';
+document.addEventListener('DOMContentLoaded',()=>{
+ const host=document.getElementById('bs');if(!host)return;
+ const rows=window.PVS_DATA.financialProfile?.layout?.chartRows||[];
+ const primary=document.createElement('div');primary.id='financePrimaryCharts';
+ const previousParents=new Set(),moved=new Set();
+ for(const ids of rows){
+  const cards=ids.map(id=>document.getElementById(id)?.closest('.card'))
+   .filter(card=>card&&host.contains(card)&&!card.hidden&&card.style.display!=='none'&&!moved.has(card));
+  if(!cards.length)continue;
+  const row=document.createElement('div');row.className='grid '+(cards.length>1?'g2':'g1');row.style.marginTop='16px';
+  for(const card of cards){
+   previousParents.add(card.parentElement);moved.add(card);
+   card.style.gridColumn='';card.style.marginTop='';card.querySelector('.chart')?.classList.add('tall');
+   row.appendChild(card);
+  }
+  primary.appendChild(row);
+ }
+ if(primary.children.length){
+  const kpis=document.getElementById('bsKpi');host.insertBefore(primary,kpis?.nextElementSibling||host.firstChild);
+ }
+ for(const parent of previousParents){
+  if(parent!==host&&parent.classList.contains('grid')&&![...parent.children].some(c=>!c.hidden&&c.style.display!=='none'))parent.style.display='none';
+ }
+ for(const id of ['isBridgeCard','finTableCard','multiplesRow']){
+  const block=document.getElementById(id);if(block&&host.contains(block))host.appendChild(block);
+ }
+});
+})();
+
+</script>
 </body>
 </html>
