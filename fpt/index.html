@@ -2138,9 +2138,9 @@ if(cfo&&capex){
 }
 if(ticker==='PVT'&&d.capexDebt?.depreciation){
  add('CapexDepreciation','CAPEX thực hiện & khấu hao · tỷ VND',[
-  {label:'CAPEX thực hiện',a:d.capexDebt.capex},
-  {label:'Khấu hao',a:d.capexDebt.depreciation}
- ],'tỷ VND','CAPEX: tiền chi mua/xây TSCĐ và tài sản dài hạn trong lưu chuyển tiền tệ. Khấu hao: điều chỉnh khấu hao TSCĐ/BĐSĐT trong CFO gián tiếp; cùng năm, không phải dòng tiền đầu tư.',false);
+  {label:'CAPEX thực hiện',a:d.capexDebt.capex,q:d.capexDebt.quarterly.capex},
+  {label:'Khấu hao',a:d.capexDebt.depreciation,q:d.capexDebt.quarterly.depreciation}
+ ],'tỷ VND','CAPEX: chi mua TSCĐ trong lưu chuyển tiền tệ. Khấu hao: điều chỉnh trong CFO gián tiếp. Năm là cả năm; quý là riêng ba tháng. Q2/26 chưa có dòng tiền cùng định nghĩa.');
 }
 if(ticker==='MWG'){
  const note='Nguồn: bảng tài chính hiện có. Chuỗi năm 2021–2023 chưa đủ dữ liệu, hiển thị —; không điền 0 hoặc nội suy. Ngày tồn kho/CCC giữ phương pháp công bố của nguồn, chưa tính lại. '+f.src;
@@ -2153,9 +2153,10 @@ if(['PVT','PVD'].includes(ticker)){
  const net=row('Nợ vay ròng')||addRow('Nợ vay ròng',combine(combine(row('Vay ngắn hạn').a,row('Vay dài hạn').a,(a,b)=>a+b),combine(row('Tiền & tương đương').a,row('Đầu tư TC ngắn hạn').a,(a,b)=>a+b),(a,b)=>a-b),combine(combine(row('Vay ngắn hạn').q,row('Vay dài hạn').q,(a,b)=>a+b),combine(row('Tiền & tương đương').q,row('Đầu tư TC ngắn hạn').q,(a,b)=>a+b),(a,b)=>a-b));
  addRow('Chi phí đi vay CF',x.interest);
  const e=addRow('EBITDA (PBT + khấu hao CF + chi phí vay)',x.ebitdaExcel);
- const leverage=addRow('Nợ ròng / EBITDA năm',combine(net.a,e.a,(a,b)=>b>0?a/b:null),null,'x');
+ const leverageQ=ticker==='PVT'?combine(net.q,d.capexDebt.quarterly.ebitdaTtm,(a,b)=>b>0?a/b:null):null;
+ const leverage=addRow('Nợ ròng / EBITDA năm',combine(net.a,e.a,(a,b)=>b>0?a/b:null),leverageQ,'x');
  const cover=addRow('EBIT proxy / chi phí vay',combine(x.pbt,x.interest,(a,b)=>b>0?(a+b)/b:null),null,'x');
- add('Leverage','Nợ ròng / EBITDA năm · lần',[series(leverage)],'x',ticker==='PVT'?'Nợ ròng = vay ngắn + dài hạn − tiền − đầu tư tài chính ngắn hạn. EBITDA proxy = LNTT + khấu hao + chi phí đi vay cùng năm. Chỉ vẽ năm đủ số liệu.':'Nợ ròng = vay NH + DH − tiền − ĐTTC NH. EBITDA = PBT + khấu hao CF + chi phí đi vay CF (mô hình Tài chính dòng 5, Raw data 19 + 173 + 178). Tự tính ratio, không dùng Tài chính dòng 31 vốn chỉ trừ tiền. Chưa đủ quý để tính EBITDA TTM.',false);
+ add('Leverage','Nợ ròng / EBITDA năm · lần',[series(leverage)],'x',ticker==='PVT'?'Nợ ròng = vay NH + DH − tiền − ĐTTC NH. EBITDA = LNTT + khấu hao + chi phí vay; quý dùng EBITDA bốn quý gần nhất. Q2/26 chưa đủ số dư cùng định nghĩa.':'Nợ ròng = vay NH + DH − tiền − ĐTTC NH. EBITDA = PBT + khấu hao CF + chi phí đi vay CF (mô hình Tài chính dòng 5, Raw data 19 + 173 + 178). Tự tính ratio, không dùng Tài chính dòng 31 vốn chỉ trừ tiền. Chưa đủ quý để tính EBITDA TTM.',ticker==='PVT');
  if(ticker==='PVD')add('BorrowingCost','Chi phí đi vay CF · tỷ VND',[{label:'Chi phí đi vay',a:x.interest}],'tỷ VND',x.source+' dòng 25; không phải toàn bộ chi phí tài chính.',false);
  add('Coverage','EBIT proxy / chi phí vay · lần',[series(cover)],'x','EBIT proxy = PBT + chi phí đi vay CF. Chia chi phí đi vay cùng năm; không phải DSCR. '+x.source,false);
 }
@@ -2323,6 +2324,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(t==='PVT'&&input.classList.contains('pvt-model-input')){
       const id=input.dataset.id,key=input.dataset.key;
       if(key==='revenue'){const pos={fso:1,trade:2,other:3}[id];if(pos!=null)return bySegment(pos,'revenue');}
+      if(key==='margin'){const pos={transport:0,fso:1,trade:2,other:3}[id];if(pos!=null)return bySegment(pos,'margin');}
     }
     if(t==='PVD'&&path){
       const p=path.split('.'),i=Number(p[1]);
@@ -2354,7 +2356,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     const rows=[...table.querySelectorAll('tr')].filter(r=>r.querySelector('input[type="number"]'));
     const items=rows.map(row=>{
       const all=[...row.querySelectorAll('input[type="number"]')];
-      const inputs=t==='PVT'?all.filter(input=>input.dataset.key==='revenue'):all;
+      const inputs=t==='PVT'?all.filter(input=>['revenue','margin'].includes(input.dataset.key)):all;
       const ref=inputs.length?reference(inputs[0],row):null;
       const opts=choices(ref).filter(o=>inputs.every(input=>{
         const min=input.getAttribute('min'),max=input.getAttribute('max');
@@ -2562,6 +2564,49 @@ document.addEventListener('DOMContentLoaded',()=>{
   const block=document.getElementById(id);if(block&&host.contains(block))host.appendChild(block);
  }
 });
+})();
+
+</script>
+<script>
+// Khóa các nút "Set làm mặc định" trên bản public: mặc định ai bấm cũng bị chặn và
+// phải nhập đúng mã analyst mới mở khóa được trên đúng trình duyệt đó (lưu localStorage,
+// dùng chung cho mọi dashboard vì cùng origin GitHub Pages). Không phải bảo mật thật —
+// ai xem được mã nguồn JS vẫn thấy ANALYST_PASS — chỉ để khách xem dashboard không bấm nhầm/tò mò.
+// Đổi mã: sửa ANALYST_PASS bên dưới rồi build lại (_template/tools/build_stock_site.py).
+(function () {
+  var STORAGE_KEY = 'fs_analyst_unlocked';
+  var ANALYST_PASS = 'FS-Analyst-2026';
+
+  function isUnlocked() {
+    try { return localStorage.getItem(STORAGE_KEY) === '1'; } catch (e) { return false; }
+  }
+
+  function unlock() {
+    try { localStorage.setItem(STORAGE_KEY, '1'); } catch (e) {}
+  }
+
+  function isSetDefaultButton(el) {
+    if (!el) return false;
+    var t = (el.textContent || '').trim();
+    return t.indexOf('Set làm mặc định') === 0 || t.indexOf('Set mặc định') === 0;
+  }
+
+  document.addEventListener('click', function (event) {
+    if (isUnlocked()) return; // đã mở khóa trên trình duyệt này, không chặn nữa
+    var btn = event.target.closest('button, a');
+    if (!isSetDefaultButton(btn)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+    var pass = window.prompt('Chức năng lưu mặc định dành cho analyst. Nhập mã để mở khóa trên trình duyệt này:');
+    if (pass === null) return; // bấm Cancel
+    if (pass === ANALYST_PASS) {
+      unlock();
+      window.alert('Đã mở khóa. Bấm lại nút "Set làm mặc định" để lưu.');
+    } else {
+      window.alert('Mã không đúng.');
+    }
+  }, true); // capture phase: chặn trước khi onclick của nút chạy
 })();
 
 </script>
