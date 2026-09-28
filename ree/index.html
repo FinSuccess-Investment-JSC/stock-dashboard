@@ -2074,7 +2074,7 @@ const d=window.PVS_DATA;if(!d)return;
 const ticker=d.meta.ticker;
 const fmt=(value,digits=1)=>Number(value).toLocaleString('en-US',{minimumFractionDigits:digits,maximumFractionDigits:digits});
 const profiles={
- MWG:{business:'Bán lẻ ICT-CE và thực phẩm; vốn lưu động nằm ở tồn kho, hiệu quả phụ thuộc từng chuỗi.',questions:["Doanh thu/cửa hàng BHX tăng có đủ bù chi phí mở rộng để biên ròng BHX cải thiện, hay chỉ là tăng quy mô?", "ICT-CE tăng doanh thu có đi kèm biên lợi nhuận vận hành tốt hơn, hay phải đánh đổi bằng giá bán/khuyến mại?", "Tồn kho và chu kỳ tiền mặt có kéo dài khi hai chuỗi tăng trưởng, làm giảm chất lượng lợi nhuận và khả năng tự tài trợ không?"],selected:['Biên HĐKD','Ngày tồn kho','CCC','Tiền ròng','Hiệu quả từng chuỗi'],deprioritized:['Ratio tài chính tổng quát'],limitations:['Ngày tồn kho/CCC trong bảng hiện có mới đủ 2024–2025 và 4 quý; không nội suy lịch sử.','Các ratio ngày giữ phương pháp của nguồn, chưa tính lại từ BCTC.']},
+ MWG:{business:'Bán lẻ ICT-CE và thực phẩm; vốn lưu động nằm ở tồn kho, hiệu quả phụ thuộc từng chuỗi.',questions:["Doanh thu/cửa hàng BHX tăng có đủ bù chi phí mở rộng để biên ròng BHX cải thiện, hay chỉ là tăng quy mô?", "ICT-CE tăng doanh thu có đi kèm biên lợi nhuận vận hành tốt hơn, hay phải đánh đổi bằng giá bán/khuyến mại?", "Tồn kho và chu kỳ tiền mặt có kéo dài khi hai chuỗi tăng trưởng, làm giảm chất lượng lợi nhuận và khả năng tự tài trợ không?"],selected:['Biên HĐKD','Ngày tồn kho','CCC','Tiền ròng','Hiệu quả từng chuỗi'],deprioritized:['Ratio tài chính tổng quát'],limitations:['Ba chart năm có lịch sử 2021–2025; bảng tóm tắt tài chính vẫn hiển thị 2024–2025.','Chuỗi quý hiện có Q3/2025–Q2/2026; không nội suy các quý trước.']},
  PVS:{business:'Nhà thầu dự án và dịch vụ dầu khí; lợi nhuận liên doanh, khách ứng trước và thu tiền dự án có vai trò riêng.',questions:["Backlog M&C chuyển thành doanh thu và LN gộp theo tiến độ nào; biên dự án có đủ giữ forecast khi quy mô tăng?", "Lãi liên doanh/liên kết và các mảng tàu/kho nổi đóng góp bao nhiêu vào LNST mẹ, thay vì coi toàn bộ tăng trưởng là từ M&C?", "Tiền ròng sau khách ứng trước và vốn giam ở phải thu dự án còn bao nhiêu cho định giá SOTP?"],selected:['Lãi liên doanh/LNTT','Tiền ròng sau ứng trước','Phải thu khách hàng','Ngày phải thu','Người mua trả trước'],deprioritized:[],limitations:['Giữ nguyên toàn bộ bảng, chart và phương pháp hiện tại theo yêu cầu người dùng.','Không coi toàn bộ tiền gửi là tiền dư có thể phân phối.']},
  HPG:{business:'Sản xuất thép với chu kỳ giá/nguyên liệu, tồn kho và vốn đầu tư nhà máy lớn.',questions:["Sản lượng thép sau Dung Quất 2 tăng có đi cùng biên đủ bù khấu hao/vốn mới, hay chỉ kéo doanh thu?", "Tồn kho và giá vốn có làm biên thép nhạy hơn giả định sản lượng/giá bán trong forecast không?", "CFO sau chi đầu tư và nợ ròng có cho phép giai đoạn tăng công suất mà không gây áp lực định giá không?"],selected:['Biên gộp','Lợi nhuận lõi công bố','Tồn kho','CFO/CAPEX','Nợ ròng'],deprioritized:[],limitations:['Giữ nguyên tất cả nội dung hiện có; chỉ thêm chart CFO/chi đầu tư và dòng tiền sau đầu tư.','Không tính thêm EBITDA khi thiếu đủ khấu hao theo quý.']},
  PVT:{business:'Vận tải biển; mua tàu cần vốn lớn, cước và số tàu hoạt động quyết định khả năng tạo tiền.',questions:["Tàu bổ sung và cước thuê tạo thêm doanh thu/lợi nhuận đủ bù CAPEX, lãi vay và khấu hao, hay chỉ tăng quy mô đội tàu?", "Nếu cước hoặc tỷ lệ khai thác giảm, dòng tiền từ đội tàu hiện hữu còn đủ tài trợ lịch nhận tàu không?", "Nợ ròng và chi phí lãi vay hợp nhất tăng tới mức nào sẽ làm giả định biên LNST/định giá kém bền?"],selected:['CFO/CAPEX','CAPEX thực hiện/khấu hao','Nợ ròng/EBITDA','Nợ ngắn/dài hạn','Chi phí vay/lãi suất ngụ ý'],deprioritized:['Lợi nhuận tài chính/LNST mẹ','Chart CFO−CAPEX trùng câu hỏi tài trợ'],limitations:['Không gán toàn bộ nợ hợp nhất là nợ tàu.','Các quý thiếu CFO/CAPEX để trống; ratio EBITDA chỉ vẽ năm đủ dữ liệu.']},
@@ -2173,10 +2173,18 @@ if(ticker==='PVT'&&d.capexDebt?.depreciation){
  ],'tỷ VND','CAPEX: chi mua TSCĐ trong lưu chuyển tiền tệ. Khấu hao: điều chỉnh trong CFO gián tiếp. Năm là cả năm; quý là riêng ba tháng. Q2/26 chưa có dòng tiền cùng định nghĩa.');
 }
 if(ticker==='MWG'){
- const note='Nguồn: bảng tài chính hiện có. Chuỗi năm 2021–2023 chưa đủ dữ liệu, hiển thị —; không điền 0 hoặc nội suy. Ngày tồn kho/CCC giữ phương pháp công bố của nguồn, chưa tính lại. '+f.src;
- // Keep a five-year axis, showing missing years explicitly.
- for(const label of ['Số ngày tồn kho','Chu kỳ tiền mặt (CCC)']){const r=row(label);if(r)add(label==='Số ngày tồn kho'?'Inventory':'CCC',label+' · ngày',[{label:r.l,a:[null,null,null,...r.a],q:r.q}],'ngày',note);}
- const r=row('Biên lợi nhuận từ HĐKD');if(r)add('OperatingMargin','Biên lợi nhuận HĐKD · %',[{label:r.l,a:[null,null,null,...r.a],q:r.q}],'%',note);
+ const h=d.financeHistory;
+ const ratio=(a,b)=>a.map((v,i)=>v/b[i]);
+ const inventoryDays=ratio(h.inventory,h.cogs).map(v=>365*v);
+ const receivableDays=ratio(h.tradeReceivables,h.revenue).map(v=>365*v);
+ const payableDays=ratio(h.tradePayables,h.cogs).map(v=>365*v);
+ const cashCycle=inventoryDays.map((v,i)=>v+receivableDays[i]-payableDays[i]);
+ const operatingMargin=ratio(h.operatingProfit,h.revenue).map(v=>100*v);
+ const quarterly=label=>row(label)?.q;
+ add('Inventory','Số ngày tồn kho · ngày',[{label:'Số ngày tồn kho',a:inventoryDays,q:quarterly('Số ngày tồn kho')}],'ngày','Tồn kho cuối kỳ ÷ giá vốn năm × 365. '+h.src);
+ add('CCC','Chu kỳ tiền mặt (CCC) · ngày',[{label:'Chu kỳ tiền mặt (CCC)',a:cashCycle,q:quarterly('Chu kỳ tiền mặt (CCC)')}],'ngày','CCC = ngày tồn kho + phải thu khách hàng cuối kỳ ÷ doanh thu × 365 − phải trả người bán cuối kỳ ÷ giá vốn × 365. '+h.src);
+ add('OperatingMargin','Biên lợi nhuận HĐKD · %',[{label:'Biên lợi nhuận từ HĐKD',a:operatingMargin,q:quarterly('Biên lợi nhuận từ HĐKD')}],'%','Lợi nhuận thuần HĐKD ÷ doanh thu thuần. '+h.src);
+ specs.slice(-3).forEach(s=>s.annualLabels=h.annual);
 }
 if(['PVT','PVD'].includes(ticker)){
  const x=window.FINANCE_INPUTS[ticker];
@@ -2219,7 +2227,7 @@ document.addEventListener('DOMContentLoaded',()=>{
  function draw(s,target=extra){
   const card=document.createElement('div');card.className='card';card.innerHTML='<h3 class="sub">'+esc(s.title)+'</h3><div class="chart tall"><canvas id="'+s.id+'"></canvas></div><div class="note">'+esc(s.note)+'</div>';target.appendChild(card);
   const datasets=k=>s.ss.map((r,i)=>({label:r.label,data:r[k],borderColor:cols[i%cols.length],backgroundColor:cols[i%cols.length],borderWidth:2.5,pointRadius:3,tension:.15}));
-  const labels=ticker==='MWG'?['2021','2022','2023','2024','2025']:f.annual;
+  const labels=s.annualLabels||f.annual;
   const spec={def:'y',y:{labels,datasets:datasets('a')},cfg:(labels,datasets)=>({type:'line',data:{labels,datasets},options:baseOpts({scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:'#EEF0F6'},ticks:{callback:v=>fmt(v,1)+(s.unit==='%'?'%':s.unit==='x'?'x':'')}}}})})};
   if(s.quarterly&&s.ss.every(r=>r.q?.length===f.quarterly.length)&&s.ss.some(r=>r.q.some(v=>v!=null)))spec.q={labels:f.quarterly,datasets:datasets('q')};
   mkTS(s.id,spec);
