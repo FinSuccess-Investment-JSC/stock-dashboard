@@ -2500,10 +2500,9 @@ if(ticker==='PVT'&&d.capexDebt?.depreciation){
  ],'tỷ VND','CAPEX: chi mua TSCĐ trong lưu chuyển tiền tệ. Khấu hao: điều chỉnh trong CFO gián tiếp. Năm là cả năm; quý là riêng ba tháng. Q2/26 chưa có dòng tiền cùng định nghĩa.');
 }
 if(ticker==='MWG'){
- const note='Nguồn: bảng tài chính hiện có. Chuỗi năm 2021–2023 chưa đủ dữ liệu, hiển thị —; không điền 0 hoặc nội suy. Ngày tồn kho/CCC giữ phương pháp công bố của nguồn, chưa tính lại. '+f.src;
- // Keep a five-year axis, showing missing years explicitly.
- for(const label of ['Số ngày tồn kho','Chu kỳ tiền mặt (CCC)']){const r=row(label);if(r)add(label==='Số ngày tồn kho'?'Inventory':'CCC',label+' · ngày',[{label:r.l,a:[null,null,null,...r.a],q:r.q}],'ngày',note);}
- const r=row('Biên lợi nhuận từ HĐKD');if(r)add('OperatingMargin','Biên lợi nhuận HĐKD · %',[{label:r.l,a:[null,null,null,...r.a],q:r.q}],'%',note);
+ const note='Lịch sử năm hiện có: 2024–2025; chưa đủ 2021–2023. Ngày tồn kho/CCC giữ phương pháp của nguồn, chưa tính lại. '+f.src;
+ for(const label of ['Số ngày tồn kho','Chu kỳ tiền mặt (CCC)']){const r=row(label);if(r)add(label==='Số ngày tồn kho'?'Inventory':'CCC',label+' · ngày',[series(r)],'ngày',note);}
+ const r=row('Biên lợi nhuận từ HĐKD');if(r)add('OperatingMargin','Biên lợi nhuận HĐKD · %',[series(r)],'%',note);
 }
 if(['PVT','PVD'].includes(ticker)){
  const x=window.FINANCE_INPUTS[ticker];
@@ -2546,7 +2545,7 @@ document.addEventListener('DOMContentLoaded',()=>{
  function draw(s,target=extra){
   const card=document.createElement('div');card.className='card';card.innerHTML='<h3 class="sub">'+esc(s.title)+'</h3><div class="chart tall"><canvas id="'+s.id+'"></canvas></div><div class="note">'+esc(s.note)+'</div>';target.appendChild(card);
   const datasets=k=>s.ss.map((r,i)=>({label:r.label,data:r[k],borderColor:cols[i%cols.length],backgroundColor:cols[i%cols.length],borderWidth:2.5,pointRadius:3,tension:.15}));
-  const labels=ticker==='MWG'?['2021','2022','2023','2024','2025']:f.annual;
+  const labels=f.annual;
   const spec={def:'y',y:{labels,datasets:datasets('a')},cfg:(labels,datasets)=>({type:'line',data:{labels,datasets},options:baseOpts({scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:'#EEF0F6'},ticks:{callback:v=>fmt(v,1)+(s.unit==='%'?'%':s.unit==='x'?'x':'')}}}})})};
   if(s.quarterly&&s.ss.every(r=>r.q?.length===f.quarterly.length)&&s.ss.some(r=>r.q.some(v=>v!=null)))spec.q={labels:f.quarterly,datasets:datasets('q')};
   mkTS(s.id,spec);
