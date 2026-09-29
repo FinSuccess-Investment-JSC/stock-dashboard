@@ -1317,7 +1317,7 @@ function tsControls(id,spec,st){
   }
   if(!showP&&!showN){ bar.remove(); return; }
   const perSel=showP?('<span class="lb">Chu kỳ</span><select class="tsp" aria-label="Chu kỳ">'
-    +TS_PER.filter(x=>st.av.includes(x[0])).map(([k,l])=>`<option value="${k}" ${k===st.p?'selected':''}>${spec.periodLabels?.[k]||l}</option>`).join('')
+    +TS_PER.filter(x=>st.av.includes(x[0])).map(([k,l])=>`<option value="${k}" ${k===st.p?'selected':''}>${l}</option>`).join('')
     +'</select>'):'';
   const opts=tsCountOpts(st.total);
   if(st.n!=='all'&&!opts.includes(+st.n))opts.push(+st.n),opts.sort((a,b)=>a-b);  // giữ giá trị đã lưu/ghi đè qua URL dù ngoài danh sách chuẩn
@@ -2954,7 +2954,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
     for(const metric of metrics){
       const q=quarterSeries(metric.key),a=annual.map(year=>sumYear(metric.key,year));
       const datasets=values=>[{label:metric.title,data:values,backgroundColor:metric.color,borderColor:metric.color,borderRadius:3,maxBarThickness:38}];
-      mkTS(metric.id,{def:'y',periodLabels:{y:'10 năm hoàn chỉnh ('+annual[0]+'–'+annual[annual.length-1]+')',q:'Theo quý ('+quarterly[0]+'–'+last+')'},y:{labels:annual,datasets:datasets(a)},q:{labels:quarterly,datasets:datasets(q)},cfg:(labels,sets)=>({type:'bar',data:{labels,datasets:sets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:item=>item.parsed.y==null?'—':Number(item.parsed.y).toLocaleString('vi-VN',{maximumFractionDigits:2})+' tỷ VND'}}},scales:{x:{grid:{display:false}},y:{grid:{color:'#EEF0F6'},ticks:{callback:value=>Number(value).toLocaleString('vi-VN')}}}}})});
+      mkTS(metric.id,{def:'y',y:{labels:annual,datasets:datasets(a)},q:{labels:quarterly,datasets:datasets(q)},cfg:(labels,sets)=>({type:'bar',data:{labels,datasets:sets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:item=>item.parsed.y==null?'—':Number(item.parsed.y).toLocaleString('vi-VN',{maximumFractionDigits:2})+' tỷ VND'}}},scales:{x:{grid:{display:false}},y:{grid:{color:'#EEF0F6'},ticks:{callback:value=>Number(value).toLocaleString('vi-VN')}}}}})});
     }
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',render);else render();
