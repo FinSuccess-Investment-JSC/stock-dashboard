@@ -787,8 +787,8 @@ window.PVS_DATA = {
       ]
     }
   },
-  "src": "Bảng analyst cung cấp ngày 22/09/2026 (hình 1 & 2). Đơn vị tỷ VND; BLNG theo đúng % trong ảnh, có làm tròn.",
-  "note": "Giữ độc lập bảng năm và quý theo ảnh; không tự sửa số để khớp tổng. BLNG của ROV Q2/2022 là 334% trên doanh thu âm, không thể diễn giải như biên hoạt động thông thường. Số hợp nhất sau kiểm toán/soát xét dùng ở tab Bảng cân đối có thể khác bảng analyst.",
+  "src": "2020–2025 và Q1/2022–Q4/2025: bảng analyst 22/09/2026. Q1/2026: BCTC hợp nhất Q1, thuyết minh bộ phận tr.49. Q2/2026: BCTC hợp nhất 6T soát xét tr.58 trừ Q1.",
+  "note": "Từ 2026, doanh thu/LNG theo đúng 7 bộ phận báo cáo của PTSC; Q2 = 6T soát xét − Q1 đã công bố nên bao gồm điều chỉnh soát xét 6T nếu có. 2020–2025 giữ nguyên bảng analyst và chưa thể đối chiếu toàn bộ PDF. BLNG của ROV Q2/2022 là 334% trên doanh thu âm, không nên diễn giải như biên hoạt động thông thường.",
   "years": [
     "2020",
     "2021",
@@ -994,9 +994,70 @@ window.PVS_DATA = {
     src: "MBS 11/03/2026 (tiến độ ước tính); PTSC CBTT 15/09/2026 và tin Qatar 25/09/2026; Vietcap 15/09/2026; Bản tin Q2/2026"
   },
 
+  // Project disclosures are separate from analyst backlog assumptions. Update this
+  // list only after checking the original company/exchange disclosure.
+  projectUpdates: {
+    checkedAt: "2026-09-30",
+    items: [
+      { date:"2026-09-29", project:"STG#3 EPC Replacement", kind:"Tiến độ", title:"PTSC Thanh Hóa báo cáo tiến độ tổng thể đạt 85%, hoàn thành 5/8 mốc", detail:"Mốc kỹ thuật của dự án NSRP; chưa có giá trị hợp đồng mới để cộng backlog.", url:"https://www.ptsc.com.vn/tin-tuc/tin-ptsc-1/san-xuat-kinh-doanh/tong-cong-ty-ptscptsc-thanh-hoa-to-chuc-thanh-cong-hoi-thao-stg3-mrt-performance-testing" },
+      { date:"2026-09-25", project:"Maydan Mahzam EPIC-1", kind:"Thư trao thầu", title:"PTSC M&C công bố QatarEnergy trao gói EPIC-1 ngày 13/09", detail:"Giá trị dự kiến trên 3 tỷ USD, triển khai Q4/2026–2031. Vẫn tách khỏi backlog đã ký trong mô hình cho tới khi có hợp đồng chính thức.", url:"https://www.ptsc.com.vn/tin-tuc/tin-ptsc-1/san-xuat-kinh-doanh/qatarenergy-trao-ptsc-m-c-goi-thau-epic-1-du-an-tai-phat-trien-mo-maydan-mahzam" },
+      { date:"2026-09-15", project:"Maydan Mahzam EPIC-1", kind:"CBTT", title:"PTSC công bố thông tin thư trao thầu", detail:"Nguồn công bố doanh nghiệp để đối chiếu tình trạng pháp lý trước khi thay đổi xác suất và điểm rơi doanh thu.", url:"https://www.ptsc.com.vn/en-US/investors" }
+    ],
+    sourcePages: [
+      { label:"HNX · CBTT PVS", url:"https://www.hnx.vn/cophieu-etfs/chi-tiet-chung-khoan-ny-PVS.html?_des_tab=1" },
+      { label:"PTSC · Tin cổ đông", url:"https://www.ptsc.com.vn/en-US/investor-news" },
+      { label:"PTSC · Tin hoạt động", url:"https://www.ptsc.com.vn/en-US/news/ptsc-news-1/operating-news" }
+    ]
+  },
+
+  // Note 28, reviewed consolidated H1/2026 FS, printed pages 51–52 (PDF 55–56).
+  // All amounts are VND billions. A reclassification is not a reversal/P&L gain.
+  provisionProjects: {
+    sourceUrl:"https://www.ptsc.com.vn/Data/Sites/1/media/codong/1367%20PTSC-BTK.pdf",
+    periods:["31/12/2025","30/06/2026"],
+    rows:[
+      {group:"Ngắn hạn",project:"CHW2204",opening:0,added:0,reduced:0,reclassified:382.756263,closing:382.756263},
+      {group:"Ngắn hạn",project:"Gallaf 3",opening:0,added:85.649503,reduced:0,reclassified:0,closing:85.649503},
+      {group:"Ngắn hạn",project:"EPC bồn LPG Thị Vải",opening:20.668140,added:0,reduced:0,reclassified:0,closing:20.668140},
+      {group:"Ngắn hạn",project:"Tổ hợp Hóa dầu Miền Nam",opening:14.411727,added:0,reduced:14.411727,reclassified:0,closing:0},
+      {group:"Ngắn hạn",project:"EPC kho LNG Thị Vải",opening:1.166233,added:0,reduced:.897473,reclassified:0,closing:.268760},
+      {group:"Ngắn hạn",project:"Bảo hành dự án khác",opening:9.745961,added:0,reduced:5.363358,reclassified:0,closing:4.382603},
+      {group:"Ngắn hạn",project:"Hợp đồng có rủi ro lớn",opening:52.962396,added:357.352404,reduced:0,reclassified:0,closing:410.314800},
+      {group:"Ngắn hạn",project:"Sửa chữa lớn tàu PTSC",opening:60.872549,added:0,reduced:0,reclassified:3.756627,closing:64.629176},
+      {group:"Ngắn hạn",project:"Tiền thuê đất",opening:15.601447,added:0,reduced:15.601447,reclassified:0,closing:0},
+      {group:"Ngắn hạn",project:"Bảo dưỡng FSO/FPSO",opening:30.185540,added:0,reduced:28.278882,reclassified:0,closing:1.906658},
+      {group:"Dài hạn",project:"Sao Vàng – Đại Nguyệt",opening:683.745276,added:0,reduced:0,reclassified:0,closing:683.745276},
+      {group:"Dài hạn",project:"Gallaf 3",opening:581.292376,added:28.741467,reduced:123.380561,reclassified:0,closing:486.653282},
+      {group:"Dài hạn",project:"CHW2204",opening:380.266985,added:2.489278,reduced:0,reclassified:-382.756263,closing:0},
+      {group:"Dài hạn",project:"Lô B EPCI#1",opening:345.949450,added:117.507019,reduced:0,reclassified:0,closing:463.456469},
+      {group:"Dài hạn",project:"Lô B EPCI#2",opening:275.237221,added:28.426295,reduced:0,reclassified:0,closing:303.663516},
+      {group:"Dài hạn",project:"Lạc Đà Vàng-A",opening:203.113461,added:91.036768,reduced:0,reclassified:0,closing:294.150229},
+      {group:"Dài hạn",project:"Baltica 2",opening:156.382386,added:60.771889,reduced:0,reclassified:0,closing:217.154275},
+      {group:"Dài hạn",project:"Fengmiao Offshore Windfarm",opening:94.448505,added:26.033025,reduced:0,reclassified:0,closing:120.481531},
+      {group:"Dài hạn",project:"Đường ống Lô B",opening:59.757932,added:8.404651,reduced:0,reclassified:0,closing:68.162583},
+      {group:"Dài hạn",project:"Formosa 4",opening:0,added:58.815158,reduced:0,reclassified:0,closing:58.815158},
+      {group:"Dài hạn",project:"Sư Tử Trắng 2B",opening:0,added:58.754914,reduced:0,reclassified:0,closing:58.754914},
+      {group:"Dài hạn",project:"Hải Long OSS",opening:51.384866,added:0,reduced:0,reclassified:0,closing:51.384866},
+      {group:"Dài hạn",project:"Bồn chứa Tổ hợp Hóa dầu Miền Nam",opening:22.378071,added:10.517776,reduced:0,reclassified:0,closing:32.895847},
+      {group:"Dài hạn",project:"Gói thầu 4.9",opening:22.243875,added:8.581539,reduced:0,reclassified:0,closing:30.825414},
+      {group:"Dài hạn",project:"Bảo hành dự án khác",opening:39.373473,added:50.836617,reduced:20.237529,reclassified:0,closing:69.972561},
+      {group:"Dài hạn",project:"Sửa chữa lớn tàu dầu khí",opening:88.651999,added:0,reduced:.695577,reclassified:-3.756627,closing:84.199794},
+      {group:"Dài hạn",project:"Dự phòng khác",opening:4.286318,added:0,reduced:0,reclassified:0,closing:4.286318}
+    ],
+    note:"Cột Giảm trong thuyết minh gồm sử dụng và/hoặc hoàn nhập, chưa đủ cơ sở để coi toàn bộ là thu nhập. CHW2204 được chuyển từ dài hạn sang ngắn hạn 382,8 tỷ, không phải trích lập mới."
+  },
+
   // ---------- CHẤT LƯỢNG BẢNG CÂN ĐỐI ----------
   balance: {
     hideSeriesTable: true,     // bỏ card "Bảng số liệu" — đã có bảng tóm tắt tài chính bên dưới
+    q1_2026: {
+      contractAssets:1714.335404026,
+      accruals:7240.379728106,
+      advancesShort:1468.663139304,
+      advancesLong:825.073669260,
+      sourceUrl:"https://www.ptsc.com.vn/Data/Sites/1/media/codong/2026/658%20PTSC-BTK.pdf",
+      note:"BCTC hợp nhất Q1/2026: Bảng cân đối tr.1–2, mã 134, 316, 312, 332."
+    },
   "history": {
     "cash": [
       6949.11609604,
@@ -2189,6 +2250,36 @@ window.PVS_DATA = {
   ]
 };
 
+// Official 2026 segment notes supersede the rounded analyst image for the two
+// latest quarters. PTSC Q1 is stated in million VND; H1 reviewed is in VND.
+// Both are normalized to billion VND. Q2 is H1 reviewed minus Q1, by segment.
+{
+  const segment = window.PVS_DATA.segments;
+  const quarterly = segment.periods.quarterly;
+  const q1Revenue = [640.140,694.824,44.529,453.919,5910.956,704.918,249.455];
+  const q1GrossProfit = [109.045,43.566,.681,116.742,538.038,22.886,23.955];
+  const h1Revenue = [1532.429285484,1368.595237718,137.131178395,1163.927494492,10484.989168203,2094.010772405,492.071830543];
+  const h1GrossProfit = [252.310310225,70.367990451,42.955860493,239.132031369,743.604498821,115.782223393,49.196727472];
+  for(let i=0;i<segment.names.length;i++){
+    quarterly.revenue[i][16]=q1Revenue[i];
+    quarterly.revenue[i][17]=h1Revenue[i]-q1Revenue[i];
+    quarterly.grossProfit[i][16]=q1GrossProfit[i];
+    quarterly.grossProfit[i][17]=h1GrossProfit[i]-q1GrossProfit[i];
+    quarterly.margin[i][16]=100*q1GrossProfit[i]/q1Revenue[i];
+    quarterly.margin[i][17]=100*quarterly.grossProfit[i][17]/quarterly.revenue[i][17];
+  }
+  quarterly.totalRevenue[16]=8698.740;
+  quarterly.totalRevenue[17]=17273.154967240-8698.740;
+  quarterly.totalGP[16]=854.914;
+  quarterly.totalGP[17]=1513.349642223-854.914;
+  quarterly.totalMargin[16]=100*quarterly.totalGP[16]/quarterly.totalRevenue[16];
+  quarterly.totalMargin[17]=100*quarterly.totalGP[17]/quarterly.totalRevenue[17];
+  segment.verifiedSources=[
+    {label:"PTSC · BCTC hợp nhất Q1/2026, thuyết minh bộ phận tr.49",url:"https://www.ptsc.com.vn/Data/Sites/1/media/codong/2026/658%20PTSC-BTK.pdf"},
+    {label:"PTSC · BCTC hợp nhất 6T/2026 soát xét, tr.58",url:"https://www.ptsc.com.vn/Data/Sites/1/media/codong/1367%20PTSC-BTK.pdf"}
+  ];
+}
+
 </script>
 <style>
   :root{
@@ -2738,6 +2829,7 @@ body:has(#bs.active) nav.tabs .tabs button.active{border-bottom-color:#59C5C8}
 <section class="tab" id="backlog">
   <div id="tab3Backlog">
   <h2 class="sec">Backlog hiện tại & tương lai — điểm rơi nằm ở lúc thi công, không phải lúc ký</h2>
+  <div id="pvsProjectUpdates" class="card" style="margin-bottom:16px"></div>
   <div class="grid g4" id="blKpi"></div>
   <div class="grid g2" style="margin-top:16px">
     <div class="card"><h3 class="sub">Giá trị backlog thực hiện (tỷ VND)</h3><div class="chart"><canvas id="blExec"></canvas></div><div class="note" id="blExecNote"></div></div>
@@ -3462,7 +3554,7 @@ function timeChart(id,labels,series,{type='bar',unit='tỷ',stacked=false}={}){
 let segPeriod='annual';try{segPeriod=localStorage.getItem(KEY+'_seg_period')||segPeriod;}catch(e){}
 renderSeg=function(){
   const s=D.segments; if(!s.periods[segPeriod])segPeriod='annual'; const p=s.periods[segPeriod];
-  $('seg').innerHTML=`<h2 class="sec">Breakdown mảng kinh doanh</h2><div class="grid g2">${chartCard('segRev','Doanh thu theo mảng (tỷ VND)',s.src)}${chartCard('segGP','Lợi nhuận gộp theo mảng (tỷ VND)',s.src)}</div><div class="card" style="margin-top:16px"><h3 class="sub">Biên lợi nhuận gộp theo mảng (%)</h3><div class="row" style="margin-bottom:12px"><label for="segmentMarginChoice">Chọn mảng</label><select id="segmentMarginChoice" style="width:min(100%,380px)"><option value="all">Tất cả mảng</option>${s.names.map((n,i)=>`<option value="${i}">${esc(n)}</option>`).join('')}</select></div><div class="chart tall"><canvas id="segGM"></canvas></div><div class="note">${esc(s.note)}</div></div><div class="card" style="margin-top:16px"><details class="dd"><summary>Bảng số liệu & đối chiếu tổng <span class="hint">bấm để mở/đóng</span></summary><div class="body"><div class="row" style="margin-bottom:12px"><label for="segmentPeriods">Chu kỳ bảng số liệu</label><select id="segmentPeriods"><option value="annual" ${segPeriod==='annual'?'selected':''}>Năm</option><option value="quarterly" ${segPeriod==='quarterly'?'selected':''}>Quý</option></select></div><p class="note">${esc(s.src)} ${esc(s.note)}</p><div id="segmentReconcile" class="callout"></div><div class="tbl-wrap"><table id="segmentData"></table></div></div></details></div>`;
+  $('seg').innerHTML=`<h2 class="sec">Breakdown mảng kinh doanh</h2><div class="grid g2">${chartCard('segRev','Doanh thu theo mảng (tỷ VND)',s.src)}${chartCard('segGP','Lợi nhuận gộp theo mảng (tỷ VND)',s.src)}</div><div class="card" style="margin-top:16px"><h3 class="sub">Biên lợi nhuận gộp theo mảng (%)</h3><div class="row" style="margin-bottom:12px"><label for="segmentMarginChoice">Chọn mảng</label><select id="segmentMarginChoice" style="width:min(100%,380px)"><option value="all">Tất cả mảng</option>${s.names.map((n,i)=>`<option value="${i}">${esc(n)}</option>`).join('')}</select></div><div class="chart tall"><canvas id="segGM"></canvas></div><div class="note">${esc(s.note)}</div></div><div class="card" style="margin-top:16px"><details class="dd"><summary>Bảng số liệu & đối chiếu tổng <span class="hint">bấm để mở/đóng</span></summary><div class="body"><div class="row" style="margin-bottom:12px"><label for="segmentPeriods">Chu kỳ bảng số liệu</label><select id="segmentPeriods"><option value="annual" ${segPeriod==='annual'?'selected':''}>Năm</option><option value="quarterly" ${segPeriod==='quarterly'?'selected':''}>Quý</option></select></div><p class="note">${esc(s.src)} ${esc(s.note)}</p><div class="src">${sourceLinks(s.verifiedSources||[])}</div><div id="segmentReconcile" class="callout"></div><div class="tbl-wrap"><table id="segmentData"></table></div></div></details></div>`;
   function segmentChart(id,key,choice='all'){
     const line=key==='margin',period=s.periods.annual;
     const series=s.names.map((name,i)=>({name,values:period[key][i],color:line?CAT[i]:undefined})).filter((_,i)=>choice==='all'||i===+choice);
@@ -3503,15 +3595,21 @@ renderBS=function(){
  own.innerHTML=`<h3 class="sub">Bảng cân đối & chất lượng lợi nhuận · PVS</h3><p class="note">Hợp nhất · số dư mới nhất 30/06/2026 đã soát xét. Biểu đồ số dư giữ cùng chuỗi thời gian; bộ chọn dưới đây đổi kỳ của chỉ tiêu lợi nhuận và dòng tiền.</p><div class="grid g4">${[['Tiền + HTM ngắn hạn',c.cash+c.deposits],['Tiền − nợ vay',net],['Trừ thêm KH ứng trước',net-advance],['Dự phòng phải trả',c.provisionsShort+c.provisionsLong]].map(([name,value])=>`<div class="card kpi"><div class="l">${name}</div><div class="v">${fmt(value,0)} tỷ</div></div>`).join('')}</div><div class="filters" id="financialPeriods" style="margin-top:18px"><button data-period="annual" class="${financialPeriod==='annual'?'on':''}" aria-pressed="${financialPeriod==='annual'}">Cả năm 2019–2025</button><button data-period="interim" class="${financialPeriod==='interim'?'on':''}" aria-pressed="${financialPeriod==='interim'}">6 tháng 2025–2026</button></div>`
  +section('Tiền & dòng tiền',chartCard('pvsNetCash','Tiền mặt ròng (tỷ VND)',stockNote+' Tiền mặt ròng = tiền + đầu tư nắm giữ đến đáo hạn ngắn hạn − vay ngắn/dài hạn. Đường điều chỉnh trừ thêm khách hàng ứng trước ngắn/dài hạn; chưa loại trừ các tiền gửi hạn chế sử dụng khác.')+chartCard('pvsCfo','CFO & tiền chi đầu tư TSCĐ (tỷ VND)',periodNote+' CFO = lưu chuyển tiền thuần từ HĐKD. Chi đầu tư trình bày trị tuyệt đối mã 21 LCTT; không đồng nhất với tổng giải ngân đầu tư.'))
  +section('Vốn lưu động & tài trợ hợp đồng',chartCard('pvsReceivables','Phải thu khách hàng & HĐ xây dựng (tỷ VND)',stockNote+' Phải thu khách hàng ngắn hạn và phải thu theo tiến độ HĐXD là hai khoản riêng, cộng được; không cộng lại tổng phải thu ngắn hạn.')+chartCard('pvsFunding','Phải trả, chi phí phải trả & KH ứng trước (tỷ VND)',stockNote+' Phải trả người bán và chi phí phải trả: ngắn hạn; KH ứng trước: ngắn + dài hạn. Khoản chi phí phải trả dài hạn các năm cũ rất nhỏ, không gộp vào chuỗi này.'))
+ +section('Tiến độ thi công & nguồn tài trợ',chartCard('pvsExecution','Phải thu HĐXD vs chi phí phải trả (tỷ VND)','Số dư cuối năm 2019–2025 và Q1–Q2/2026. Hai số dư cùng tăng có thể phản ánh khối lượng thi công tăng; cần đối chiếu nghiệm thu và thời hạn thanh toán. Không nội suy các quý trước chưa có dữ liệu.','<div class="src"><a href="'+esc(D.balance.q1_2026.sourceUrl)+'" target="_blank" rel="noopener">PTSC · BCTC hợp nhất Q1/2026 ↗</a> · <a href="'+esc(D.provisionProjects.sourceUrl)+'" target="_blank" rel="noopener">PTSC · BCTC 6T/2026 soát xét ↗</a></div>')+chartCard('pvsAdvances','Khách hàng ứng trước / contract liabilities (tỷ VND)','Số dư cuối năm 2019–2025 và Q1–Q2/2026; gồm ngắn hạn + dài hạn. Chưa phân bổ theo dự án vì thuyết minh giữa các kỳ chưa nhất quán.'))
  +section('Doanh thu & khả năng thu tiền',chartCard('pvsRevenue','Doanh thu thuần hợp nhất (tỷ VND)',periodNote+' Nguồn BCTC hợp nhất; độc lập với bảng mảng analyst.')+chartCard('pvsArTurnover','Doanh thu / phải thu bình quân (lần)','Doanh thu cả năm / bình quân đầu-cuối năm của (phải thu KH ngắn hạn + phải thu HĐXD). Năm 2019 không có số đầu kỳ trong chuỗi nên để trống. Không annualize kỳ 6 tháng, không dùng chỉ tiêu này như DSO chính thức.'))
  +section('Nguồn lợi nhuận',chartCard('pvsJv','Lãi từ liên doanh, liên kết (tỷ VND)',periodNote+' Phần lãi PVS đã ghi nhận theo phương pháp vốn chủ sở hữu.',jvDetails())+chartCard('pvsOther','Thu nhập khác ròng (tỷ VND)',periodNote+' Thu nhập khác ròng = thu nhập khác − chi phí khác; có thể chứa khoản không thường xuyên.')+chartCard('pvsFin','Thu nhập, chi phí tài chính & LNST (tỷ VND)',periodNote)+chartCard('pvsFinRatio','Lợi nhuận tài chính / LNST (%)',periodNote+' (Doanh thu tài chính − chi phí tài chính) / LNST hợp nhất.'))
  +section('Dự phòng',chartCard('pvsProvisions','Dự phòng phải trả (tỷ VND)',stockNote+' Gồm ngắn hạn và dài hạn; không đồng nhất toàn bộ với bảo hành Sao Vàng – Đại Nguyệt. Số dư giảm không tự động bằng thu nhập hoàn nhập.')+chartCard('pvsInventory','Hàng tồn kho (tỷ VND)',stockNote+' Tồn kho thuần sau dự phòng.'))
+ +section('Dự phòng theo dự án · thuyết minh 28',chartCard('pvsProjectProvision','Số dư dự phòng theo dự án (tỷ VND)','6T/2026: trích thêm 357,35 tỷ cho hợp đồng rủi ro lớn; Gallaf 3 giảm 123,38 tỷ; CHW2204 chuyển 382,76 tỷ từ dài hạn sang ngắn hạn. Giảm chưa chắc là hoàn nhập ghi nhận vào lợi nhuận. Cột là số dư cuối kỳ, không phải chi phí kỳ.')+'<div class="card"><h3 class="sub">Tăng, giảm & phân loại trong 6T/2026</h3><p class="note">'+esc(D.provisionProjects.note)+'</p><details class="dd"><summary>Chi tiết từng dự án · mở bảng</summary><div class="body"><div class="tbl-wrap"><table id="pvsProjectProvisionTable"></table></div></div></details><div class="src"><a href="'+esc(D.provisionProjects.sourceUrl)+'" target="_blank" rel="noopener">PTSC · BCTC 6T/2026 soát xét, thuyết minh 28, tr. 51–52 ↗</a></div></div>')
  +`<div class="card" style="margin-top:16px"><details class="dd"><summary>Bảng số liệu & nguồn đối chiếu</summary><div class="body"><h4>Số dư cuối kỳ (tỷ VND)</h4><div class="tbl-wrap"><table id="pvsStockTable"></table></div><h4>Kết quả & dòng tiền (tỷ VND)</h4><div class="tbl-wrap"><table id="pvsFlowTable"></table></div><p class="note">Chỉ tiêu HĐXD phản ánh doanh thu đã ghi nhận theo tiến độ nhưng khác tiến độ thanh toán; không cộng vào doanh thu thuần lần nữa. Thay đổi chuẩn biểu mẫu năm 2026 làm một số nhãn trên trang tổng hợp bị lệch; kỳ 6T/2026 đã kiểm tra trực tiếp PDF soát xét.</p><div class="src">${sourceLinks(h.sourceLinks)}</div></div></details></div>`;
  const cash=stocks('cash'),dep=stocks('deposits'),debt=stocks('shortDebt').map((v,i)=>v+stocks('longDebt')[i]),adv=stocks('advancesShort').map((v,i)=>v+stocks('advancesLong')[i]);
- timeChart('pvsNetCash',stockLabels,[{name:'Tiền & TĐT',values:cash},{name:'HTM ngắn hạn',values:dep},{name:'Nợ vay',values:debt.map(v=>-v),color:ROSE},{name:'Tiền − nợ vay',values:cash.map((v,i)=>v+dep[i]-debt[i]),type:'line',color:GREEN},{name:'Trừ thêm KH ứng trước',values:cash.map((v,i)=>v+dep[i]-debt[i]-adv[i]),type:'line',color:NAVY}],{stacked:true});
+ timeChart('pvsNetCash',stockLabels,[{name:'Tiền & TĐT',values:cash},{name:'Đầu tư TC ngắn hạn (HTM)',values:dep},{name:'Vay ngắn hạn',values:stocks('shortDebt').map(v=>-v),color:ROSE},{name:'Vay dài hạn',values:stocks('longDebt').map(v=>-v),color:'#B45C73'},{name:'Tiền − nợ vay',values:cash.map((v,i)=>v+dep[i]-debt[i]),type:'line',color:GREEN},{name:'Trừ thêm KH ứng trước',values:cash.map((v,i)=>v+dep[i]-debt[i]-adv[i]),type:'line',color:NAVY}],{stacked:true});
  timeChart('pvsCfo',fl,[{name:'CFO',values:f('cfo')},{name:'Chi mua TSCĐ & tài sản dài hạn',values:f('capex')}]);
  timeChart('pvsReceivables',stockLabels,[{name:'Phải thu KH ngắn hạn',values:stocks('receivables')},{name:'Phải thu HĐXD',values:stocks('contractAssets')}],{stacked:true});
  timeChart('pvsFunding',stockLabels,[{name:'Phải trả người bán',values:stocks('payables')},{name:'Chi phí phải trả',values:stocks('accruals')},{name:'KH ứng trước (NH+DH)',values:adv}],{stacked:true});
+ const q1=D.balance.q1_2026,executionLabels=h.labels.map(y=>'31/12/'+y).concat(['31/03/2026','30/06/2026']);
+ const executionStocks=k=>h[k].concat([q1[k],c[k]]);
+ timeChart('pvsExecution',executionLabels,[{name:'Phải thu theo tiến độ HĐXD',values:executionStocks('contractAssets')},{name:'Chi phí phải trả',values:executionStocks('accruals')}],{type:'line'});
+ timeChart('pvsAdvances',executionLabels,[{name:'Ứng trước ngắn hạn',values:executionStocks('advancesShort')},{name:'Ứng trước dài hạn',values:executionStocks('advancesLong')}],{stacked:true});
  timeChart('pvsRevenue',fl,[{name:'Doanh thu thuần',values:f('revenue')}]);
  const ar=h.receivables.map((v,i)=>v+h.contractAssets[i]);
  timeChart('pvsArTurnover',h.labels,[{name:'Doanh thu / phải thu bình quân',values:h.revenue.map((v,i)=>i?v/((ar[i]+ar[i-1])/2):null)}],{type:'line',unit:'lần'});
@@ -3521,6 +3619,12 @@ renderBS=function(){
  timeChart('pvsFinRatio',fl,[{name:'LN tài chính / LNST',values:f('npat').map((v,i)=>v?(f('finIncome')[i]-f('finCost')[i])/v*100:null)}],{type:'line',unit:'%'});
  timeChart('pvsProvisions',stockLabels,[{name:'Dự phòng ngắn hạn',values:stocks('provisionsShort')},{name:'Dự phòng dài hạn',values:stocks('provisionsLong')}],{stacked:true});
  timeChart('pvsInventory',stockLabels,[{name:'Tồn kho thuần',values:stocks('inventory')}]);
+ const pr=D.provisionProjects,byProject=new Map();
+ for(const row of pr.rows){const item=byProject.get(row.project)||{name:row.project,opening:0,closing:0};item.opening+=row.opening;item.closing+=row.closing;byProject.set(row.project,item);}
+ const ranked=[...byProject.values()].sort((a,b)=>b.closing-a.closing),top=ranked.slice(0,9),other=ranked.slice(9);
+ if(other.length)top.push({name:'Các khoản còn lại',opening:other.reduce((a,r)=>a+r.opening,0),closing:other.reduce((a,r)=>a+r.closing,0)});
+ timeChart('pvsProjectProvision',pr.periods,top.map((row,i)=>({name:row.name,values:[row.opening,row.closing],color:CAT[i%CAT.length]})),{stacked:true});
+ $('pvsProjectProvisionTable').innerHTML='<tr><th>Kỳ hạn / dự án</th><th class="num">Đầu kỳ</th><th class="num">Trích thêm</th><th class="num">Giảm*</th><th class="num">Phân loại</th><th class="num">Cuối kỳ</th></tr>'+pr.rows.map(row=>'<tr><td>'+esc(row.group+' · '+row.project)+'</td>'+['opening','added','reduced','reclassified','closing'].map(k=>'<td class="num">'+fmt(row[k],2)+'</td>').join('')+'</tr>').join('')+'<tr class="total"><td>Tổng dự phòng phải trả</td>'+['opening','added','reduced','reclassified','closing'].map(k=>'<td class="num">'+fmt(pr.rows.reduce((sum,row)=>sum+row[k],0),2)+'</td>').join('')+'</tr><tr><td colspan="6" class="note">* Giảm = sử dụng và/hoặc hoàn nhập theo thuyết minh. Gallaf 3 giảm 123,38 tỷ; CHW2204 chuyển 382,76 tỷ từ dài hạn sang ngắn hạn nên không phải hoàn nhập.</td></tr>';
  $('pvsStockTable').innerHTML=dataTable(stockLabels,[['Tiền & TĐT','cash'],['HTM ngắn hạn','deposits'],['Vay ngắn hạn','shortDebt'],['Vay dài hạn','longDebt'],['Phải thu khách hàng','receivables'],['Phải thu HĐXD','contractAssets'],['Phải trả người bán','payables'],['Chi phí phải trả','accruals'],['KH ứng trước ngắn hạn','advancesShort'],['KH ứng trước dài hạn','advancesLong'],['Dự phòng ngắn hạn','provisionsShort'],['Dự phòng dài hạn','provisionsLong'],['Tồn kho','inventory']].map(([name,k])=>({name,values:stocks(k)})));
  $('pvsFlowTable').innerHTML=dataTable(fl,[['Doanh thu thuần','revenue'],['Lãi liên doanh','jv'],['Thu nhập khác','otherIncome'],['Chi phí khác','otherCost'],['DT tài chính','finIncome'],['CP tài chính','finCost'],['LNST hợp nhất','npat'],['CFO','cfo'],['Chi mua TSCĐ & TS dài hạn','capex'],['Khấu hao TSCĐ & BĐSĐT','da']].map(([name,k])=>({name,values:f(k)})));
  $('financialPeriods').onclick=e=>{const b=e.target.closest('button[data-period]');if(!b)return;financialPeriod=b.dataset.period;renderBS();};applyChartTips($('bs'));
@@ -3640,6 +3744,13 @@ function setPvsFxDefault(){
 }
 renderBacklog=function(){
  const b=D.backlog,years=b.config.years,confirmed=years.map(y=>getAnnualTotalVnd(b.projects,y,['confirmed'])),pipeline=years.map(y=>getAnnualTotalVnd(b.projects,y,['pipeline'])),loa=years.map(y=>getAnnualTotalVnd(b.projects,y,['loa'])),confirmed2026=getAnnualTotalVnd(b.projects,2026,['confirmed']),pipeline2026=getAnnualTotalVnd(b.projects,2026,['pipeline']),total2026=confirmed2026+pipeline2026;
+ const updates=D.projectUpdates,news=$('pvsProjectUpdates');
+ if(news&&updates){
+   news.innerHTML='<div class="row" style="justify-content:space-between;align-items:baseline"><h3 class="sub" style="margin:0">Thông tin mới nhất về các dự án</h3><span class="note">Kiểm tra nguồn: '+esc(updates.checkedAt)+'</span></div>'+
+     '<div class="tbl-wrap" style="margin-top:12px"><table><tr><th>Ngày công bố</th><th>Dự án / loại tin</th><th>Nội dung & tác động backlog</th><th>Nguồn</th></tr>'+
+     updates.items.map(item=>'<tr><td>'+esc(item.date)+'</td><td><b>'+esc(item.project)+'</b><br><span class="pill blue">'+esc(item.kind)+'</span></td><td><b>'+esc(item.title)+'</b><br><span class="note">'+esc(item.detail)+'</span></td><td><a href="'+esc(item.url)+'" target="_blank" rel="noopener">Công bố gốc ↗</a></td></tr>').join('')+
+     '</table></div><div class="src">Theo dõi tiếp: '+sourceLinks(updates.sourcePages)+'. Chỉ cập nhật trạng thái, giá trị và điểm rơi trong bảng backlog sau khi đối chiếu công bố tương ứng.</div>';
+ }
  $('blKpi').innerHTML=[
   ['Kế hoạch dự án thực hiện 2026F',formatBacklogVnd(total2026),'1.373 triệu USD · dùng cho doanh thu M&C'],
   ['Trong đó confirmed',formatBacklogVnd(confirmed2026),formatBacklogUsd(getAnnualTotalUsd(b.projects,2026,['confirmed']))+' triệu USD'],
