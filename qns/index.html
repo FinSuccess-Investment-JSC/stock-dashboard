@@ -2147,7 +2147,8 @@ const questionTests={
 if(d.financialProfile&&questionTests[ticker])d.financialProfile.questionTests=questionTests[ticker];
 // POW already has its source-specific profile and finance implementation.
 if(ticker==='POW'||!profiles[ticker])return;
-const f=d.financials, b=d.balance;
+// Long-run chart series (10 years, 42 quarters) live in financialsFull; the screenshot table keeps 5 years + 4 quarters.
+const f=d.financialsFull||d.financials, b=d.balance;
 const rows=()=>f.sections.flatMap(s=>s.rows);
 const row=label=>rows().find(r=>r.l===label);
 const map=(a,fn)=>a.map((v,i)=>v==null?null:fn(v,i));
