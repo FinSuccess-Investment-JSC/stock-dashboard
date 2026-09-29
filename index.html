@@ -766,10 +766,7 @@ table.analyst-table tr:hover td{background:#FAFBFF}
 .gov-section{margin-top:15px;min-width:0}.gov-section h4{margin:0 0 8px;color:#1D2678}
 #governanceBox table{width:100%}#governanceBox td{vertical-align:top}
 @media(max-width:700px){.overview-facts{grid-template-columns:repeat(2,minmax(0,1fr))}.gov-grid{grid-template-columns:1fr}}
-.axisctl{margin:2px 0 8px}.axis-toggle{border:1px solid #d9deea;border-radius:7px;background:#fff;color:#1D2678;font:inherit;font-size:11px;font-weight:700;padding:4px 8px;cursor:pointer}
-.axis-panel{padding:9px 12px;border:1px solid #d9deea;border-radius:8px;background:#f8f9fd;margin-top:5px;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}.axis-panel[hidden]{display:none}
-.axis-head{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#1D2678}.axis-reset{border:0;background:none;color:#2938A8;font:inherit;cursor:pointer;text-decoration:underline}
-.axis-row label{display:flex;align-items:center;gap:8px;font-size:11px;color:#586174;margin-top:6px}.axis-row output{min-width:52px;text-align:right;color:#1D2678;font-weight:700}.axis-row input[type=range]{flex:1;min-width:75px;accent-color:#2938A8}
+.chart.axis-manual::after{content:'Trục thủ công · nhấp đúp để tự động';position:absolute;top:2px;right:4px;pointer-events:none;color:#596272;background:rgba(255,255,255,.9);font:10px Arial,sans-serif;padding:2px 4px;border-radius:3px}
 
 </style>
 <style>
@@ -1140,10 +1137,10 @@ const charts={}, chartBase={};
 let chartTypes={}; try{ chartTypes=JSON.parse(localStorage.getItem('chart_types_v1')||'{}'); }catch(e){}
 // debug/test: ?ct=chartId:type,chartId2:type
 try{ const q=new URLSearchParams(location.search).get('ct'); if(q) q.split(',').forEach(p=>{const [k,v]=p.split(':'); if(k&&v)chartTypes[k]=v;}); }catch(e){}
-const TYPE_LBL_CH={column:'Cột',stacked:'Cột chồng',barh:'Thanh',line:'Đường',area100:'Miền 100%',doughnut:'Tròn',pie:'Tròn (%)'};
+const TYPE_LBL_CH={column:'Cột',stacked:'Cột chồng',barh:'Thanh',line:'Đường',area:'Miền',doughnut:'Tròn',pie:'Tròn (%)'};
 function deep(o){ if(Array.isArray(o))return o.map(deep); if(o&&typeof o==='object')return Object.fromEntries(Object.entries(o).map(([k,v])=>[k,deep(v)])); return o; } // giữ nguyên function (callback định dạng)
 function applyType(cfg,t){
-  if(t==='area100')return shareAreaConfig(cfg);
+  if(t==='area')return areaConfig(cfg);
   const c=deep(cfg); const base=cfg.type; c.options=c.options||{}; c.options.scales=c.options.scales||{};
   if(base==='doughnut'){ if(t==='doughnut')return c;
     c.type='bar'; c.data.datasets=[{label:'Giá trị',data:cfg.data.datasets[0].data,backgroundColor:cfg.data.datasets[0].backgroundColor,borderRadius:4,maxBarThickness:60}];
@@ -1172,17 +1169,18 @@ function applyType(cfg,t){
 }
 function defaultType(cfg){ if(cfg.type==='pie')return 'pie'; if(cfg.type==='doughnut')return 'doughnut'; if(cfg.options?.indexAxis==='y')return 'barh'; const ds=cfg.data.datasets; if(ds.some(d=>d.stack)||cfg.options?.scales?.x?.stacked)return 'stacked'; if(cfg.type==='line'||ds.every(d=>d.type==='line'))return 'line'; return 'column'; }
 function mk(id,cfg){
-  chartBase[id]=cfg; const opts=cfg.lockChartType?[]:cfg.type==='pie'?['pie']:cfg.type==='doughnut'?['doughnut','column','barh']:['column','stacked','barh','line',...(cfg.shareEligible?['area100']:[])];
+  chartBase[id]=cfg; const opts=cfg.lockChartType?[]:cfg.type==='pie'?['pie']:cfg.type==='doughnut'?['doughnut','column','barh']:['column','stacked','barh','line',...(cfg.options?.indexAxis==='y'||cfg.lockChartType?[]:['area'])];
+  if(chartTypes[id]==='area100')chartTypes[id]='area';
   const t=opts.includes(chartTypes[id])?chartTypes[id]:defaultType(cfg);
   const displayCfg=t===defaultType(cfg)?deep(cfg):applyType(cfg,t);
   if(typeof configureChartAxes==='function')configureChartAxes(id,displayCfg);
   if(charts[id])charts[id].destroy(); charts[id]=new Chart($(id),displayCfg);
+  if(typeof renderChartAxes==='function')renderChartAxes(id,displayCfg);
   const card=$(id).closest('.card'); const h=card&&card.querySelector('h3.sub'); if(!h)return;
   let ctl=h.querySelector('.ctl'); if(!ctl){ ctl=document.createElement('span'); ctl.className='ctl'; h.appendChild(ctl); }
   ctl.style.display=opts.length>1?'':'none';
   ctl.innerHTML=opts.map(o=>`<button class="${o===t?'on':''}" data-t="${o}" title="${TYPE_LBL_CH[o]}">${TYPE_LBL_CH[o]}</button>`).join('');
   ctl.onclick=e=>{ const b=e.target.closest('button'); if(!b)return; chartTypes[id]=b.dataset.t; try{localStorage.setItem('chart_types_v1',JSON.stringify(chartTypes));}catch(x){} mk(id,chartBase[id]); };
-  if(typeof renderChartAxes==='function')renderChartAxes(id,displayCfg);
 }
 // notes under charts -> ⓘ tooltip in the card header
 function applyChartTips(){
@@ -3082,10 +3080,10 @@ document.addEventListener('DOMContentLoaded',()=>{
 'use strict';
 const KEY='chart_axis_range_v1';
 let saved={};try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){}
-const open=new Set();
+const bindings=new Map();
 const finite=v=>v!==null&&v!==''&&Number.isFinite(Number(v));
 const format=v=>Number(v).toLocaleString('vi-VN',{maximumFractionDigits:2});
-const safe=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(saved))}catch(e){}}
 function axes(cfg){
   if(!cfg||!cfg.data||['pie','doughnut','polarArea'].includes(cfg.type)||cfg.shareView)return [];
   const scales=cfg.options&&cfg.options.scales||{};
@@ -3109,66 +3107,148 @@ window.configureChartAxes=function(id,cfg){
     cfg.options.scales[axis].beginAtZero=false;
   }
 };
-window.shareAreaConfig=function(cfg){
-  const c=deep(cfg), source=cfg.data.datasets||[], labels=cfg.data.labels||[];
-  const totals=labels.map((_,i)=>{
-    const vals=source.map(d=>d.data[i]);
-    return vals.every(finite)&&vals.every(v=>Number(v)>=0)?vals.reduce((a,v)=>a+Number(v),0):null;
+// "Miền": generic area view offered for every time-series chart, next to Cột / Cột chồng / Thanh / Đường.
+// Stacks only charts that were authored as additive stacks (and only when no value is negative);
+// other charts draw translucent overlapping areas. Line overlays (net, ratios, references) stay lines.
+window.areaConfig=function(cfg){
+  const c=deep(cfg), source=cfg.data.datasets||[];
+  const wasStacked=typeof defaultType==='function'&&defaultType(cfg)==='stacked';
+  const areaIdx=source.map((d,i)=>i).filter(i=>!(source[i].type==='line'&&cfg.type!=='line')&&source[i].yAxisID!=='ratio'&&!source[i].borderDash);
+  const negative=areaIdx.some(i=>(source[i].data||[]).some(v=>finite(v)&&Number(v)<0));
+  const stacked=wasStacked&&!negative&&!cfg.financialCombo;
+  const alpha=(color,a)=>{const m=/^#([0-9a-f]{6})$/i.exec(color||'');if(!m)return color;const n=parseInt(m[1],16);return `rgba(${n>>16},${n>>8&255},${n&255},${a})`;};
+  const colorOf=d=>{const col=Array.isArray(d.backgroundColor)?d.backgroundColor[0]:d.backgroundColor;return d.borderColor&&typeof d.borderColor==='string'&&d.type==='line'&&!col?d.borderColor:(col||d.borderColor||'#2938A8');};
+  c.type='line';c.financialCombo=cfg.financialCombo;
+  let order=0;
+  c.data.datasets=source.map((d,i)=>{
+    const out={...deep(d)};delete out.borderRadius;delete out.maxBarThickness;delete out.barThickness;delete out.indexAxis;
+    out.type='line';
+    if(areaIdx.includes(i)){
+      const color=colorOf(d);
+      out.borderColor=color;out.backgroundColor=alpha(color,stacked?.9:.28);out.borderWidth=2;out.pointRadius=stacked?0:2.5;out.pointHoverRadius=4;out.tension=0;
+      out.fill=stacked?(order===0?'origin':'-1'):'origin';
+      if(stacked)out.stack='area';else delete out.stack;
+      order++;
+    }else{
+      out.fill=false;delete out.stack;
+      out.borderColor=out.borderColor||colorOf(d);
+    }
+    return out;
   });
-  c.type='line';c.shareView=true;c.financialCombo=false;
-  c.data.datasets=source.map((d,j)=>{
-    const color=Array.isArray(d.backgroundColor)?d.backgroundColor[0]:d.backgroundColor||d.borderColor||'#2938A8';
-    return {...d,type:'line',data:labels.map((_,i)=>totals[i]>0?Number(source[j].data[i])/totals[i]*100:null),borderColor:color,backgroundColor:color,borderWidth:1.5,pointRadius:0,pointHoverRadius:4,tension:.15,fill:true,stack:'share'};
-  });
-  c.options.indexAxis='x';c.options.scales={x:{grid:{display:false}},y:{stacked:true,min:0,max:100,beginAtZero:true,grid:{color:'#EEF0F6'},ticks:{callback:v=>v+'%'}}};
-  c.options.plugins=c.options.plugins||{};c.options.plugins.legend={position:'bottom',labels:{boxWidth:12,usePointStyle:true}};
-  c.options.plugins.tooltip={mode:'index',intersect:false,callbacks:{label:x=>{
-    const original=source[x.datasetIndex]&&source[x.datasetIndex].data[x.dataIndex];
-    return x.dataset.label+': '+(x.parsed.y==null?'—':format(x.parsed.y)+'% · '+format(original)+' tỷ VND');
-  }}};
+  c.options=c.options||{};c.options.indexAxis='x';c.options.scales=c.options.scales||{};
+  for(const ax of ['x','y']){c.options.scales[ax]=c.options.scales[ax]||{};c.options.scales[ax].stacked=stacked;}
+  if(c.options.scales.ratio)c.options.scales.ratio.stacked=false;
+  c.options.interaction={mode:'index',intersect:false};
   return c;
 };
-window.renderChartAxes=function(id,cfg){
-  const canvas=document.getElementById(id),box=canvas&&canvas.closest('.chart');if(!box)return;
-  const prior=box.previousElementSibling;
-  const anchor=prior&&prior.classList&&prior.classList.contains('tsctl')?prior:box;
-  let ctl=anchor.previousElementSibling;
-  if(!ctl||!ctl.classList||!ctl.classList.contains('axisctl')){
-    ctl=document.createElement('div');ctl.className='axisctl';box.parentNode.insertBefore(ctl,anchor);
+function chartFor(id,binding){return binding.direct||(typeof charts!=='undefined'&&charts[id]);}
+function point(e,canvas,chart){
+  const rect=canvas.getBoundingClientRect();
+  return {x:(e.clientX-rect.left)*chart.width/rect.width,y:(e.clientY-rect.top)*chart.height/rect.height};
+}
+function axisAt(chart,p){
+  for(const {axis} of axes(chart.config)){
+    const s=chart.scales&&chart.scales[axis];if(!s)continue;
+    if(p.x>=s.left-3&&p.x<=s.right+3&&p.y>=s.top-3&&p.y<=s.bottom+3)return axis;
   }
-  const chart=charts[id],shown=chart&&chart.config||cfg;
-  const list=axes(shown);
-  if(!list.length){ctl.remove();return;}
-  const manual=!!Object.keys(saved[id]||{}).length;
-  ctl.innerHTML='<button type="button" class="axis-toggle" aria-expanded="'+open.has(id)+'">↕ Phạm vi trục'+(manual?' · thủ công':'')+'</button><div class="axis-panel" '+(open.has(id)?'':'hidden')+'></div>';
-  const panel=ctl.querySelector('.axis-panel');
-  ctl.querySelector('.axis-toggle').onclick=()=>{open.has(id)?open.delete(id):open.add(id);panel.hidden=!open.has(id);ctl.querySelector('.axis-toggle').setAttribute('aria-expanded',String(open.has(id)));};
-  list.forEach(({axis,data,label})=>{
-    const scale=chart.scales&&chart.scales[axis], minNow=scale&&finite(scale.min)?Number(scale.min):Math.min(0,...data),maxNow=scale&&finite(scale.max)?Number(scale.max):Math.max(...data);
-    const minData=Math.min(...data),maxData=Math.max(...data),span=Math.max(maxData-minData,Math.abs(maxData),1);
-    const lo=Math.min(0,minData-span*.25,minNow),hi=Math.max(0,maxData+span*.25,maxNow),step=Math.max((hi-lo)/200,0.000001);
-    const row=document.createElement('div');row.className='axis-row';
-    row.innerHTML='<div class="axis-head"><b>'+safe(label)+'</b><button type="button" class="axis-reset">Tự động</button></div>'+
-      '<label>Cận dưới <output class="axis-min-out">'+format(minNow)+'</output><input class="axis-min" type="range" min="'+lo+'" max="'+hi+'" step="'+step+'" value="'+minNow+'"></label>'+
-      '<label>Cận trên <output class="axis-max-out">'+format(maxNow)+'</output><input class="axis-max" type="range" min="'+lo+'" max="'+hi+'" step="'+step+'" value="'+maxNow+'"></label>';
-    panel.appendChild(row);
-    const minInput=row.querySelector('.axis-min'),maxInput=row.querySelector('.axis-max');
-    const set=()=>{
-      let min=Number(minInput.value),max=Number(maxInput.value);
-      if(min>=max){if(document.activeElement===minInput){max=Math.min(hi,min+step);maxInput.value=max}else{min=Math.max(lo,max-step);minInput.value=min}}
-      if(min>=max)return;
-      row.querySelector('.axis-min-out').textContent=format(min);row.querySelector('.axis-max-out').textContent=format(max);
-      (saved[id]||(saved[id]={}))[axis]={min,max};try{localStorage.setItem(KEY,JSON.stringify(saved))}catch(e){}
-      const s=chart.options.scales[axis];s.min=min;s.max=max;s.beginAtZero=false;chart.update('none');
-      ctl.querySelector('.axis-toggle').textContent='↕ Phạm vi trục · thủ công';
-    };
-    minInput.oninput=set;maxInput.oninput=set;
-    row.querySelector('.axis-reset').onclick=()=>{
-      if(saved[id]){delete saved[id][axis];if(!Object.keys(saved[id]).length)delete saved[id]}
-      try{localStorage.setItem(KEY,JSON.stringify(saved))}catch(e){}
-      mk(id,chartBase[id]);
-    };
+  return null;
+}
+function plotAt(chart,p){
+  const a=chart.chartArea;
+  return a&&p.x>=a.left&&p.x<=a.right&&p.y>=a.top&&p.y<=a.bottom;
+}
+function horizontal(scale,axis){return typeof scale.isHorizontal==='function'?scale.isHorizontal():axis==='x'||scale.axis==='x';}
+function showMode(id,box,chart){
+  if(!box)return;
+  box.classList.toggle('axis-manual',!!chart&&axes(chart.config).some(({axis})=>saved[id]?.[axis]));
+}
+function range(chart,axis,min,max){
+  if(!finite(min)||!finite(max)||min>=max)return false;
+  const scale=chart.options.scales[axis];if(!scale)return false;
+  scale.min=min;scale.max=max;scale.beginAtZero=false;
+  chart.update('none');return true;
+}
+function zoom(chart,axis,factor,anchor,base){
+  const s=chart.scales[axis],min=base?base.min:Number(s.min),max=base?base.max:Number(s.max);
+  if(!finite(min)||!finite(max)||min>=max)return false;
+  const span=max-min,limit=Math.max(span*1e-4,1e-9);
+  const next=Math.max(limit,Math.min(span*1e4,span*factor));
+  const fraction=Math.max(0,Math.min(1,(anchor-min)/span));
+  return range(chart,axis,anchor-fraction*next,anchor+(1-fraction)*next);
+}
+function saveRange(id,chart,axis,box){
+  const s=chart.scales[axis];
+  if(!s||!finite(s.min)||!finite(s.max))return;
+  (saved[id]||(saved[id]={}))[axis]={min:Number(s.min),max:Number(s.max)};
+  persist();showMode(id,box,chart);
+}
+function reset(id,binding,axis){
+  if(!saved[id])return;
+  if(axis)delete saved[id][axis];else delete saved[id];
+  if(saved[id]&&!Object.keys(saved[id]).length)delete saved[id];
+  persist();showMode(id,binding.box,chartFor(id,binding));
+  if(!binding.direct&&typeof mk==='function'&&typeof chartBase!=='undefined'&&chartBase[id]){
+    mk(id,chartBase[id]);return;
+  }
+  const chart=chartFor(id,binding);if(!chart)return;
+  for(const {axis:a} of axes(chart.config)){
+    if(axis&&a!==axis)continue;
+    const opts=chart.options.scales[a];
+    delete opts.min;delete opts.max;opts.beginAtZero=true;
+  }
+  chart.update('none');
+};
+window.renderChartAxes=function(id,cfg,directChart){
+  const canvas=document.getElementById(id),box=canvas&&canvas.closest('.chart');if(!box)return;
+  let binding=bindings.get(id);
+  if(binding&&binding.canvas!==canvas){bindings.delete(id);binding=null;}
+  if(binding){binding.direct=directChart||null;binding.box=box;showMode(id,box,chartFor(id,binding));return;}
+  binding={canvas,box,direct:directChart||null,drag:null};bindings.set(id,binding);
+  showMode(id,box,chartFor(id,binding));
+  const current=()=>chartFor(id,binding);
+  canvas.addEventListener('pointerdown',e=>{
+    if(e.button!==0)return;
+    const chart=current();if(!chart)return;
+    const p=point(e,canvas,chart),axis=axisAt(chart,p);if(!axis)return;
+    const s=chart.scales[axis],alongX=horizontal(s,axis),anchor=s.getValueForPixel(alongX?p.x:p.y);
+    if(!finite(anchor)||!finite(s.min)||!finite(s.max))return;
+    binding.drag={axis,alongX,start:alongX?p.x:p.y,min:Number(s.min),max:Number(s.max),anchor:Number(anchor),moved:false};
+    canvas.setPointerCapture?.(e.pointerId);e.preventDefault();
   });
+  canvas.addEventListener('pointermove',e=>{
+    const chart=current();if(!chart)return;
+    const p=point(e,canvas,chart),drag=binding.drag;
+    if(!drag){const axis=axisAt(chart,p);canvas.style.cursor=axis?(horizontal(chart.scales[axis],axis)?'ew-resize':'ns-resize'):'';return;}
+    const delta=(drag.alongX?p.x:p.y)-drag.start;
+    if(Math.abs(delta)<2&&!drag.moved)return;
+    const s=chart.scales[drag.axis],length=Math.max(drag.alongX?s.right-s.left:s.bottom-s.top,1);
+    drag.moved=zoom(chart,drag.axis,Math.exp(Math.max(-3,Math.min(3,delta/length*2))),drag.anchor,drag)||drag.moved;
+    e.preventDefault();
+  });
+  const end=e=>{
+    const drag=binding.drag;if(!drag)return;
+    binding.drag=null;canvas.style.cursor='';
+    if(canvas.hasPointerCapture?.(e.pointerId))canvas.releasePointerCapture(e.pointerId);
+    const chart=current();if(chart&&drag.moved)saveRange(id,chart,drag.axis,box);
+  };
+  canvas.addEventListener('pointerup',end);canvas.addEventListener('pointercancel',end);
+  canvas.addEventListener('wheel',e=>{
+    const chart=current();if(!chart)return;
+    const p=point(e,canvas,chart);
+    const axis=axisAt(chart,p)||((e.ctrlKey||e.metaKey||e.shiftKey)&&plotAt(chart,p)&&axes(chart.config)[0]?.axis);
+    if(!axis)return;
+    const s=chart.scales[axis],value=s.getValueForPixel(horizontal(s,axis)?p.x:p.y);
+    const anchor=finite(value)?Number(value):(Number(s.min)+Number(s.max))/2;
+    if(zoom(chart,axis,Math.exp(Math.max(-3,Math.min(3,e.deltaY/120))*.2),anchor)){
+      saveRange(id,chart,axis,box);e.preventDefault();
+    }
+  },{passive:false});
+  canvas.addEventListener('dblclick',e=>{
+    const chart=current();if(!chart)return;
+    const p=point(e,canvas,chart),axis=axisAt(chart,p);
+    if(axis||plotAt(chart,p)){reset(id,binding,axis);e.preventDefault();}
+  });
+  canvas.title='Kéo hoặc cuộn chuột trên trục để thu/phóng; nhấp đúp để về trục tự động';
 };
 })();
 
