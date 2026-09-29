@@ -1317,7 +1317,7 @@ function tsControls(id,spec,st){
   }
   if(!showP&&!showN){ bar.remove(); return; }
   const perSel=showP?('<span class="lb">Chu kỳ</span><select class="tsp" aria-label="Chu kỳ">'
-    +TS_PER.filter(x=>st.av.includes(x[0])).map(([k,l])=>`<option value="${k}" ${k===st.p?'selected':''}>${l}</option>`).join('')
+    +TS_PER.filter(x=>st.av.includes(x[0])).map(([k,l])=>`<option value="${k}" ${k===st.p?'selected':''}>${spec.periodLabels?.[k]||l}</option>`).join('')
     +'</select>'):'';
   const opts=tsCountOpts(st.total);
   if(st.n!=='all'&&!opts.includes(+st.n))opts.push(+st.n),opts.sort((a,b)=>a-b);  // giữ giá trị đã lưu/ghi đè qua URL dù ngoài danh sách chuẩn
@@ -2912,32 +2912,58 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 
 </script>
 <script>
-/* Long-run income statement history, sourced from CafeF quarterly filings. */
+/* Comparable long-run income statement history from quarterly filings. */
 (function(){
   const d=window.PVS_DATA,store=window.FS_INCOME_HISTORY_10Y;
-  if(!d||!store||!d.meta)return;
+  if(!d||!d.meta||!store)return;
   const ticker=d.meta.ticker,years=store[ticker];if(!years)return;
-  const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-  const annual=Array.from({length:10},(_,i)=>String(2016+i));
-  const quarterly=Array.from({length:42},(_,i)=>'Q'+(i%4+1)+'/'+(2016+Math.floor(i/4)));
-  const series=key=>quarterly.map(l=>{const [q,y]=l.split('/');return (years[y]&&years[y][key]||[])[Number(q[1])-1]??null;});
-  const sumYear=(key,y)=>{const a=years[y]&&years[y][key];return a&&a.length===4&&a.every(v=>v!=null)?Math.round(a.reduce((x,v)=>x+v,0)*1000)/1000:null};
+  const metrics=[
+    {key:'revenue',id:'income10Rev',title:'Doanh thu thuần',color:'#2938A8'},
+    {key:'grossProfit',id:'income10Gross',title:'Lợi nhuận gộp',color:'#16A6A0'},
+    {key:'operatingProfit',id:'income10Operating',title:'Lợi nhuận thuần HĐKD',color:'#6B4BB6'},
+    {key:'parentProfit',id:'income10Profit',title:'LNST thuộc cổ đông mẹ',color:'#861C52'}
+  ];
+  const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const firstYear=2016;
+  // Read the latest published quarter from the snapshot so a new filing extends the axis automatically.
+  let latest={year:firstYear,quarter:0};
+  for(const company of Object.values(store))for(const [year,record] of Object.entries(company)){
+    if(!/^\d{4}$/.test(year))continue;
+    for(const metric of metrics)(record[metric.key]||[]).forEach((value,index)=>{
+      if(value==null)return;
+      const y=Number(year),q=index+1;
+      if(y>latest.year||y===latest.year&&q>latest.quarter)latest={year:y,quarter:q};
+    });
+  }
+  if(!latest.quarter)return;
+  const fullYear=latest.quarter===4?latest.year:latest.year-1;
+  const annual=Array.from({length:Math.min(10,Math.max(0,fullYear-firstYear+1))},(_,i)=>String(fullYear-Math.min(10,fullYear-firstYear+1)+1+i));
+  const quarterly=[];for(let year=firstYear;year<=latest.year;year++)for(let q=1;q<=(year===latest.year?latest.quarter:4);q++)quarterly.push('Q'+q+'/'+year);
+  const quarterSeries=key=>quarterly.map(label=>{const [q,year]=label.split('/');return (years[year]&&years[year][key]||[])[Number(q[1])-1]??null;});
+  const sumYear=(key,year)=>{const values=years[year]&&years[year][key];return values&&values.length===4&&values.every(value=>value!=null)?Math.round(values.reduce((sum,value)=>sum+value,0)*1000)/1000:null;};
   function render(){
     const bs=document.getElementById('bs');if(!bs||typeof mkTS!=='function')return;
-    const anchor=document.getElementById('finTableCard');
-    let box=document.getElementById('incomeHistory10y');if(!box){box=document.createElement('div');box.id='incomeHistory10y';box.style.marginTop='16px';bs.insertBefore(box,anchor||bs.firstChild);}
-    const present=series('revenue').filter(v=>v!=null).length;
-    const warnings=Object.entries(years).flatMap(([y,v])=>(v.warnings||[]).map(w=>y+': '+w));
-    const links=Object.entries(years).sort((a,b)=>Number(a[0])-Number(b[0])).map(([y,v])=>/^https?:/.test(v.src||'')?'<a href="'+esc(v.src)+'" target="_blank" rel="noopener noreferrer">'+esc(y)+'</a>':esc(y)).join(' · ');
-    box.innerHTML='<h3 class="sub">KQKD dài hạn · 2016–Q2/2026</h3><div class="note">'+present+'/42 quý có doanh thu. Số liệu quý từ CafeF, đơn vị tỷ VND; năm 2016–2025 là tổng bốn quý đủ dữ liệu. 2026 chưa đủ năm. Chuỗi này là đối chiếu lịch sử; các chỉ tiêu ngành và phạm vi hợp nhất riêng nằm ở những chart phía dưới.</div>'+
-      '<div class="grid g2" style="margin-top:12px"><div class="card"><h3 class="sub">Doanh thu thuần · tỷ VND</h3><div class="chart tall"><canvas id="income10Rev"></canvas></div></div><div class="card"><h3 class="sub">LNST thuộc cổ đông mẹ · tỷ VND</h3><div class="chart tall"><canvas id="income10Profit"></canvas></div></div></div>'+
-      '<details class="dd" style="margin-top:10px"><summary>Nguồn theo năm và giới hạn đối chiếu'+(warnings.length?' · '+warnings.length+' chuỗi cần rà soát':'')+'</summary><div class="body"><div class="note">CafeF › báo cáo KQKD theo quý. Q4 và số cộng năm có thể khác số công bố kiểm toán hoặc dữ liệu sau tái trình bày; cần đối chiếu BCTC gốc trước khi dùng để forecast. Kỳ không có số để trống. '+links+'</div>'+(warnings.length?'<ul class="list">'+warnings.map(w=>'<li>'+esc(w)+'</li>').join('')+'</ul>':'')+'</div></details>';
-    const mkSpec=(id,key,color)=>{
-      const q=series(key),a=annual.map(y=>sumYear(key,y));
-      const datasets=data=>[{label:key==='revenue'?'Doanh thu thuần':'LNST mẹ',data,backgroundColor:color,borderColor:color,borderRadius:3,maxBarThickness:38}];
-      mkTS(id,{def:'y',y:{labels:annual,datasets:datasets(a)},q:{labels:quarterly,datasets:datasets(q)},cfg:(labels,sets)=>({type:'bar',data:{labels,datasets:sets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:x=>x.parsed.y==null?'—':Number(x.parsed.y).toLocaleString('vi-VN',{maximumFractionDigits:2})+' tỷ VND'}}},scales:{x:{grid:{display:false}},y:{grid:{color:'#EEF0F6'},ticks:{callback:v=>Number(v).toLocaleString('vi-VN')}}}}})});
-    };
-    mkSpec('income10Rev','revenue','#2938A8');mkSpec('income10Profit','parentProfit','#861C52');
+    let box=document.getElementById('incomeHistory10y');
+    if(!box){
+      box=document.createElement('div');box.id='incomeHistory10y';box.style.marginTop='16px';
+      const heading=bs.querySelector(':scope > h2.sec');
+      if(heading)heading.after(box);else bs.insertBefore(box,bs.firstChild);
+    }
+    const warnings=Object.entries(years).flatMap(([year,record])=>(record.warnings||[]).map(warning=>year+': '+warning));
+    const links=Object.entries(years).sort((a,b)=>Number(a[0])-Number(b[0])).map(([year,record])=>/^https?:/.test(record.src||'')?'<a href="'+esc(record.src)+'" target="_blank" rel="noopener noreferrer">'+esc(year)+'</a>':esc(year)).join(' · ');
+    const last=quarterly[quarterly.length-1];
+    box.innerHTML='<h3 class="sub">Kết quả kinh doanh dài hạn · '+esc(annual[0])+'–'+esc(last)+'</h3>'+
+      '<p class="note">Chọn <b>10 năm hoàn chỉnh</b> hoặc <b>theo quý</b> riêng cho từng biểu đồ. Năm là tổng 4 quý có đủ dữ liệu; kỳ thiếu để trống. Nguồn CafeF, đơn vị tỷ VND. Các biểu đồ đặc thù của doanh nghiệp ở dưới giữ phạm vi dữ liệu đã đối chiếu riêng.</p>'+
+      '<div class="grid g2" style="margin-top:12px">'+metrics.map(metric=>{
+        const q=quarterSeries(metric.key),a=annual.map(year=>sumYear(metric.key,year));
+        return '<div class="card"><h3 class="sub">'+esc(metric.title)+' · tỷ VND</h3><div class="chart tall"><canvas id="'+metric.id+'"></canvas></div><div class="note">Có số: '+a.filter(value=>value!=null).length+'/'+annual.length+' năm · '+q.filter(value=>value!=null).length+'/'+quarterly.length+' quý.</div></div>';
+      }).join('')+'</div>'+
+      '<details class="dd" style="margin-top:10px"><summary>Nguồn theo năm và giới hạn đối chiếu'+(warnings.length?' · '+warnings.length+' chuỗi cần rà soát':'')+'</summary><div class="body"><div class="note">CafeF › báo cáo KQKD theo quý. Q4 và số cộng năm có thể khác số công bố kiểm toán hoặc dữ liệu sau tái trình bày; đối chiếu BCTC gốc trước khi dùng để forecast. Kỳ không có số để trống. '+links+'</div>'+(warnings.length?'<ul class="list">'+warnings.map(warning=>'<li>'+esc(warning)+'</li>').join('')+'</ul>':'')+'</div></details>';
+    for(const metric of metrics){
+      const q=quarterSeries(metric.key),a=annual.map(year=>sumYear(metric.key,year));
+      const datasets=values=>[{label:metric.title,data:values,backgroundColor:metric.color,borderColor:metric.color,borderRadius:3,maxBarThickness:38}];
+      mkTS(metric.id,{def:'y',periodLabels:{y:'10 năm hoàn chỉnh ('+annual[0]+'–'+annual[annual.length-1]+')',q:'Theo quý ('+quarterly[0]+'–'+last+')'},y:{labels:annual,datasets:datasets(a)},q:{labels:quarterly,datasets:datasets(q)},cfg:(labels,sets)=>({type:'bar',data:{labels,datasets:sets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:item=>item.parsed.y==null?'—':Number(item.parsed.y).toLocaleString('vi-VN',{maximumFractionDigits:2})+' tỷ VND'}}},scales:{x:{grid:{display:false}},y:{grid:{color:'#EEF0F6'},ticks:{callback:value=>Number(value).toLocaleString('vi-VN')}}}}})});
+    }
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',render);else render();
 })();
