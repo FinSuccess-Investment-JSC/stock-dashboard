@@ -1952,7 +1952,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const presumedDryVolume=i=>g.pricing.drySources.reduce((sum,s)=>sum+(s.volume[i]||0),0);
   function chart(id,type,labels,datasets,unit='tỷ VND',stacked=false,quarter=null){
-    mkTS(id,{def:'y',y:{labels,datasets},...(quarter?{q:quarter}:{}),cfg:(x,y)=>({type,data:{labels:x,datasets:y},options:baseOpts({
+    mkTS(id,{def:quarter?'q':'y',y:{labels,datasets},...(quarter?{q:quarter}:{}),cfg:(x,y)=>({type,data:{labels:x,datasets:y},options:baseOpts({
       plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y??c.parsed.x,2)+' '+unit}}},
       scales:{x:{stacked,grid:{display:false}},y:{stacked,beginAtZero:true,grid:{color:'#EEF0F6'}}}
     })})});
@@ -1996,9 +1996,9 @@ document.addEventListener('DOMContentLoaded',()=>{
     const segSets=(names,values,idx)=>names.map((label,k)=>({label,data:values[k],backgroundColor:stackColor(idx[k],7),stack:'segments',borderRadius:2,maxBarThickness:60}));
     const segCfg=(labels,datasets)=>({type:'bar',data:{labels,datasets},options:baseOpts({scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,beginAtZero:true,grid:{color:'#EEF0F6'},ticks:{callback:v=>vnd(v)}}}})});
     const annualIdx=segData.names.map((_,i)=>i);
-    [['segRev','revenue'],['segGP','grossProfit']].forEach(([id,key])=>mkTS(id,{def:'y',y:{labels:Y,datasets:segSets(segData.names,segData[key],annualIdx)},q:{labels:Q.labels,datasets:segSets(Q.names,Q[key],Q.colorIndex)},cfg:segCfg}));
+    [['segRev','revenue'],['segGP','grossProfit']].forEach(([id,key])=>mkTS(id,{def:'q',y:{labels:Y,datasets:segSets(segData.names,segData[key],annualIdx)},q:{labels:Q.labels,datasets:segSets(Q.names,Q[key],Q.colorIndex)},cfg:segCfg}));
     const marginOf=(gp,rev)=>rev?Math.round(gp/rev*1000)/10:null;
-    mkTS('segGM',{def:'y',y:{labels:segData.marginSeries.map(x=>x.label),datasets:segData.names.map((n,i)=>({label:n,data:segData.marginSeries.map(x=>x.values[n]??null),backgroundColor:CAT[i%CAT.length],borderRadius:3,maxBarThickness:40}))},
+    mkTS('segGM',{def:'q',y:{labels:segData.marginSeries.map(x=>x.label),datasets:segData.names.map((n,i)=>({label:n,data:segData.marginSeries.map(x=>x.values[n]??null),backgroundColor:CAT[i%CAT.length],borderRadius:3,maxBarThickness:40}))},
       q:{labels:Q.labels,datasets:Q.names.map((n,k)=>({label:n,data:Q.labels.map((_,j)=>{const m=marginOf(Q.grossProfit[k][j],Q.revenue[k][j]);return m!=null&&Math.abs(m)>300?null:m}),backgroundColor:CAT[Q.colorIndex[k]%CAT.length],borderRadius:3,maxBarThickness:40}))},
       cfg:(labels,datasets)=>({type:'bar',data:{labels,datasets},options:baseOpts({plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y,1)+'%'}}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:'#EEF0F6'},ticks:{callback:v=>v+'%'}}}})})});
     const qTable=document.createElement('div');qTable.className='card';qTable.style.marginTop='16px';
