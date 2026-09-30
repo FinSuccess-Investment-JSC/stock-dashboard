@@ -2553,6 +2553,11 @@ body.isolate .wrap{padding-top:10px}
 .multiple-series .dot{width:10px;height:10px;border-radius:50%;background:var(--series,#1D2678)}
 .multiple-chart-card{margin-top:10px}
 .multiple-chart-card .chart{height:410px}
+.multiple-legend{display:flex;align-items:center;gap:8px 18px;flex-wrap:wrap;margin:8px 0 6px;color:#454b62;font-size:12px}
+.multiple-legend span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.multiple-legend i{display:inline-block;width:20px;border-top:2px solid var(--line-color);vertical-align:middle}
+.multiple-legend .series i{position:relative}
+.multiple-legend .series i::after{content:"";position:absolute;top:-4px;left:8px;width:6px;height:6px;border-radius:50%;background:var(--line-color)}
 .multiple-empty{margin-top:10px;min-height:180px;display:grid;place-items:center;border:1px dashed var(--line);border-radius:10px;color:var(--muted);text-align:center;padding:24px}
 @media(max-width:700px){.multiple-chart-card .chart{height:340px}.multiple-series button{font-size:12px;padding:7px 9px}}
 .zone{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
@@ -4240,7 +4245,7 @@ function renderMultiples(){
       <div class="row" style="justify-content:space-between;align-items:flex-start">
         <h3 class="sub" style="margin:0">${esc(hv.title||'Bội số định giá theo thời gian')}</h3>
         <div class="bandctl" id="bandCtl">
-          <button type="button" data-b="med" class="${BAND.med?'on':''}" ${solo?'':'disabled title="Chọn một bội số để xem dải tham chiếu"'}>Trung vị</button>
+          <button type="button" data-b="med" class="${BAND.med?'on':''}" aria-pressed="${BAND.med}">Trung vị</button>
           <button type="button" data-b="sd1" class="${BAND.sd1?'on':''}" ${solo?'':'disabled title="Chọn một bội số để xem dải tham chiếu"'}>±1σ</button>
           <button type="button" data-b="sd2" class="${BAND.sd2?'on':''}" ${solo?'':'disabled title="Chọn một bội số để xem dải tham chiếu"'}>±2σ</button></div>
       </div>
@@ -4248,31 +4253,45 @@ function renderMultiples(){
         ${defs.map(d=>`<button type="button" data-key="${d.key}" class="${MULTVISIBLE[d.key]?'on':''}" style="--series:${d.color}" aria-pressed="${!!MULTVISIBLE[d.key]}"><span class="dot" aria-hidden="true"></span>${esc(d.name)}</button>`).join('')}
         <button type="button" data-all="1" class="${active.length===defs.length?'on':''}" aria-label="Hiện cả ba bội số">Xem tất cả</button>
       </div>
-      <p class="note" style="margin:0">Bấm từng bội số để hiện hoặc ẩn đường giá trị. Mỗi đường dùng trục cùng màu; dải trung vị và σ hiện khi chọn một bội số.</p>
-      ${active.length?`<div class="card multiple-chart-card"><h3 class="sub">Xu hướng bội số định giá</h3><div class="chart"><canvas id="multiplesChart" role="img" aria-label="Biểu đồ các bội số định giá được chọn"></canvas></div></div>`:
+      <p class="note" style="margin:0">Bấm từng bội số để hiện hoặc ẩn đường giá trị. Trung vị tính trên toàn bộ kỳ có số liệu của từng bội số; ±σ chỉ hiện khi chọn một bội số.</p>
+      ${active.length?`<div class="card multiple-chart-card"><h3 class="sub">Xu hướng bội số định giá</h3><div class="multiple-legend" aria-label="Chú giải biểu đồ">${active.map(d=>`<span class="series"><i style="--line-color:${d.color}"></i>${esc(d.name)}</span>${BAND.med&&stats[d.key]?`<span><i style="--line-color:${solo?'#9096A3':d.color+'99'}"></i>Trung vị ${solo?'':esc(d.name)+' '}${stats[d.key].med.toFixed(2)}x</span>`:''}`).join('')}</div><div class="chart"><canvas id="multiplesChart" role="img" aria-label="Biểu đồ các bội số định giá được chọn${BAND.med?', kèm đường trung vị':''}"></canvas></div></div>`:
         '<div class="multiple-empty" role="status">Chọn P/E, P/B hoặc EV/EBITDA để xem biểu đồ.</div>'}
       <div id="bandTable" class="tbl-wrap" style="margin-top:12px"></div>
       <details class="dd" style="margin-top:12px"><summary>Định nghĩa & lưu ý dữ liệu</summary><div class="body">${defs.map(d=>`<p><b>${esc(d.name)}:</b> ${esc(d.note||'')}</p>`).join('')}</div></details>
     </div>`;
   if(active.length){
-    const ds=[],scales={x:{grid:{display:false},ticks:{maxTicksLimit:10,font:{size:10}}}};
+    const ds=[],scales={x:{grid:{display:false},ticks:{maxTicksLimit:10,font:{size:10}}}},axes={};
     active.forEach((d,i)=>{
       const axis=i?'y'+d.key:'y';
+      axes[d.key]=axis;
       scales[axis]={type:'linear',position:i?'right':'left',beginAtZero:false,
         grid:{drawOnChartArea:!i,color:'#EEF0F6'},
         title:{display:true,text:d.name+' (x)',color:d.color,font:{weight:'bold'}},
         ticks:{color:d.color,callback:v=>Number(v).toLocaleString('vi-VN',{maximumFractionDigits:2})+'x'}};
       ds.push({label:d.name,data:clean[d.key],yAxisID:axis,borderColor:d.color,backgroundColor:d.color,borderWidth:2.5,pointRadius:2.5,pointHoverRadius:5,tension:.2,spanGaps:false});
     });
+    const ref=(v,label,dash,color,axis)=>({type:'line',label,data:hv.labels.map(()=>v),yAxisID:axis,borderColor:color,...(dash?{borderDash:dash}:{}),pointRadius:0,pointHoverRadius:0,borderWidth:1.7,fill:false});
+    if(BAND.med)active.forEach(d=>{const s=stats[d.key];if(s)ds.push(ref(s.med,'Trung vị '+d.name+' '+s.med.toFixed(2)+'x',null,solo?'#9096A3':d.color+'99',axes[d.key]));});
     if(solo&&stats[active[0].key]){
       const s=stats[active[0].key],axis='y';
-      const ref=(v,label,dash,color)=>({type:'line',label,data:hv.labels.map(()=>v),yAxisID:axis,borderColor:color,borderDash:dash,pointRadius:0,borderWidth:1.5,fill:false});
-      if(BAND.med)ds.push(ref(s.med,'Trung vị '+s.med.toFixed(2)+'x',[6,4],PVS_FIN_PALETTE.navy));
-      if(BAND.sd1){ds.push(ref(s.mean+s.sd,'+1σ',[4,3],PVS_FIN_PALETTE.yellow));ds.push(ref(Math.max(0,s.mean-s.sd),'−1σ',[4,3],PVS_FIN_PALETTE.yellow));}
-      if(BAND.sd2){ds.push(ref(s.mean+2*s.sd,'+2σ',[2,3],NEG));ds.push(ref(Math.max(0,s.mean-2*s.sd),'−2σ',[2,3],NEG));}
+      if(BAND.sd1){ds.push(ref(s.mean+s.sd,'+1σ',[4,3],PVS_FIN_PALETTE.yellow,axis));ds.push(ref(Math.max(0,s.mean-s.sd),'−1σ',[4,3],PVS_FIN_PALETTE.yellow,axis));}
+      if(BAND.sd2){ds.push(ref(s.mean+2*s.sd,'+2σ',[2,3],NEG,axis));ds.push(ref(Math.max(0,s.mean-2*s.sd),'−2σ',[2,3],NEG,axis));}
     }
+    const latestMarker={id:'pvsMultipleLatestMarker',afterDraw(chart){
+      if(!solo)return;
+      const d=active[0],s=stats[d.key],axis=chart.scales.y,area=chart.chartArea;
+      if(!s||!axis||!area)return;
+      const marks=[...(BAND.med?[{value:s.med,color:'#9096A3'}]:[]),{value:s.last,color:d.color}];
+      const ctx=chart.ctx,boxWidth=47,boxHeight=18,x=area.right+5;
+      ctx.save();ctx.font='bold 11px system-ui, sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+      marks.forEach(m=>{if(m.value==null)return;
+        const y=Math.min(area.bottom-boxHeight/2,Math.max(area.top+boxHeight/2,axis.getPixelForValue(m.value)));
+        ctx.fillStyle=m.color;ctx.fillRect(x,y-boxHeight/2,boxWidth,boxHeight);
+        ctx.fillStyle='#fff';ctx.fillText(m.value.toFixed(2)+'x',x+boxWidth/2,y);
+      });ctx.restore();
+    }};
     mkTS('multiplesChart',{q:{labels:hv.labels,datasets:ds},cfg:(labels,datasets)=>({type:'line',lockChartType:true,data:{labels,datasets},
-      options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:[latestMarker],options:{responsive:true,maintainAspectRatio:false,layout:{padding:{right:solo?58:0}},interaction:{mode:'index',intersect:false},
         plugins:{legend:{display:false},tooltip:{callbacks:{label:x=>x.dataset.label+': '+(x.parsed.y==null?'—':Number(x.parsed.y).toFixed(2)+'x')}}},scales}})});
   }
   const nm={pe:'P/E trượt 4 quý',pb:'P/B',evEbitda:'EV/EBITDA'};
