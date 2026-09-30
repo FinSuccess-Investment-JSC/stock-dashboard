@@ -2558,6 +2558,11 @@ body.isolate .wrap{padding-top:10px}
 .multiple-legend i{display:inline-block;width:20px;border-top:2px solid var(--line-color);vertical-align:middle}
 .multiple-legend .series i{position:relative}
 .multiple-legend .series i::after{content:"";position:absolute;top:-4px;left:8px;width:6px;height:6px;border-radius:50%;background:var(--line-color)}
+.multiple-horizon{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin:10px 0 2px}
+.multiple-horizon button{border:1px solid var(--line);border-radius:7px;background:#fff;color:#51556b;padding:5px 10px;font:inherit;font-size:11.5px;font-weight:750;cursor:pointer}
+.multiple-horizon button.on{background:var(--fin-navy,#1D2678);border-color:var(--fin-navy,#1D2678);color:#fff}
+.multiple-horizon button:focus-visible{outline:3px solid #59C5C8;outline-offset:2px}
+.multiple-horizon-note{margin:0 0 8px;color:var(--muted);font-size:11px}
 .multiple-empty{margin-top:10px;min-height:180px;display:grid;place-items:center;border:1px dashed var(--line);border-radius:10px;color:var(--muted);text-align:center;padding:24px}
 @media(max-width:700px){.multiple-chart-card .chart{height:340px}.multiple-series button{font-size:12px;padding:7px 9px}}
 .zone{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
@@ -4229,6 +4234,26 @@ try{ Object.assign(BAND,JSON.parse(localStorage.getItem(BANDKEY)||'{}')); }catch
 const MULTKEY='pvs_multiple_visible_v2';
 const MULTVISIBLE={pe:true,pb:false,evEbitda:false};
 try{ const saved=JSON.parse(localStorage.getItem(MULTKEY)||'{}'); Object.keys(MULTVISIBLE).forEach(k=>{if(typeof saved[k]==='boolean')MULTVISIBLE[k]=saved[k];}); }catch(e){}
+const VALHORIZONKEY='pvs_valuation_horizon_v1';
+const VALHORIZONS=[['6m','6T','6 tháng'],['ytd','YTD','Từ đầu năm'],['1y','1N','1 năm'],['2y','2N','2 năm'],['5y','5N','5 năm'],['all','Tất cả','Toàn bộ lịch sử']];
+let valHorizon='1y';
+try{const saved=localStorage.getItem(VALHORIZONKEY);if(VALHORIZONS.some(([key])=>key===saved))valHorizon=saved;}catch(e){}
+function valuationPointDate(label,asOf){
+  if(label==='Hiện tại')return asOf;
+  const m=/^Q([1-4])\/(\d{4})$/.exec(label);
+  return m?new Date(Date.UTC(Number(m[2]),Number(m[1])*3,0)):null;
+}
+function valuationShiftMonths(date,months){
+  const first=new Date(Date.UTC(date.getUTCFullYear(),date.getUTCMonth()-months,1));
+  const lastDay=new Date(Date.UTC(first.getUTCFullYear(),first.getUTCMonth()+1,0)).getUTCDate();
+  return new Date(Date.UTC(first.getUTCFullYear(),first.getUTCMonth(),Math.min(date.getUTCDate(),lastDay)));
+}
+function valuationHorizonIndices(labels,asOf,horizon){
+  const from=horizon==='all'?null:horizon==='ytd'?new Date(Date.UTC(asOf.getUTCFullYear(),0,1)):
+    valuationShiftMonths(asOf,{'6m':6,'1y':12,'2y':24,'5y':60}[horizon]||12);
+  return labels.map((label,i)=>({date:valuationPointDate(label,asOf),i}))
+    .filter(({date})=>date&&date<=asOf&&(!from||date>=from)).map(({i})=>i);
+}
 function renderMultiples(){
   const row=$('multiplesRow'); if(!row)return;
   const hv=(D.valuation&&D.valuation.history)||null;
@@ -4238,8 +4263,16 @@ function renderMultiples(){
     {key:'pb',name:'P/B',color:PVS_FIN_PALETTE.purple,cap:null,note:hv.pbNote},
     {key:'evEbitda',name:'EV/EBITDA',color:PVS_FIN_PALETTE.turquoise,cap:hv.evCap||null,note:hv.evNote}
   ].filter(d=>Array.isArray(hv[d.key])&&hv[d.key].some(v=>v!=null));
-  const clean={},stats={};
-  defs.forEach(d=>{clean[d.key]=hv[d.key].map(v=>v==null||(d.cap&&v>d.cap)||v<=0?null:v);stats[d.key]=statOf(clean[d.key]);});
+  const asOf=new Date((D.meta.priceDate||D.meta.updated)+'T00:00:00Z');
+  const anchor=Number.isFinite(asOf.getTime())?asOf:new Date();
+  const visible=valuationHorizonIndices(hv.labels,anchor,valHorizon);
+  const labels=visible.map(i=>hv.labels[i]);
+  const clean={},fullStats={},viewStats={};
+  defs.forEach(d=>{
+    clean[d.key]=hv[d.key].map(v=>v==null||(d.cap&&v>d.cap)||v<=0?null:v);
+    fullStats[d.key]=statOf(clean[d.key]);
+    viewStats[d.key]=statOf(visible.map(i=>clean[d.key][i]));
+  });
   const active=defs.filter(d=>MULTVISIBLE[d.key]),solo=active.length===1;
   if(charts.multiplesChart){charts.multiplesChart.destroy();delete charts.multiplesChart;}
   row.innerHTML=`<div class="card" style="grid-column:1/-1">
@@ -4254,9 +4287,13 @@ function renderMultiples(){
         ${defs.map(d=>`<button type="button" data-key="${d.key}" class="${MULTVISIBLE[d.key]?'on':''}" style="--series:${d.color}" aria-pressed="${!!MULTVISIBLE[d.key]}"><span class="dot" aria-hidden="true"></span>${esc(d.name)}</button>`).join('')}
         <button type="button" data-all="1" class="${active.length===defs.length?'on':''}" aria-label="Hiện cả ba bội số">Xem tất cả</button>
       </div>
-      <p class="note" style="margin:0">Bấm từng bội số để hiện hoặc ẩn đường giá trị. Trung vị tính trên toàn bộ kỳ có số liệu của từng bội số; ±σ chỉ hiện khi chọn một bội số.</p>
-      ${active.length?`<div class="card multiple-chart-card"><h3 class="sub">Xu hướng bội số định giá</h3><div class="multiple-legend" aria-label="Chú giải biểu đồ">${active.map(d=>`<span class="series"><i style="--line-color:${d.color}"></i>${esc(d.name)}</span>${BAND.med&&stats[d.key]?`<span><i style="--line-color:${solo?'#9096A3':d.color+'99'}"></i>Trung vị ${solo?'':esc(d.name)+' '}${stats[d.key].med.toFixed(2)}x</span>`:''}`).join('')}</div><div class="chart"><canvas id="multiplesChart" role="img" aria-label="Biểu đồ các bội số định giá được chọn${BAND.med?', kèm đường trung vị':''}"></canvas></div></div>`:
+      <p class="note" style="margin:0">Bấm từng bội số để hiện hoặc ẩn đường giá trị. Trung vị và dải σ tính theo khoảng thời gian đang xem; ±σ chỉ hiện khi chọn một bội số.</p>
+      ${active.length?`<div class="card multiple-chart-card"><h3 class="sub">Xu hướng bội số định giá</h3><div class="multiple-legend" aria-label="Chú giải biểu đồ">${active.map(d=>`<span class="series"><i style="--line-color:${d.color}"></i>${esc(d.name)}</span>${BAND.med&&viewStats[d.key]?`<span><i style="--line-color:${solo?'#9096A3':d.color+'99'}"></i>Trung vị ${solo?'':esc(d.name)+' '}${viewStats[d.key].med.toFixed(2)}x</span>`:''}`).join('')}</div><div class="chart"><canvas id="multiplesChart" role="img" aria-label="Biểu đồ các bội số định giá được chọn${BAND.med?', kèm đường trung vị':''}"></canvas></div></div>`:
         '<div class="multiple-empty" role="status">Chọn P/E, P/B hoặc EV/EBITDA để xem biểu đồ.</div>'}
+      <div class="multiple-horizon" id="valuationHorizon" role="group" aria-label="Khoảng thời gian định giá">
+        ${VALHORIZONS.map(([key,short,long])=>`<button type="button" data-horizon="${key}" class="${valHorizon===key?'on':''}" aria-pressed="${valHorizon===key}" title="${long}">${short}</button>`).join('')}
+      </div>
+      <p class="multiple-horizon-note">Điểm dữ liệu theo quý; “Hiện tại” là mốc giá ${esc(D.meta.priceDate||D.meta.updated)}. Thống kê bên dưới theo khoảng đang chọn.</p>
       <div id="bandTable" class="tbl-wrap" style="margin-top:12px"></div>
       <details class="dd" style="margin-top:12px"><summary>Định nghĩa & lưu ý dữ liệu</summary><div class="body">${defs.map(d=>`<p><b>${esc(d.name)}:</b> ${esc(d.note||'')}</p>`).join('')}</div></details>
     </div>`;
@@ -4269,35 +4306,46 @@ function renderMultiples(){
         grid:{drawOnChartArea:!i,color:'#EEF0F6'},
         title:{display:true,text:d.name+' (x)',color:d.color,font:{weight:'bold'}},
         ticks:{color:d.color,callback:v=>Number(v).toLocaleString('vi-VN',{maximumFractionDigits:2})+'x'}};
-      ds.push({label:d.name,data:clean[d.key],yAxisID:axis,borderColor:d.color,backgroundColor:d.color,borderWidth:2.5,pointRadius:2.5,pointHoverRadius:5,tension:.2,spanGaps:false});
+      ds.push({label:d.name,data:visible.map(j=>clean[d.key][j]),yAxisID:axis,borderColor:d.color,backgroundColor:d.color,borderWidth:2.5,pointRadius:2.5,pointHoverRadius:5,tension:.2,spanGaps:false});
     });
-    const ref=(v,label,dash,color,axis)=>({type:'line',label,data:hv.labels.map(()=>v),yAxisID:axis,borderColor:color,...(dash?{borderDash:dash}:{}),pointRadius:0,pointHoverRadius:0,borderWidth:1.7,fill:false});
-    if(BAND.med)active.forEach(d=>{const s=stats[d.key];if(s)ds.push(ref(s.med,'Trung vị '+d.name+' '+s.med.toFixed(2)+'x',null,solo?'#9096A3':d.color+'99',axes[d.key]));});
-    if(solo&&stats[active[0].key]){
-      const s=stats[active[0].key],axis='y';
+    const ref=(v,label,dash,color,axis)=>({type:'line',label,data:labels.map(()=>v),yAxisID:axis,borderColor:color,...(dash?{borderDash:dash}:{}),pointRadius:0,pointHoverRadius:0,borderWidth:1.7,fill:false});
+    if(BAND.med)active.forEach(d=>{const s=viewStats[d.key];if(s)ds.push(ref(s.med,'Trung vị '+d.name+' '+s.med.toFixed(2)+'x',null,solo?'#9096A3':d.color+'99',axes[d.key]));});
+    if(solo&&viewStats[active[0].key]){
+      const s=viewStats[active[0].key],axis='y';
       if(BAND.sd1){ds.push(ref(s.mean+s.sd,'+1σ',[4,3],PVS_FIN_PALETTE.yellow,axis));ds.push(ref(Math.max(0,s.mean-s.sd),'−1σ',[4,3],PVS_FIN_PALETTE.yellow,axis));}
       if(BAND.sd2){ds.push(ref(s.mean+2*s.sd,'+2σ',[2,3],NEG,axis));ds.push(ref(Math.max(0,s.mean-2*s.sd),'−2σ',[2,3],NEG,axis));}
     }
     const latestMarker={id:'pvsMultipleLatestMarker',afterDraw(chart){
       if(!solo)return;
-      const d=active[0],s=stats[d.key],axis=chart.scales.y,area=chart.chartArea;
+      const d=active[0],s=viewStats[d.key],axis=chart.scales.y,area=chart.chartArea;
       if(!s||!axis||!area)return;
       const marks=[...(BAND.med?[{value:s.med,color:'#9096A3'}]:[]),{value:s.last,color:d.color}];
       const ctx=chart.ctx,boxWidth=47,boxHeight=18,x=area.right+5;
       ctx.save();ctx.font='bold 11px system-ui, sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
-      marks.forEach(m=>{if(m.value==null)return;
-        const y=Math.min(area.bottom-boxHeight/2,Math.max(area.top+boxHeight/2,axis.getPixelForValue(m.value)));
+      const clamp=y=>Math.min(area.bottom-boxHeight/2,Math.max(area.top+boxHeight/2,y));
+      const markerY=marks.map(m=>clamp(axis.getPixelForValue(m.value)));
+      if(marks.length===2&&Math.abs(markerY[0]-markerY[1])<boxHeight+2){
+        const center=(markerY[0]+markerY[1])/2;
+        markerY[0]=clamp(center-boxHeight/2-2);
+        markerY[1]=clamp(center+boxHeight/2+2);
+        if(markerY[1]-markerY[0]<boxHeight+2){
+          markerY[0]=Math.max(area.top+boxHeight/2,markerY[1]-boxHeight-2);
+          markerY[1]=Math.min(area.bottom-boxHeight/2,markerY[0]+boxHeight+2);
+        }
+      }
+      marks.forEach((m,i)=>{if(m.value==null)return;
+        const y=markerY[i];
         ctx.fillStyle=m.color;ctx.fillRect(x,y-boxHeight/2,boxWidth,boxHeight);
         ctx.fillStyle='#fff';ctx.fillText(m.value.toFixed(2)+'x',x+boxWidth/2,y);
       });ctx.restore();
     }};
-    mkTS('multiplesChart',{q:{labels:hv.labels,datasets:ds},cfg:(labels,datasets)=>({type:'line',lockChartType:true,data:{labels,datasets},
+    mk('multiplesChart',{type:'line',lockChartType:true,data:{labels,datasets:ds},
       plugins:[latestMarker],options:{responsive:true,maintainAspectRatio:false,layout:{padding:{right:solo?58:0}},interaction:{mode:'index',intersect:false},
-        plugins:{legend:{display:false},tooltip:{callbacks:{label:x=>x.dataset.label+': '+(x.parsed.y==null?'—':Number(x.parsed.y).toFixed(2)+'x')}}},scales}})});
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:x=>x.dataset.label+': '+(x.parsed.y==null?'—':Number(x.parsed.y).toFixed(2)+'x')}}},scales}});
   }
   const nm={pe:'P/E trượt 4 quý',pb:'P/B',evEbitda:'EV/EBITDA'};
   $('bandTable').innerHTML='<table><tr><th>Bội số</th><th class="num">Hiện tại</th><th class="num">Trung vị</th><th class="num">Trung bình</th><th class="num">σ</th><th class="num">−1σ</th><th class="num">+1σ</th><th class="num">Thấp nhất</th><th class="num">Cao nhất</th><th class="num">Số kỳ</th></tr>'
-    +defs.map(({key})=>{ const s=stats[key]; if(!s)return '';
+    +defs.map(({key})=>{ const s=viewStats[key]; if(!s)return `<tr><td><b>${nm[key]||key}</b></td><td class="num" colspan="9">Chưa đủ dữ liệu trong khoảng đang xem</td></tr>`;
       const f=v=>v==null?'—':Number(v).toFixed(2)+'x';
       return `<tr><td><b>${nm[key]||key}</b></td><td class="num"><b>${f(s.last)}</b></td><td class="num">${f(s.med)}</td><td class="num">${f(s.mean)}</td><td class="num">${f(s.sd)}</td><td class="num">${f(Math.max(0,s.mean-s.sd))}</td><td class="num">${f(s.mean+s.sd)}</td><td class="num">${f(s.min)}</td><td class="num">${f(s.max)}</td><td class="num">${s.n}</td></tr>`; }).join('')+'</table>';
   $('multipleSeries').onclick=e=>{const b=e.target.closest('button');if(!b)return;
@@ -4308,7 +4356,10 @@ function renderMultiples(){
   $('bandCtl').onclick=e=>{ const b=e.target.closest('button[data-b]'); if(!b)return;
     BAND[b.dataset.b]=!BAND[b.dataset.b]; try{localStorage.setItem(BANDKEY,JSON.stringify(BAND));}catch(x){}
     renderMultiples(); applyChartTips(); };
-  window.__multStats=stats;
+  $('valuationHorizon').onclick=e=>{const b=e.target.closest('button[data-horizon]');if(!b||b.dataset.horizon===valHorizon)return;
+    valHorizon=b.dataset.horizon;try{localStorage.setItem(VALHORIZONKEY,valHorizon);}catch(x){}
+    renderMultiples();applyChartTips();};
+  window.__multStats=fullStats;
 }
 
 /* ---------- 4. Consensus: dự phóng doanh thu & LNST của CTCK ---------- */
