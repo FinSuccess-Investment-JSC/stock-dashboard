@@ -2793,16 +2793,23 @@ document.addEventListener('DOMContentLoaded',()=>{
     ];
     info.innerHTML='<h3 class="sub">Thông tin doanh nghiệp</h3><div class="overview-facts">'+facts.map(x=>`<div class="fact"><div class="l">${esc(x[0])}</div><div class="v">${esc(x[1])}</div><div class="s">${esc(x[2])}</div></div>`).join('')+'</div><div class="note">—: chưa có dữ liệu đã đối chiếu. Các chỉ số có thể dùng mẫu số hoặc ngày khác nhau; xem ghi chú từng chỉ số.</div>';
     let box=document.getElementById('governanceBox');if(!box){box=document.createElement('div');box.id='governanceBox';box.className='card';box.style.marginTop='16px';info.after(box);}
-    const section=(title,items,draw)=>`<div class="gov-section"><h4>${title}</h4>${items&&items.length?draw(items):'<div class="note">Chưa có dữ liệu đã đối chiếu.</div>'}</div>`;
+    const section=(title,items,draw)=>items&&items.length?`<div class="gov-section"><h4>${title}</h4>${draw(items)}</div>`:'';
     const table=(heads,items,draw)=>'<div class="tbl-wrap"><table><thead><tr>'+heads.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+items.map(draw).join('')+'</tbody></table></div>';
     const owners=g.shareholders||[],lead=g.leadership||[],entities=g.entities||[],trades=g.trades||[];
+    const hasPrices=Array.isArray(g.adjustedPrices)&&g.adjustedPrices.length>0;
+    const missing=[!owners.length&&'cơ cấu cổ đông',!lead.length&&'cơ cấu quản trị',!entities.length&&'công ty con / LDLK',!trades.length&&'giao dịch cổ đông lớn / nội bộ'].filter(Boolean);
+    const tradeHeads=['Người / quan hệ','Đăng ký','Thực hiện','Ngày công bố / hoàn tất',...(hasPrices?['Sau đăng ký 1M · 3M · 1Y','Sau hoàn tất 1M · 3M · 1Y']:[]),'Nguồn'];
     box.innerHTML='<h3 class="sub">Quản trị & sở hữu</h3>'+
-      '<div class="note">Cơ cấu sở hữu và giao dịch phản ánh mốc công bố, không mặc nhiên là cơ cấu hiện tại. '+(g.asOf?'Cập nhật '+esc(g.asOf)+'. ':'')+link(g.src)+'</div><div class="gov-grid">'+
+      '<div class="note">Cơ cấu sở hữu và giao dịch phản ánh mốc công bố, không mặc nhiên là cơ cấu hiện tại. '+(g.asOf?'Phạm vi: '+esc(g.asOf)+'. ':'')+link(g.src)+'</div>'+
+      (missing.length?'<div class="note">Chưa đối chiếu: '+esc(missing.join('; '))+'.</div>':'')+
+      (!owners.length&&!lead.length&&!entities.length&&!trades.length?'<div class="note">Chưa nhập dữ liệu quản trị có nguồn cho mã này.</div>':'')+
+      '<div class="gov-grid">'+
       section('Cơ cấu cổ đông',owners,a=>table(['Cổ đông','Sở hữu','Tỷ lệ','Ngày chốt'],a,x=>`<tr><td>${esc(x.name)}</td><td>${val(x.shares,' CP')}</td><td>${val(x.percent,'%',2)}</td><td>${esc(x.asOf||'—')}</td></tr>`))+
-      section('Cơ cấu quản trị',lead,a=>table(['Họ tên','Vai trò','Từ ngày'],a,x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.role)}</td><td>${esc(x.since||'—')}</td></tr>`))+
-      section('Công ty con · LDLK',entities,a=>table(['Đơn vị','Phạm vi','Sở hữu'],a,x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.type||'—')}</td><td>${val(x.ownership,'%',2)}</td></tr>`))+'</div>'+
-      section('Giao dịch cổ đông lớn & người nội bộ',trades,a=>table(['Người / quan hệ','Đăng ký','Thực hiện','Ngày công bố / hoàn tất','Sau đăng ký 1M · 3M · 1Y','Sau hoàn tất 1M · 3M · 1Y','Nguồn'],a,x=>`<tr><td>${esc(x.name)}<div class="note">${esc(x.relation||'')}</div></td><td>${esc(x.side||'—')} ${val(x.registered,' CP')}</td><td>${val(x.executed,' CP')}</td><td>${esc(x.announced||'—')} / ${esc(x.completed||'—')}</td><td>${[1,3,12].map(n=>priceMove(x.announced,n,g.adjustedPrices)).join(' · ')}</td><td>${[1,3,12].map(n=>priceMove(x.completed,n,g.adjustedPrices)).join(' · ')}</td><td>${link(x.src)}</td></tr>`))+
-      '<div class="note">Biến động giá tính từ phiên đầu sau mốc đến phiên đầu từ ngày tương ứng sau 1/3/12 tháng, bằng giá đóng cửa đã điều chỉnh. “—” khi thiếu dữ liệu hoặc chưa đủ thời gian; không hàm ý quan hệ nhân quả.</div>'+
+      section('Cơ cấu quản trị',lead,a=>table(['Họ tên','Vai trò','Mốc bổ nhiệm'],a,x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.role)}</td><td>${esc(x.since||'—')}</td></tr>`))+
+      section('Công ty con · LDLK',entities,a=>table(['Đơn vị','Loại theo nguồn','Sở hữu'],a,x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.type||'—')}</td><td>${val(x.ownership,'%',2)}</td></tr>`))+'</div>'+
+      section('Giao dịch cổ đông lớn & người nội bộ',trades,a=>table(tradeHeads,a,x=>`<tr><td>${esc(x.name)}<div class="note">${esc(x.relation||'')}</div></td><td>${x.registered==null?'—':esc(x.side||'')+' '+val(x.registered,' CP')}</td><td>${x.executed==null?'—':esc(x.side||'')+' '+val(x.executed,' CP')}</td><td>${esc(x.period||'')}${x.period&&x.announced?' · ':''}${esc(x.announced||'')}${x.completed?' / '+esc(x.completed):''}${!x.period&&!x.announced&&!x.completed?'—':''}</td>${hasPrices?`<td>${[1,3,12].map(n=>priceMove(x.announced,n,g.adjustedPrices)).join(' · ')}</td><td>${[1,3,12].map(n=>priceMove(x.completed,n,g.adjustedPrices)).join(' · ')}</td>`:''}<td>${link(x.src||g.src)}</td></tr>`))+
+      (trades.length&&!hasPrices?'<div class="note">Chưa có chuỗi giá đóng cửa điều chỉnh đã đối chiếu; chưa tính biến động giá 1M / 3M / 1Y sau công bố và giao dịch.</div>':'')+
+      (trades.length&&hasPrices?'<div class="note">Biến động giá tính từ phiên đầu sau mốc đến phiên đầu từ ngày tương ứng sau 1/3/12 tháng, bằng giá đóng cửa đã điều chỉnh. “—” khi thiếu ngày hoặc chưa đủ thời gian; không hàm ý quan hệ nhân quả.</div>':'')+
       (g.investorNotes&&g.investorNotes.length?section('Điểm cần theo dõi',g.investorNotes,a=>'<ul class="list">'+a.map(x=>`<li>${esc(x.text)} ${link(x.src)}</li>`).join('')+'</ul>'):'');
     const cons=document.getElementById('cons'),fcst=document.getElementById('consFcst'),reports=document.getElementById('consTable');
     if(cons&&fcst&&reports){const card=reports.closest('.card');if(card&&fcst.nextElementSibling!==card)cons.insertBefore(fcst,card);}
