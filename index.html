@@ -37,95 +37,262 @@ window.PVS_DATA = {
   },
 
   governance: {
-    asOf: "BCTN 2025; cơ cấu cổ đông 31/12/2025; Điện Máy Xanh theo mốc IPO 2026",
-    src: "https://cdnv2.tgdd.vn/mwgvn/investorrelations/files/news/2026/3/2353/99/4b/994bc4902d35965c5e4013897d4f78f4.pdf",
-    shareholders: [
-      {name:"Nhóm cổ đông lớn (≥5%)",shares:268714334,percent:18.30,asOf:"2025-12-31"},
-      {name:"Cổ đông khác",shares:1199742429,percent:81.70,asOf:"2025-12-31"}
-    ],
-    leadership: [
-      {name:"Nguyễn Đức Tài",role:"Chủ tịch HĐQT"},
-      {name:"Vũ Đăng Linh",role:"Thành viên HĐQT, Tổng giám đốc",since:"2025-04"},
-      {name:"Đoàn Văn Hiểu Em",role:"Thành viên HĐQT"},
-      {name:"Phạm Văn Trọng",role:"Thành viên HĐQT"},
-      {name:"Nguyễn Tiến Trung",role:"Thành viên độc lập, Chủ tịch Ủy ban kiểm toán"}
-    ],
-    entities: [
-      {name:"CTCP Đầu tư Điện Máy Xanh",type:"Công ty con; tỷ lệ sau IPO",ownership:86,asOf:"2026"},
-      {name:"CTCP Công nghệ và Đầu tư Bách Hóa Xanh",type:"Công ty con trực tiếp",ownership:94.99,asOf:"2025-12-31"},
-      {name:"Công ty TNHH Đầu tư Thiên Tâm",type:"Công ty con trực tiếp",ownership:100,asOf:"2025-12-31"},
-      {name:"Công ty TNHH Đầu tư An Nhi",type:"Công ty con trực tiếp",ownership:100,asOf:"2025-12-31"},
-      {name:"PT Era Blu Elektronik",type:"Liên doanh qua Điện Máy Xanh",ownership:45,asOf:"2025-12-31"}
-    ],
-    trades: [{"name":"Đoàn Văn Hiểu Em","relation":"Thành viên HĐQT; lãnh đạo Điện Máy Xanh","side":"Bán","registered":1000000,"executed":1000000,"announced":"2026-08-27","completed":"2026-09-23","period":"Giao dịch 07/09–23/09/2026; BCKQ 25/09/2026","src":"https://cafef.vn/du-lieu/mwg-2984127/mwg-bao-cao-ket-qua-giao-dich-co-phieu-cua-nguoi-noi-bo-doan-van-hieu-em.chn"}], adjustedPrices: [{"date":"2026-08-03","close":72500.0},{"date":"2026-08-04","close":72100.0},{"date":"2026-08-05","close":72200.0},{"date":"2026-08-06","close":71200.0},{"date":"2026-08-07","close":71000.0},{"date":"2026-08-10","close":73000.0},{"date":"2026-08-11","close":73200.0},{"date":"2026-08-12","close":74000.0},{"date":"2026-08-13","close":73600.0},{"date":"2026-08-14","close":72400.0},{"date":"2026-08-17","close":73500.0},{"date":"2026-08-18","close":72800.0},{"date":"2026-08-19","close":72200.0},{"date":"2026-08-20","close":72700.0},{"date":"2026-08-21","close":75000.0},{"date":"2026-08-24","close":75100.0},{"date":"2026-08-25","close":73900.0},{"date":"2026-08-26","close":75500.0},{"date":"2026-08-27","close":75900.0},{"date":"2026-08-28","close":75000.0},{"date":"2026-09-03","close":73200.0},{"date":"2026-09-04","close":73100.0},{"date":"2026-09-07","close":72000.0},{"date":"2026-09-08","close":72300.0},{"date":"2026-09-09","close":71600.0},{"date":"2026-09-10","close":72900.0},{"date":"2026-09-11","close":71300.0},{"date":"2026-09-14","close":69800.0},{"date":"2026-09-15","close":71200.0},{"date":"2026-09-16","close":71500.0},{"date":"2026-09-17","close":73100.0},{"date":"2026-09-18","close":72500.0},{"date":"2026-09-21","close":71700.0},{"date":"2026-09-22","close":72800.0},{"date":"2026-09-23","close":73200.0},{"date":"2026-09-24","close":72900.0},{"date":"2026-09-25","close":73400.0},{"date":"2026-09-28","close":72000.0},{"date":"2026-09-29","close":71900.0}], priceSrc:"https://www.vnstocks.com/docs/vnstock-data/du-lieu-giao-dich", priceAsOf:"2026-09-29",
-    investorNotes: [
-      {text:"Cơ cấu cổ đông 2025 dùng 1.468.456.763 CP có quyền biểu quyết; không ghép với số cổ phiếu sau ESOP 2026.",src:"https://cdnv2.tgdd.vn/mwgvn/investorrelations/files/news/2026/3/2353/99/4b/994bc4902d35965c5e4013897d4f78f4.pdf"},
-      {text:"Theo dõi ESOP và pha loãng: 7,34 triệu CP ESOP hoàn tất tháng 7/2026.",src:"https://mwg.vn/bao-cao"}
-    ]
-  },
-
-  // ---------- CHECKLIST ĐIỀU KIỆN MUA ----------
-  signals: [
-    // TOP 5 tiêu chí quyết định (các tiêu chí phụ đã chuyển vào thesisPillars/risks)
-    { id:"pe",        label:"P/E trượt 4 quý vs. band lịch sử",     value:10.7,  unit:"x", op:"<=", threshold:15,  note:"Trung vị 2019–2026 ~15–16x, band 12–22x (playbook). Đang thấp nhất kể từ Q1/2020 (COVID) dù LN kỷ lục" },
-    { id:"holdco",    label:"P/E ngầm định của phần ngoài DMX",      value:15,    unit:"x", op:"<=", threshold:20,  note:"Vốn hóa MWG ~106.000 − 86% × DMX (92.545) ≈ 26.000 tỷ cho BHX + An Khang + Erablue + AvaKids; BHX 2026F ~1.800 tỷ LN → ~15x" },
-    { id:"sssg",      label:"SSSG chuỗi DMX (lũy kế)",               value:30,    unit:"%", op:">=", threshold:5,   note:"8T2026: +30% — nền 2025 thấp; theo dõi có giữ được 2 chữ số vào Q4 (mùa cao điểm) không" },
-    { id:"bhxmargin", label:"Biên ròng BHX quý gần nhất",            value:3.4,   unit:"%", op:">=", threshold:3,   note:"Q2/2026: 3,4% (Q1: 2,9%). 6T LN ~910 tỷ > cả năm 2025 (755 tỷ)" },
-    { id:"bhxstore",  label:"DT/cửa hàng BHX/tháng (analyst tính)",  value:1.389, unit:"tỷ", op:">=", threshold:1.5, note:"T8/2026: 1,389 tỷ — giảm liên tục từ đỉnh 1,961 (T11/2024) vì mở >1.000 store; đây là tiêu chí ĐỎ duy nhất", pendingNote:"Cần thấy đảo chiều tăng 2 tháng liên tiếp khi cohort 2026 ramp-up" }
-  ],
-
-  // ---------- MẢNG KINH DOANH (số thực tế đã công bố) ----------
-  segments: {
-    title: "Breakdown theo chuỗi",
-    tabLabel: "Mảng kinh doanh & Cửa hàng",
-    names: ["Điện Máy Xanh (DMX)","Bách Hóa Xanh","Khác (An Khang, AvaKids, dịch vụ)"],  // DMX = TGDĐ + ĐMX + TopZone + Erablue
-    years: ["2023","2024","2025"],
-    revenue: [
-      [83506,89605,105724],
-      [31581,41107,46840],
-      [3193,3629,3364]          // = DT thuần hợp nhất kiểm toán (118.280 / 134.341 / 155.928) − DMX − BHX
-    ],
-    profit: null,
-    profitLabel: "LNST",
-    revTitle: "Doanh thu theo chuỗi (tỷ VND)",
-    tableTitle: "Doanh thu theo chuỗi (tỷ VND) — tổng từ số tháng công bố",
-    tableNote: "DMX/BHX = tổng 11 kỳ tháng (T1+T2 gộp). Dòng 'Khác' = doanh thu hợp nhất − DMX − BHX, sai số do làm tròn.",
-    showRevenueTable: true,
-    // Quý lấy tổng các tháng đã công bố; 2026 dừng ở Q2 vì Q3 còn thiếu T9.
-    // Mảng 'Khác' chỉ có phần dư theo năm, không tạo số quý giả.
-    quarterlyRevenueFromMonthly: [{segment:0,chain:1},{segment:1,chain:0}],
-    quarterlyRevenueNote: "Quý = cộng doanh thu tháng analyst tổng hợp (T1+T2 gộp). Chỉ gồm DMX và BHX; 'Khác' chưa có chuỗi quý cùng định nghĩa. Các số theo tháng có thể lệch BCTC riêng do làm tròn/phạm vi.",
-    // Doanh thu hằng tháng (analyst tổng hợp từ báo cáo tháng MWG: DT tổng × tỷ trọng chuỗi)
-    monthly: {
-      months: ["T1+T2","T3","T4","T5","T6","T7","T8","T9","T10","T11","T12"],
-      chains: [
-        { name:"Bách Hóa Xanh", data:{
-          "2023":[4125,2245,2289,2467,2564,2800,2930,2903,3071,2998,3189],
-          "2024":[6045,3104,3246,3443,3651,3549,3703,3587,3522,3572,3685],
-          "2025":[7031,3988,3900,3961,3705,3890,3954,3932,4116,4061,4302],
-          "2026":[8792,4323,4821,5178,5192,5669,6149,null,null,null,null] } },
-        { name:"Điện Máy Xanh (TGDĐ + ĐMX)", data:{
-          "2023":[14543,5403,7358,7630,6645,6759,6863,7163,7837,6554,6751],
-          "2024":[14891,6426,8079,7433,7465,7065,7491,7894,7863,7088,7910],
-          "2025":[16897,7356,8332,8377,8467,8700,8937,9390,10396,9629,9243],
-          "2026":[22800,9616,10894,11151,10818,9912,11528,null,null,null,null] } }
-      ],
-      note: "T1+T2 gộp vì lệch Tết. Cách lấy: mwg.vn/bao-cao › Báo cáo KQKD theo tháng (PDF) → doanh thu tổng × tỷ trọng chuỗi. 8T2026 khớp IR: BHX 40.124 (IR 40,1 nghìn tỷ), DMX 86.719 (IR 86,8 nghìn tỷ)."
+    foreignRoom: {"shares":500,"percent":0,"limitPct":49,"foreignHeldPct":49,"date":"2026-09-30","src":"https://nmquan.vn/data/ma/MWG/room-ngoai"},
+  "asOf": "BCTN 2025; cơ cấu cổ đông 31/12/2025; Điện Máy Xanh theo mốc IPO 2026",
+  "src": "https://cdnv2.tgdd.vn/mwgvn/investorrelations/files/news/2026/3/2353/99/4b/994bc4902d35965c5e4013897d4f78f4.pdf",
+  "shareholders": [
+    {
+      "name": "Nhóm cổ đông lớn (≥5%)",
+      "shares": 268714334,
+      "percent": 18.3,
+      "asOf": "2025-12-31"
     },
-    marginTitle: "Biên gộp theo mảng (%)",
-    showMarginTable: true,
-    // Biên gộp DMX = BCTC riêng CTCP ĐT Điện Máy Xanh (CafeF). "Bách Hóa Xanh" ở đây = phần dư (MWG hợp nhất − DMX), gồm cả An Khang, AvaKids (~7% doanh thu phần dư)
-    marginSeries: [
-      { label:"2024",    values:{ "Điện Máy Xanh (DMX)":18.3, "Bách Hóa Xanh":25.4, "MWG hợp nhất":20.5 } },
-      { label:"2025",    values:{ "Điện Máy Xanh (DMX)":17.8, "Bách Hóa Xanh":24.8, "MWG hợp nhất":19.9 } },
-      { label:"Q1/2026", values:{ "Điện Máy Xanh (DMX)":19.2, "Bách Hóa Xanh":24.9, "MWG hợp nhất":20.9 } },
-      { label:"Q2/2026", values:{ "Điện Máy Xanh (DMX)":21.1, "Bách Hóa Xanh":24.4, "MWG hợp nhất":22.2 } }
-    ],
-    gmNote: "Cách tính: DMX = LN gộp/DT thuần theo BCTC CTCP ĐT Điện Máy Xanh (2024: 17.089/93.357; 2025: 19.487/109.479; Q1/26: 6.241/32.542; Q2/26: 6.906/32.738). 'Bách Hóa Xanh' = phần dư MWG hợp nhất − DMX (2024: 10.410/40.985; 2025: 11.515/46.449; Q1/26: 3.469/13.920; Q2/26: 3.903/16.014) — gồm cả An Khang, AvaKids nên biên thật của BHX cao hơn chút. Dòng 'MWG hợp nhất' = biên gộp hợp nhất để đối chiếu (20,5% → 19,9% → 20,9% → 22,2%). Biên ròng đã công bố: DMX Q2/26 8,1%; BHX Q1/26 2,9%, Q2/26 3,4%.",
-
-
-    src: "Báo cáo KQKD tháng MWG (analyst tổng hợp); Tài liệu họp NĐT Q2/2026; Vietstock 23/07/2026; Elibook 14/08/2026"
-  },
+    {
+      "name": "Cổ đông khác",
+      "shares": 1199742429,
+      "percent": 81.7,
+      "asOf": "2025-12-31"
+    }
+  ],
+  "leadership": [
+    {
+      "name": "Nguyễn Đức Tài",
+      "role": "Chủ tịch HĐQT"
+    },
+    {
+      "name": "Vũ Đăng Linh",
+      "role": "Thành viên HĐQT, Tổng giám đốc",
+      "since": "2025-04"
+    },
+    {
+      "name": "Đoàn Văn Hiểu Em",
+      "role": "Thành viên HĐQT"
+    },
+    {
+      "name": "Phạm Văn Trọng",
+      "role": "Thành viên HĐQT"
+    },
+    {
+      "name": "Nguyễn Tiến Trung",
+      "role": "Thành viên độc lập, Chủ tịch Ủy ban kiểm toán"
+    }
+  ],
+  "entities": [
+    {
+      "name": "CTCP Đầu tư Điện Máy Xanh",
+      "type": "Công ty con; tỷ lệ sau IPO",
+      "ownership": 86,
+      "asOf": "2026"
+    },
+    {
+      "name": "CTCP Công nghệ và Đầu tư Bách Hóa Xanh",
+      "type": "Công ty con trực tiếp",
+      "ownership": 94.99,
+      "asOf": "2025-12-31"
+    },
+    {
+      "name": "Công ty TNHH Đầu tư Thiên Tâm",
+      "type": "Công ty con trực tiếp",
+      "ownership": 100,
+      "asOf": "2025-12-31"
+    },
+    {
+      "name": "Công ty TNHH Đầu tư An Nhi",
+      "type": "Công ty con trực tiếp",
+      "ownership": 100,
+      "asOf": "2025-12-31"
+    },
+    {
+      "name": "PT Era Blu Elektronik",
+      "type": "Liên doanh qua Điện Máy Xanh",
+      "ownership": 45,
+      "asOf": "2025-12-31"
+    }
+  ],
+  "trades": [
+    {
+      "name": "Đoàn Văn Hiểu Em",
+      "relation": "Thành viên HĐQT; lãnh đạo Điện Máy Xanh",
+      "side": "Bán",
+      "registered": 1000000,
+      "executed": 1000000,
+      "announced": "2026-08-27",
+      "completed": "2026-09-23",
+      "period": "Giao dịch 07/09–23/09/2026; BCKQ 25/09/2026",
+      "src": "https://cafef.vn/du-lieu/mwg-2984127/mwg-bao-cao-ket-qua-giao-dich-co-phieu-cua-nguoi-noi-bo-doan-van-hieu-em.chn"
+    }
+  ],
+  "adjustedPrices": [
+    {
+      "date": "2026-08-03",
+      "close": 72500
+    },
+    {
+      "date": "2026-08-04",
+      "close": 72100
+    },
+    {
+      "date": "2026-08-05",
+      "close": 72200
+    },
+    {
+      "date": "2026-08-06",
+      "close": 71200
+    },
+    {
+      "date": "2026-08-07",
+      "close": 71000
+    },
+    {
+      "date": "2026-08-10",
+      "close": 73000
+    },
+    {
+      "date": "2026-08-11",
+      "close": 73200
+    },
+    {
+      "date": "2026-08-12",
+      "close": 74000
+    },
+    {
+      "date": "2026-08-13",
+      "close": 73600
+    },
+    {
+      "date": "2026-08-14",
+      "close": 72400
+    },
+    {
+      "date": "2026-08-17",
+      "close": 73500
+    },
+    {
+      "date": "2026-08-18",
+      "close": 72800
+    },
+    {
+      "date": "2026-08-19",
+      "close": 72200
+    },
+    {
+      "date": "2026-08-20",
+      "close": 72700
+    },
+    {
+      "date": "2026-08-21",
+      "close": 75000
+    },
+    {
+      "date": "2026-08-24",
+      "close": 75100
+    },
+    {
+      "date": "2026-08-25",
+      "close": 73900
+    },
+    {
+      "date": "2026-08-26",
+      "close": 75500
+    },
+    {
+      "date": "2026-08-27",
+      "close": 75900
+    },
+    {
+      "date": "2026-08-28",
+      "close": 75000
+    },
+    {
+      "date": "2026-09-03",
+      "close": 73200
+    },
+    {
+      "date": "2026-09-04",
+      "close": 73100
+    },
+    {
+      "date": "2026-09-07",
+      "close": 72000
+    },
+    {
+      "date": "2026-09-08",
+      "close": 72300
+    },
+    {
+      "date": "2026-09-09",
+      "close": 71600
+    },
+    {
+      "date": "2026-09-10",
+      "close": 72900
+    },
+    {
+      "date": "2026-09-11",
+      "close": 71300
+    },
+    {
+      "date": "2026-09-14",
+      "close": 69800
+    },
+    {
+      "date": "2026-09-15",
+      "close": 71200
+    },
+    {
+      "date": "2026-09-16",
+      "close": 71500
+    },
+    {
+      "date": "2026-09-17",
+      "close": 73100
+    },
+    {
+      "date": "2026-09-18",
+      "close": 72500
+    },
+    {
+      "date": "2026-09-21",
+      "close": 71700
+    },
+    {
+      "date": "2026-09-22",
+      "close": 72800
+    },
+    {
+      "date": "2026-09-23",
+      "close": 73200
+    },
+    {
+      "date": "2026-09-24",
+      "close": 72900
+    },
+    {
+      "date": "2026-09-25",
+      "close": 73400
+    },
+    {
+      "date": "2026-09-28",
+      "close": 72000
+    },
+    {
+      "date": "2026-09-29",
+      "close": 71900
+    }
+  ],
+  "priceSrc": "https://www.vnstocks.com/docs/vnstock-data/du-lieu-giao-dich",
+  "priceAsOf": "2026-09-29",
+  "investorNotes": [
+    {
+      "text": "Cơ cấu cổ đông 2025 dùng 1.468.456.763 CP có quyền biểu quyết; không ghép với số cổ phiếu sau ESOP 2026.",
+      "src": "https://cdnv2.tgdd.vn/mwgvn/investorrelations/files/news/2026/3/2353/99/4b/994bc4902d35965c5e4013897d4f78f4.pdf"
+    },
+    {
+      "text": "Theo dõi ESOP và pha loãng: 7,34 triệu CP ESOP hoàn tất tháng 7/2026.",
+      "src": "https://mwg.vn/bao-cao"
+    }
+  ]
+},
 
   // ---------- KQKD THEO QUÝ (hợp nhất) ----------
   quarterly: {
@@ -948,11 +1115,11 @@ table.analyst-table tr:hover td{background:#FAFBFF}
   <h2 class="sec" id="segTitle">Breakdown mảng kinh doanh — số thực tế đã công bố</h2>
   <div id="segMonthly"></div>
   <div class="grid g2">
-    <div class="card"><h3 class="sub" id="segRevTitle">Doanh thu theo mảng (tỷ VND)</h3><div class="chart tall"><canvas id="segRev"></canvas></div><div class="note" id="segRevNote"></div></div>
+    <div class="card"><h3 class="sub" id="segRevTitle">Doanh thu theo mảng (tỷ VND)</h3><div class="chart tall"><canvas id="segRev"></canvas></div></div>
     <div class="card" id="segProfitCard"><h3 class="sub" id="segProfitTitle">Lợi nhuận theo mảng (tỷ VND)</h3><div class="chart tall"><canvas id="segGP"></canvas></div></div>
   </div>
   <div class="grid g2" style="margin-top:16px">
-    <div class="card" id="segGMCard"><h3 class="sub" id="segGMTitle">Biên theo mảng (%)</h3><div class="chart tall"><canvas id="segGM"></canvas></div><div id="segGMAll"></div><div class="note" id="segGMNote"></div></div>
+    <div class="card" id="segGMCard"><h3 class="sub" id="segGMTitle">Biên theo mảng (%)</h3><div class="chart tall"><canvas id="segGM"></canvas></div><div class="note" id="segGMNote"></div></div>
     <div class="card" id="segDriversCard"><h3 class="sub">Driver từng mảng</h3><div class="tbl-wrap"><table id="segDrivers"></table></div></div>
   </div>
   <div class="card" style="margin-top:16px" id="segFactsCard"><h3 class="sub" id="segFactsTitle">Lợi nhuận theo chuỗi — số đã công bố</h3><div class="tbl-wrap"><table id="segFacts"></table></div></div>
@@ -1162,10 +1329,10 @@ const charts={}, chartBase={};
 let chartTypes={}; try{ chartTypes=JSON.parse(localStorage.getItem('chart_types_v1')||'{}'); }catch(e){}
 // debug/test: ?ct=chartId:type,chartId2:type
 try{ const q=new URLSearchParams(location.search).get('ct'); if(q) q.split(',').forEach(p=>{const [k,v]=p.split(':'); if(k&&v)chartTypes[k]=v;}); }catch(e){}
-const TYPE_LBL_CH={column:'Cột',stacked:'Cột chồng',barh:'Thanh',line:'Đường',area:'Miền',doughnut:'Tròn',pie:'Tròn (%)'};
+const TYPE_LBL_CH={column:'Cột',stacked:'Cột chồng',barh:'Thanh',line:'Đường',area100:'Miền 100%',doughnut:'Tròn',pie:'Tròn (%)'};
 function deep(o){ if(Array.isArray(o))return o.map(deep); if(o&&typeof o==='object')return Object.fromEntries(Object.entries(o).map(([k,v])=>[k,deep(v)])); return o; } // giữ nguyên function (callback định dạng)
 function applyType(cfg,t){
-  if(t==='area')return areaConfig(cfg);
+  if(t==='area100')return shareAreaConfig(cfg);
   const c=deep(cfg); const base=cfg.type; c.options=c.options||{}; c.options.scales=c.options.scales||{};
   if(base==='doughnut'){ if(t==='doughnut')return c;
     c.type='bar'; c.data.datasets=[{label:'Giá trị',data:cfg.data.datasets[0].data,backgroundColor:cfg.data.datasets[0].backgroundColor,borderRadius:4,maxBarThickness:60}];
@@ -1194,8 +1361,7 @@ function applyType(cfg,t){
 }
 function defaultType(cfg){ if(cfg.type==='pie')return 'pie'; if(cfg.type==='doughnut')return 'doughnut'; if(cfg.options?.indexAxis==='y')return 'barh'; const ds=cfg.data.datasets; if(ds.some(d=>d.stack)||cfg.options?.scales?.x?.stacked)return 'stacked'; if(cfg.type==='line'||ds.every(d=>d.type==='line'))return 'line'; return 'column'; }
 function mk(id,cfg){
-  chartBase[id]=cfg; const opts=cfg.lockChartType?[]:cfg.type==='pie'?['pie']:cfg.type==='doughnut'?['doughnut','column','barh']:['column','stacked','barh','line',...(cfg.options?.indexAxis==='y'||cfg.lockChartType?[]:['area'])];
-  if(chartTypes[id]==='area100')chartTypes[id]='area';
+  chartBase[id]=cfg; const opts=cfg.lockChartType?[]:cfg.type==='pie'?['pie']:cfg.type==='doughnut'?['doughnut','column','barh']:['column','stacked','barh','line',...(cfg.shareEligible?['area100']:[])];
   const t=opts.includes(chartTypes[id])?chartTypes[id]:defaultType(cfg);
   const displayCfg=t===defaultType(cfg)?deep(cfg):applyType(cfg,t);
   if(typeof configureChartAxes==='function')configureChartAxes(id,displayCfg);
@@ -1320,24 +1486,7 @@ function renderSeg(){
   const mkDs=(arr)=>[...top.map((i,k)=>({label:s.names[i],data:arr[i],backgroundColor:stackColor(k,top.length+(other.length?1:0)),stack:'s',borderRadius:2,maxBarThickness:60})),...(other.length?[{label:'Khác',data:s.years.map((_,y)=>other.every(i=>arr[i][y]!=null)?other.reduce((a,i)=>a+Number(arr[i][y]),0):null),backgroundColor:stackColor(top.length,top.length+1),stack:'s',borderRadius:2,maxBarThickness:60}]:[])];
   const o=baseOpts({scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#EEF0F6'},ticks:{callback:v=>vnd(v)}}}});
   if(s.revTitle)$('segRevTitle').textContent=s.revTitle;
-  const revenueYear={labels:s.years,datasets:mkDs(s.revenue)};
-  const qMap=s.quarterlyRevenueFromMonthly;
-  if(qMap?.length&&s.monthly?.chains?.length){
-    const groups=[[0,1],[2,3,4],[5,6,7],[8,9,10]],labels=[],values=qMap.map(()=>[]);
-    const years=Object.keys(s.monthly.chains[qMap[0].chain]?.data||{}).sort();
-    years.forEach(year=>groups.forEach((months,q)=>{
-      const row=qMap.map(({chain})=>{
-        const data=s.monthly.chains[chain]?.data?.[year];
-        return data&&months.every(i=>Number.isFinite(data[i]))?months.reduce((total,i)=>total+data[i],0):null;
-      });
-      if(row.some(v=>v==null))return;
-      labels.push('Q'+(q+1)+'/'+year);
-      row.forEach((value,i)=>values[i].push(value));
-    }));
-    const quarterly={labels,datasets:qMap.map(({segment},i)=>({label:s.names[segment],data:values[i],backgroundColor:stackColor(segment,Math.min(n,5)),stack:'s',borderRadius:2,maxBarThickness:45}))};
-    mkTS('segRev',{def:'q',q:quarterly,y:revenueYear,cfg:(labels,datasets)=>({type:'bar',shareEligible:true,data:{labels,datasets},options:deep(o)})});
-    $('segRevNote').textContent=s.quarterlyRevenueNote||'';
-  }else mk('segRev',{type:'bar',shareEligible:true,data:revenueYear,options:o});
+  mk('segRev',{type:'bar',shareEligible:true,data:{labels:s.years,datasets:mkDs(s.revenue)},options:o});
   const prof=s.profit||s.grossProfit, profLabel=s.profitLabel||(s.profit?'LNST':'LN gộp');
   if(prof){ $('segProfitTitle').textContent=profLabel+' theo mảng (tỷ VND)'; mk('segGP',{type:'bar',data:{labels:s.years,datasets:mkDs(prof)},options:o}); } else { $('segProfitCard').style.display='none'; $('segRev').closest('.card').style.gridColumn='1/-1'; }
   // --- margins ---
@@ -1347,10 +1496,6 @@ function renderSeg(){
     const segsWith=[...s.names.filter(nm=>ms.some(x=>x.values[nm]!=null)),...extra];
     mk('segGM',{type:'bar',data:{labels:ms.map(x=>x.label),datasets:segsWith.map((nm,k)=>({label:nm,data:ms.map(x=>x.values[nm]??null),backgroundColor:s.names.includes(nm)?CAT[s.names.indexOf(nm)%CAT.length]:GREY,borderRadius:3,maxBarThickness:40}))},
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y+'%'}}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:'#EEF0F6'},ticks:{callback:v=>v+'%'}}}}});
-    if(s.showMarginTable){
-      const names=[...new Set(ms.flatMap(row=>Object.keys(row.values)))];
-      $('segGMAll').innerHTML='<details class="dd" open><summary>Toàn bộ kỳ có số liệu biên gộp</summary><div class="body"><div class="tbl-wrap"><table><tr><th>Kỳ</th>'+names.map(name=>'<th class="num">'+esc(name)+'</th>').join('')+'</tr>'+ms.map(row=>'<tr><td>'+esc(row.label)+'</td>'+names.map(name=>'<td class="num">'+(row.values[name]==null?'—':Number(row.values[name]).toLocaleString('vi-VN',{maximumFractionDigits:2})+'%')+'</td>').join('')+'</tr>').join('')+'</table></div></div></details>';
-    }
     $('segGMNote').textContent=s.gmNote||''; } else $('segGMCard').style.display='none';
   if(s.drivers&&Object.keys(s.drivers).length){ $('segDrivers').innerHTML='<tr><th>Mảng</th><th>Driver / điều cần theo dõi</th></tr>'+s.names.map(k=>`<tr><td><b>${esc(k)}</b></td><td style="font-size:12.5px">${esc(s.drivers[k]||'')}</td></tr>`).join(''); }
   else { $('segDriversCard').style.display='none'; $('segGMCard').style.gridColumn='1/-1'; }
@@ -1371,7 +1516,6 @@ function renderSeg(){
   tot+=`<td class="num">100%</td><td class="num">${li>0?pct((tR[li]/tR[li-1]-1)*100,1):'—'}</td></tr>`;
   $('segTable').innerHTML=h+tot; if(s.tableTitle)$('segTableTitle').innerHTML=esc(s.tableTitle)+' <span class="hint">bấm để mở/đóng</span>';
   $('segSrc').textContent='Nguồn: '+s.src+(s.tableNote?'. '+s.tableNote:'');
-  if(s.showRevenueTable)$('segTable').closest('details').open=true;
 }
 
 // =============== tab 3: backlog (nhà thầu) hoặc stores (bán lẻ) ===============
@@ -2552,8 +2696,7 @@ const questionTests={
 if(d.financialProfile&&questionTests[ticker])d.financialProfile.questionTests=questionTests[ticker];
 // POW already has its source-specific profile and finance implementation.
 if(ticker==='POW'||!profiles[ticker])return;
-// Long-run chart series (10 years, 42 quarters) live in financialsFull; the screenshot table keeps 5 years + 4 quarters.
-const f=d.financialsFull||d.financials, b=d.balance;
+const f=d.financials, b=d.balance;
 const rows=()=>f.sections.flatMap(s=>s.rows);
 const row=label=>rows().find(r=>r.l===label);
 const map=(a,fn)=>a.map((v,i)=>v==null?null:fn(v,i));
@@ -3082,7 +3225,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     const overview=document.getElementById('overview'),kpi=document.getElementById('kpiRow');if(!overview||!kpi)return;
     let info=document.getElementById('companyFacts');
     if(!info){info=document.createElement('div');info.id='companyFacts';info.className='card';info.style.marginTop='16px';kpi.after(info);}
-    const room=m.foreignRoom||{};
+    const room=m.foreignRoom||g.foreignRoom||{};
     const hist=D.valuation&&D.valuation.history;
     const histEv=hist&&Array.isArray(hist.evEbitda)?hist.evEbitda.at(-1):null;
     const histEvLabel=hist&&Array.isArray(hist.labels)?hist.labels.at(-1):'';
@@ -3102,7 +3245,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       ['ROA',val(m.roa,'%',2),m.roaPeriod||'TTM; LNST / tài sản bình quân'],
       ['ROE',val(m.roe!=null?m.roe:roeLatest,'%',2),m.roePeriod||roePeriod||'TTM; LNST mẹ / VCSH mẹ bình quân']
     ];
-    info.innerHTML='<h3 class="sub">Thông tin doanh nghiệp</h3><div class="overview-facts">'+facts.map(x=>`<div class="fact"><div class="l">${esc(x[0])}</div><div class="v">${esc(x[1])}</div><div class="s">${esc(x[2])}</div></div>`).join('')+'</div><div class="note">—: chưa có dữ liệu đã đối chiếu. Các chỉ số có thể dùng mẫu số hoặc ngày khác nhau; xem ghi chú từng chỉ số.</div>';
+    info.innerHTML='<h3 class="sub">Thông tin doanh nghiệp</h3><div class="overview-facts">'+facts.map(x=>`<div class="fact"><div class="l">${esc(x[0])}</div><div class="v">${esc(x[1])}</div><div class="s">${esc(x[2])}</div></div>`).join('')+'</div><div class="note">—: chưa có dữ liệu đã đối chiếu. Các chỉ số có thể dùng mẫu số hoặc ngày khác nhau; xem ghi chú từng chỉ số.'+(room.src?' Room NĐTNN: '+link(room.src,'nguồn')+(room.limitPct!=null?' · trần '+val(room.limitPct,'%',2):'')+'.':'')+'</div>';
     let box=document.getElementById('governanceBox');if(!box){box=document.createElement('div');box.id='governanceBox';box.className='card';box.style.marginTop='16px';info.after(box);}
     const section=(title,items,draw)=>items&&items.length?`<div class="gov-section"><h4>${title}</h4>${draw(items)}</div>`:'';
     const table=(heads,items,draw)=>'<div class="tbl-wrap"><table><thead><tr>'+heads.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+items.map(draw).join('')+'</tbody></table></div>';
@@ -3162,38 +3305,23 @@ window.configureChartAxes=function(id,cfg){
     cfg.options.scales[axis].beginAtZero=false;
   }
 };
-// "Miền": generic area view offered for every time-series chart, next to Cột / Cột chồng / Thanh / Đường.
-// Stacks only charts that were authored as additive stacks (and only when no value is negative);
-// other charts draw translucent overlapping areas. Line overlays (net, ratios, references) stay lines.
-window.areaConfig=function(cfg){
-  const c=deep(cfg), source=cfg.data.datasets||[];
-  const wasStacked=typeof defaultType==='function'&&defaultType(cfg)==='stacked';
-  const areaIdx=source.map((d,i)=>i).filter(i=>!(source[i].type==='line'&&cfg.type!=='line')&&source[i].yAxisID!=='ratio'&&!source[i].borderDash);
-  const negative=areaIdx.some(i=>(source[i].data||[]).some(v=>finite(v)&&Number(v)<0));
-  const stacked=wasStacked&&!negative&&!cfg.financialCombo;
-  const alpha=(color,a)=>{const m=/^#([0-9a-f]{6})$/i.exec(color||'');if(!m)return color;const n=parseInt(m[1],16);return `rgba(${n>>16},${n>>8&255},${n&255},${a})`;};
-  const colorOf=d=>{const col=Array.isArray(d.backgroundColor)?d.backgroundColor[0]:d.backgroundColor;return d.borderColor&&typeof d.borderColor==='string'&&d.type==='line'&&!col?d.borderColor:(col||d.borderColor||'#2938A8');};
-  c.type='line';c.financialCombo=cfg.financialCombo;
-  let order=0;
-  c.data.datasets=source.map((d,i)=>{
-    const out={...deep(d)};delete out.borderRadius;delete out.maxBarThickness;delete out.barThickness;delete out.indexAxis;
-    out.type='line';
-    if(areaIdx.includes(i)){
-      const color=colorOf(d);
-      out.borderColor=color;out.backgroundColor=alpha(color,stacked?.9:.28);out.borderWidth=2;out.pointRadius=stacked?0:2.5;out.pointHoverRadius=4;out.tension=0;
-      out.fill=stacked?(order===0?'origin':'-1'):'origin';
-      if(stacked)out.stack='area';else delete out.stack;
-      order++;
-    }else{
-      out.fill=false;delete out.stack;
-      out.borderColor=out.borderColor||colorOf(d);
-    }
-    return out;
+window.shareAreaConfig=function(cfg){
+  const c=deep(cfg), source=cfg.data.datasets||[], labels=cfg.data.labels||[];
+  const totals=labels.map((_,i)=>{
+    const vals=source.map(d=>d.data[i]);
+    return vals.every(finite)&&vals.every(v=>Number(v)>=0)?vals.reduce((a,v)=>a+Number(v),0):null;
   });
-  c.options=c.options||{};c.options.indexAxis='x';c.options.scales=c.options.scales||{};
-  for(const ax of ['x','y']){c.options.scales[ax]=c.options.scales[ax]||{};c.options.scales[ax].stacked=stacked;}
-  if(c.options.scales.ratio)c.options.scales.ratio.stacked=false;
-  c.options.interaction={mode:'index',intersect:false};
+  c.type='line';c.shareView=true;c.financialCombo=false;
+  c.data.datasets=source.map((d,j)=>{
+    const color=Array.isArray(d.backgroundColor)?d.backgroundColor[0]:d.backgroundColor||d.borderColor||'#2938A8';
+    return {...d,type:'line',data:labels.map((_,i)=>totals[i]>0?Number(source[j].data[i])/totals[i]*100:null),borderColor:color,backgroundColor:color,borderWidth:1.5,pointRadius:0,pointHoverRadius:4,tension:.15,fill:true,stack:'share'};
+  });
+  c.options.indexAxis='x';c.options.scales={x:{grid:{display:false}},y:{stacked:true,min:0,max:100,beginAtZero:true,grid:{color:'#EEF0F6'},ticks:{callback:v=>v+'%'}}};
+  c.options.plugins=c.options.plugins||{};c.options.plugins.legend={position:'bottom',labels:{boxWidth:12,usePointStyle:true}};
+  c.options.plugins.tooltip={mode:'index',intersect:false,callbacks:{label:x=>{
+    const original=source[x.datasetIndex]&&source[x.datasetIndex].data[x.dataIndex];
+    return x.dataset.label+': '+(x.parsed.y==null?'—':format(x.parsed.y)+'% · '+format(original)+' tỷ VND');
+  }}};
   return c;
 };
 function chartFor(id,binding){return binding.direct||(typeof charts!=='undefined'&&charts[id]);}
@@ -3313,58 +3441,32 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 
 </script>
 <script>
-/* Comparable long-run income statement history from quarterly filings. */
+/* Long-run income statement history, sourced from CafeF quarterly filings. */
 (function(){
   const d=window.PVS_DATA,store=window.FS_INCOME_HISTORY_10Y;
-  if(!d||!d.meta||!store)return;
+  if(!d||!store||!d.meta)return;
   const ticker=d.meta.ticker,years=store[ticker];if(!years)return;
-  const metrics=[
-    {key:'revenue',id:'income10Rev',title:'Doanh thu thuần',color:'#2938A8'},
-    {key:'grossProfit',id:'income10Gross',title:'Lợi nhuận gộp',color:'#16A6A0'},
-    {key:'operatingProfit',id:'income10Operating',title:'Lợi nhuận thuần HĐKD',color:'#6B4BB6'},
-    {key:'parentProfit',id:'income10Profit',title:'LNST thuộc cổ đông mẹ',color:'#861C52'}
-  ];
-  const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const firstYear=2016;
-  // Read the latest published quarter from the snapshot so a new filing extends the axis automatically.
-  let latest={year:firstYear,quarter:0};
-  for(const company of Object.values(store))for(const [year,record] of Object.entries(company)){
-    if(!/^\d{4}$/.test(year))continue;
-    for(const metric of metrics)(record[metric.key]||[]).forEach((value,index)=>{
-      if(value==null)return;
-      const y=Number(year),q=index+1;
-      if(y>latest.year||y===latest.year&&q>latest.quarter)latest={year:y,quarter:q};
-    });
-  }
-  if(!latest.quarter)return;
-  const fullYear=latest.quarter===4?latest.year:latest.year-1;
-  const annual=Array.from({length:Math.min(10,Math.max(0,fullYear-firstYear+1))},(_,i)=>String(fullYear-Math.min(10,fullYear-firstYear+1)+1+i));
-  const quarterly=[];for(let year=firstYear;year<=latest.year;year++)for(let q=1;q<=(year===latest.year?latest.quarter:4);q++)quarterly.push('Q'+q+'/'+year);
-  const quarterSeries=key=>quarterly.map(label=>{const [q,year]=label.split('/');return (years[year]&&years[year][key]||[])[Number(q[1])-1]??null;});
-  const sumYear=(key,year)=>{const values=years[year]&&years[year][key];return values&&values.length===4&&values.every(value=>value!=null)?Math.round(values.reduce((sum,value)=>sum+value,0)*1000)/1000:null;};
+  const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const annual=Array.from({length:10},(_,i)=>String(2016+i));
+  const quarterly=Array.from({length:42},(_,i)=>'Q'+(i%4+1)+'/'+(2016+Math.floor(i/4)));
+  const series=key=>quarterly.map(l=>{const [q,y]=l.split('/');return (years[y]&&years[y][key]||[])[Number(q[1])-1]??null;});
+  const sumYear=(key,y)=>{const a=years[y]&&years[y][key];return a&&a.length===4&&a.every(v=>v!=null)?Math.round(a.reduce((x,v)=>x+v,0)*1000)/1000:null};
   function render(){
     const bs=document.getElementById('bs');if(!bs||typeof mkTS!=='function')return;
-    let box=document.getElementById('incomeHistory10y');
-    if(!box){
-      box=document.createElement('div');box.id='incomeHistory10y';box.style.marginTop='16px';
-      const heading=bs.querySelector(':scope > h2.sec');
-      if(heading)heading.after(box);else bs.insertBefore(box,bs.firstChild);
-    }
-    const warnings=Object.entries(years).flatMap(([year,record])=>(record.warnings||[]).map(warning=>year+': '+warning));
-    const links=Object.entries(years).sort((a,b)=>Number(a[0])-Number(b[0])).map(([year,record])=>/^https?:/.test(record.src||'')?'<a href="'+esc(record.src)+'" target="_blank" rel="noopener noreferrer">'+esc(year)+'</a>':esc(year)).join(' · ');
-    const last=quarterly[quarterly.length-1];
-    box.innerHTML='<h3 class="sub">Kết quả kinh doanh dài hạn · '+esc(annual[0])+'–'+esc(last)+'</h3>'+
-      '<p class="note">Chọn <b>10 năm hoàn chỉnh</b> hoặc <b>theo quý</b> riêng cho từng biểu đồ. Năm là tổng 4 quý có đủ dữ liệu; kỳ thiếu để trống. Nguồn CafeF, đơn vị tỷ VND. Các biểu đồ đặc thù của doanh nghiệp ở dưới giữ phạm vi dữ liệu đã đối chiếu riêng.</p>'+
-      '<div class="grid g2" style="margin-top:12px">'+metrics.map(metric=>{
-        const q=quarterSeries(metric.key),a=annual.map(year=>sumYear(metric.key,year));
-        return '<div class="card"><h3 class="sub">'+esc(metric.title)+' · tỷ VND</h3><div class="chart tall"><canvas id="'+metric.id+'"></canvas></div><div class="note">Có số: '+a.filter(value=>value!=null).length+'/'+annual.length+' năm · '+q.filter(value=>value!=null).length+'/'+quarterly.length+' quý.</div></div>';
-      }).join('')+'</div>'+
-      '<details class="dd" style="margin-top:10px"><summary>Nguồn theo năm và giới hạn đối chiếu'+(warnings.length?' · '+warnings.length+' chuỗi cần rà soát':'')+'</summary><div class="body"><div class="note">CafeF › báo cáo KQKD theo quý. Q4 và số cộng năm có thể khác số công bố kiểm toán hoặc dữ liệu sau tái trình bày; đối chiếu BCTC gốc trước khi dùng để forecast. Kỳ không có số để trống. '+links+'</div>'+(warnings.length?'<ul class="list">'+warnings.map(warning=>'<li>'+esc(warning)+'</li>').join('')+'</ul>':'')+'</div></details>';
-    for(const metric of metrics){
-      const q=quarterSeries(metric.key),a=annual.map(year=>sumYear(metric.key,year));
-      const datasets=values=>[{label:metric.title,data:values,backgroundColor:metric.color,borderColor:metric.color,borderRadius:3,maxBarThickness:38}];
-      mkTS(metric.id,{def:'y',y:{labels:annual,datasets:datasets(a)},q:{labels:quarterly,datasets:datasets(q)},cfg:(labels,sets)=>({type:'bar',data:{labels,datasets:sets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:item=>item.parsed.y==null?'—':Number(item.parsed.y).toLocaleString('vi-VN',{maximumFractionDigits:2})+' tỷ VND'}}},scales:{x:{grid:{display:false}},y:{grid:{color:'#EEF0F6'},ticks:{callback:value=>Number(value).toLocaleString('vi-VN')}}}}})});
-    }
+    const anchor=document.getElementById('finTableCard');
+    let box=document.getElementById('incomeHistory10y');if(!box){box=document.createElement('div');box.id='incomeHistory10y';box.style.marginTop='16px';bs.insertBefore(box,anchor||bs.firstChild);}
+    const present=series('revenue').filter(v=>v!=null).length;
+    const warnings=Object.entries(years).flatMap(([y,v])=>(v.warnings||[]).map(w=>y+': '+w));
+    const links=Object.entries(years).sort((a,b)=>Number(a[0])-Number(b[0])).map(([y,v])=>/^https?:/.test(v.src||'')?'<a href="'+esc(v.src)+'" target="_blank" rel="noopener noreferrer">'+esc(y)+'</a>':esc(y)).join(' · ');
+    box.innerHTML='<h3 class="sub">KQKD dài hạn · 2016–Q2/2026</h3><div class="note">'+present+'/42 quý có doanh thu. Số liệu quý từ CafeF, đơn vị tỷ VND; năm 2016–2025 là tổng bốn quý đủ dữ liệu. 2026 chưa đủ năm. Chuỗi này là đối chiếu lịch sử; các chỉ tiêu ngành và phạm vi hợp nhất riêng nằm ở những chart phía dưới.</div>'+
+      '<div class="grid g2" style="margin-top:12px"><div class="card"><h3 class="sub">Doanh thu thuần · tỷ VND</h3><div class="chart tall"><canvas id="income10Rev"></canvas></div></div><div class="card"><h3 class="sub">LNST thuộc cổ đông mẹ · tỷ VND</h3><div class="chart tall"><canvas id="income10Profit"></canvas></div></div></div>'+
+      '<details class="dd" style="margin-top:10px"><summary>Nguồn theo năm và giới hạn đối chiếu'+(warnings.length?' · '+warnings.length+' chuỗi cần rà soát':'')+'</summary><div class="body"><div class="note">CafeF › báo cáo KQKD theo quý. Q4 và số cộng năm có thể khác số công bố kiểm toán hoặc dữ liệu sau tái trình bày; cần đối chiếu BCTC gốc trước khi dùng để forecast. Kỳ không có số để trống. '+links+'</div>'+(warnings.length?'<ul class="list">'+warnings.map(w=>'<li>'+esc(w)+'</li>').join('')+'</ul>':'')+'</div></details>';
+    const mkSpec=(id,key,color)=>{
+      const q=series(key),a=annual.map(y=>sumYear(key,y));
+      const datasets=data=>[{label:key==='revenue'?'Doanh thu thuần':'LNST mẹ',data,backgroundColor:color,borderColor:color,borderRadius:3,maxBarThickness:38}];
+      mkTS(id,{def:'y',y:{labels:annual,datasets:datasets(a)},q:{labels:quarterly,datasets:datasets(q)},cfg:(labels,sets)=>({type:'bar',data:{labels,datasets:sets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:x=>x.parsed.y==null?'—':Number(x.parsed.y).toLocaleString('vi-VN',{maximumFractionDigits:2})+' tỷ VND'}}},scales:{x:{grid:{display:false}},y:{grid:{color:'#EEF0F6'},ticks:{callback:v=>Number(v).toLocaleString('vi-VN')}}}}})});
+    };
+    mkSpec('income10Rev','revenue','#2938A8');mkSpec('income10Profit','parentProfit','#861C52');
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',render);else render();
 })();
