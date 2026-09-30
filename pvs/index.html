@@ -4222,11 +4222,12 @@ function drawSankey(c,p){
 }
 
 /* ---------- 3c. Bội số định giá theo thời gian: P/E · P/B · EV/EBITDA ---------- */
-const BANDKEY='band_ctl_v1';
-const BAND={med:true,sd1:true,sd2:false};
+// V2 starts with the median visible; the former shared key could retain "off" from an older chart.
+const BANDKEY='pvs_band_ctl_v2';
+const BAND={med:true,sd1:false,sd2:false};
 try{ Object.assign(BAND,JSON.parse(localStorage.getItem(BANDKEY)||'{}')); }catch(e){}
-const MULTKEY='pvs_multiple_visible_v1';
-const MULTVISIBLE={pe:true,pb:true,evEbitda:true};
+const MULTKEY='pvs_multiple_visible_v2';
+const MULTVISIBLE={pe:true,pb:false,evEbitda:false};
 try{ const saved=JSON.parse(localStorage.getItem(MULTKEY)||'{}'); Object.keys(MULTVISIBLE).forEach(k=>{if(typeof saved[k]==='boolean')MULTVISIBLE[k]=saved[k];}); }catch(e){}
 function renderMultiples(){
   const row=$('multiplesRow'); if(!row)return;
