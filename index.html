@@ -37,12 +37,31 @@ window.PVS_DATA = {
   },
 
   governance: {
-    asOf: "2026-09-21",
-    src: "https://mwg.vn/bao-cao",
-    shareholders: [], leadership: [],
-    entities: [{name:"Công ty Cổ phần Đầu tư Điện Máy Xanh",type:"Công ty con; tỷ lệ sau IPO",ownership:86}],
+    asOf: "BCTN 2025; cơ cấu cổ đông 31/12/2025; Điện Máy Xanh theo mốc IPO 2026",
+    src: "https://cdnv2.tgdd.vn/mwgvn/investorrelations/files/news/2026/3/2353/99/4b/994bc4902d35965c5e4013897d4f78f4.pdf",
+    shareholders: [
+      {name:"Nhóm cổ đông lớn (≥5%)",shares:268714334,percent:18.30,asOf:"2025-12-31"},
+      {name:"Cổ đông khác",shares:1199742429,percent:81.70,asOf:"2025-12-31"}
+    ],
+    leadership: [
+      {name:"Nguyễn Đức Tài",role:"Chủ tịch HĐQT"},
+      {name:"Vũ Đăng Linh",role:"Thành viên HĐQT, Tổng giám đốc",since:"2025-04"},
+      {name:"Đoàn Văn Hiểu Em",role:"Thành viên HĐQT"},
+      {name:"Phạm Văn Trọng",role:"Thành viên HĐQT"},
+      {name:"Nguyễn Tiến Trung",role:"Thành viên độc lập, Chủ tịch Ủy ban kiểm toán"}
+    ],
+    entities: [
+      {name:"CTCP Đầu tư Điện Máy Xanh",type:"Công ty con; tỷ lệ sau IPO",ownership:86,asOf:"2026"},
+      {name:"CTCP Công nghệ và Đầu tư Bách Hóa Xanh",type:"Công ty con trực tiếp",ownership:94.99,asOf:"2025-12-31"},
+      {name:"Công ty TNHH Đầu tư Thiên Tâm",type:"Công ty con trực tiếp",ownership:100,asOf:"2025-12-31"},
+      {name:"Công ty TNHH Đầu tư An Nhi",type:"Công ty con trực tiếp",ownership:100,asOf:"2025-12-31"},
+      {name:"PT Era Blu Elektronik",type:"Liên doanh qua Điện Máy Xanh",ownership:45,asOf:"2025-12-31"}
+    ],
     trades: [], adjustedPrices: [],
-    investorNotes: [{text:"Theo dõi ESOP và pha loãng: 7,34 triệu CP ESOP hoàn tất tháng 7/2026.",src:"https://mwg.vn/bao-cao"}]
+    investorNotes: [
+      {text:"Cơ cấu cổ đông 2025 dùng 1.468.456.763 CP có quyền biểu quyết; không ghép với số cổ phiếu sau ESOP 2026.",src:"https://cdnv2.tgdd.vn/mwgvn/investorrelations/files/news/2026/3/2353/99/4b/994bc4902d35965c5e4013897d4f78f4.pdf"},
+      {text:"Theo dõi ESOP và pha loãng: 7,34 triệu CP ESOP hoàn tất tháng 7/2026.",src:"https://mwg.vn/bao-cao"}
+    ]
   },
 
   // ---------- CHECKLIST ĐIỀU KIỆN MUA ----------
@@ -3090,7 +3109,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     const owners=g.shareholders||[],lead=g.leadership||[],entities=g.entities||[],trades=g.trades||[];
     const hasPrices=Array.isArray(g.adjustedPrices)&&g.adjustedPrices.length>0;
     const missing=[!owners.length&&'cơ cấu cổ đông',!lead.length&&'cơ cấu quản trị',!entities.length&&'công ty con / LDLK',!trades.length&&'giao dịch cổ đông lớn / nội bộ'].filter(Boolean);
-    const tradeHeads=['Người / quan hệ','Đăng ký','Thực hiện','Ngày công bố / hoàn tất',...(hasPrices?['Sau đăng ký 1M · 3M · 1Y','Sau hoàn tất 1M · 3M · 1Y']:[]),'Nguồn'];
+    const tradeHeads=['Người / quan hệ','Đăng ký','Thực hiện','Ngày công bố / hoàn tất','Sau đăng ký 1M · 3M · 1Y','Sau hoàn tất 1M · 3M · 1Y','Nguồn'];
     box.innerHTML='<h3 class="sub">Quản trị & sở hữu</h3>'+
       '<div class="note">Cơ cấu sở hữu và giao dịch phản ánh mốc công bố, không mặc nhiên là cơ cấu hiện tại. '+(g.asOf?'Phạm vi: '+esc(g.asOf)+'. ':'')+link(g.src)+'</div>'+
       (missing.length?'<div class="note">Chưa đối chiếu: '+esc(missing.join('; '))+'.</div>':'')+
@@ -3098,8 +3117,8 @@ document.addEventListener('DOMContentLoaded',()=>{
       '<div class="gov-grid">'+
       section('Cơ cấu cổ đông',owners,a=>table(['Cổ đông','Sở hữu','Tỷ lệ','Ngày chốt'],a,x=>`<tr><td>${esc(x.name)}</td><td>${val(x.shares,' CP')}</td><td>${val(x.percent,'%',2)}</td><td>${esc(x.asOf||'—')}</td></tr>`))+
       section('Cơ cấu quản trị',lead,a=>table(['Họ tên','Vai trò','Mốc bổ nhiệm'],a,x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.role)}</td><td>${esc(x.since||'—')}</td></tr>`))+
-      section('Công ty con · LDLK',entities,a=>table(['Đơn vị','Loại theo nguồn','Sở hữu'],a,x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.type||'—')}</td><td>${val(x.ownership,'%',2)}</td></tr>`))+'</div>'+
-      section('Giao dịch cổ đông lớn & người nội bộ',trades,a=>table(tradeHeads,a,x=>`<tr><td>${esc(x.name)}<div class="note">${esc(x.relation||'')}</div></td><td>${x.registered==null?'—':esc(x.side||'')+' '+val(x.registered,' CP')}</td><td>${x.executed==null?'—':esc(x.side||'')+' '+val(x.executed,' CP')}</td><td>${esc(x.period||'')}${x.period&&x.announced?' · ':''}${esc(x.announced||'')}${x.completed?' / '+esc(x.completed):''}${!x.period&&!x.announced&&!x.completed?'—':''}</td>${hasPrices?`<td>${[1,3,12].map(n=>priceMove(x.announced,n,g.adjustedPrices)).join(' · ')}</td><td>${[1,3,12].map(n=>priceMove(x.completed,n,g.adjustedPrices)).join(' · ')}</td>`:''}<td>${link(x.src||g.src)}</td></tr>`))+
+      section('Công ty con · LDLK',entities,a=>table(['Đơn vị','Loại theo nguồn','Sở hữu','Ngày chốt'],a,x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.type||'—')}</td><td>${val(x.ownership,'%',2)}</td><td>${esc(x.asOf||'—')}</td></tr>`))+'</div>'+
+      section('Giao dịch cổ đông lớn & người nội bộ',trades,a=>table(tradeHeads,a,x=>`<tr><td>${esc(x.name)}<div class="note">${esc(x.relation||'')}</div></td><td>${x.registered==null?'—':esc(x.side||'')+' '+val(x.registered,' CP')}</td><td>${x.executed==null?'—':esc(x.side||'')+' '+val(x.executed,' CP')}${x.opening!=null&&x.closing!=null?`<div class="note">${esc(x.side||'Biến động')} · sở hữu ${num(x.opening)} → ${num(x.closing)} CP; không phải KL giao dịch</div>`:''}</td><td>${esc(x.period||'')}${x.period&&x.announced?' · ':''}${esc(x.announced||'')}${x.completed?' / '+esc(x.completed):''}${!x.period&&!x.announced&&!x.completed?'—':''}</td><td>${[1,3,12].map(n=>priceMove(x.announced,n,g.adjustedPrices)).join(' · ')}</td><td>${[1,3,12].map(n=>priceMove(x.completed,n,g.adjustedPrices)).join(' · ')}</td><td>${link(x.src||g.src)}</td></tr>`))+
       (trades.length&&!hasPrices?'<div class="note">Chưa có chuỗi giá đóng cửa điều chỉnh đã đối chiếu; chưa tính biến động giá 1M / 3M / 1Y sau công bố và giao dịch.</div>':'')+
       (trades.length&&hasPrices?'<div class="note">Biến động giá tính từ phiên đầu sau mốc đến phiên đầu từ ngày tương ứng sau 1/3/12 tháng, bằng giá đóng cửa đã điều chỉnh. “—” khi thiếu ngày hoặc chưa đủ thời gian; không hàm ý quan hệ nhân quả.</div>':'')+
       (g.investorNotes&&g.investorNotes.length?section('Điểm cần theo dõi',g.investorNotes,a=>'<ul class="list">'+a.map(x=>`<li>${esc(x.text)} ${link(x.src)}</li>`).join('')+'</ul>'):'');
