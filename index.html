@@ -15,6 +15,12 @@
 window.PVS_DATA = {
 
   meta: {
+    roa: 10.7357,
+    roaPeriod: "TTM Q2/2026 · WiData",
+    wiDataAsOf: "2026-09-30",
+    evEbitda: 5.5929,
+    evEbitdaPeriod: "TTM Q2/2026 · giá 30/09/2026 · WiData",
+
     ticker: "MWG",
     name: "CTCP Đầu tư Thế Giới Di Động (Mobile World Group)",
     exchange: "HOSE",
@@ -3235,7 +3241,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     const shares=m.sharesOutstanding!=null?m.sharesOutstanding:m.sharesOutBasis==='proxy'?null:m.sharesOut;
     const shareNote=m.sharesOutstanding!=null?m.sharesOutstandingNote||'triệu CP đang lưu hành':m.sharesOutBasis==='proxy'?'Mẫu số dashboard là kịch bản/điều chỉnh, chờ số CP lưu hành':m.sharesOut!=null?'Triệu CP theo mẫu số dashboard; kiểm tra phát hành/pha loãng':'Chờ đối chiếu';
     const facts=[
-      ['Vốn hóa',val(m.mcap,' tỷ VND',2),m.priceDate||''],
+      ['Vốn hóa',val(m.mcap,' tỷ VND',2),m.mcapDate||m.priceDate||''],
       ['Giá trị sổ sách',val(m.bvps,' đ/CP',2),m.bookValueDate||'Theo BCTC và mẫu số đang dùng'],
       ['Kiểm toán',m.auditor||'—',m.auditPeriod||'Chờ đối chiếu kỳ báo cáo'],
       ['CP lưu hành',val(shares,' triệu',2),shareNote],
@@ -3245,7 +3251,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       ['ROA',val(m.roa,'%',2),m.roaPeriod||'TTM; LNST / tài sản bình quân'],
       ['ROE',val(m.roe!=null?m.roe:roeLatest,'%',2),m.roePeriod||roePeriod||'TTM; LNST mẹ / VCSH mẹ bình quân']
     ];
-    info.innerHTML='<h3 class="sub">Thông tin doanh nghiệp</h3><div class="overview-facts">'+facts.map(x=>`<div class="fact"><div class="l">${esc(x[0])}</div><div class="v">${esc(x[1])}</div><div class="s">${esc(x[2])}</div></div>`).join('')+'</div><div class="note">—: chưa có dữ liệu đã đối chiếu. Các chỉ số có thể dùng mẫu số hoặc ngày khác nhau; xem ghi chú từng chỉ số.'+(room.src?' Room NĐTNN: '+link(room.src,'nguồn')+(room.limitPct!=null?' · trần '+val(room.limitPct,'%',2):'')+'.':'')+'</div>';
+    info.innerHTML='<h3 class="sub">Thông tin doanh nghiệp</h3><div class="overview-facts">'+facts.map(x=>`<div class="fact"><div class="l">${esc(x[0])}</div><div class="v">${esc(x[1])}</div><div class="s">${esc(x[2])}</div></div>`).join('')+'</div><div class="note">—: chưa có dữ liệu đã đối chiếu. Các chỉ số có thể dùng mẫu số hoặc ngày khác nhau; xem ghi chú từng chỉ số.'+(room.src?' Room NĐTNN: '+link(room.src,'nguồn')+(room.limitPct!=null?' · trần '+val(room.limitPct,'%',2):'')+'.':'')+(m.wiDataAsOf?' Chỉ số bổ sung: WiData/WiMCP, cập nhật '+esc(m.wiDataAsOf)+'; xem mốc kỳ trong từng ô.':'')+'</div>';
     let box=document.getElementById('governanceBox');if(!box){box=document.createElement('div');box.id='governanceBox';box.className='card';box.style.marginTop='16px';info.after(box);}
     const section=(title,items,draw)=>items&&items.length?`<div class="gov-section"><h4>${title}</h4>${draw(items)}</div>`:'';
     const table=(heads,items,draw)=>'<div class="tbl-wrap"><table><thead><tr>'+heads.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+items.map(draw).join('')+'</tbody></table></div>';
