@@ -208,7 +208,8 @@ window.PVS_DATA = {
       // Mỗi phần tử counts khớp thứ tự items. Không thay số kỳ cũ khi thêm snapshot mới.
       snapshots: [
         { period:"9T/2026", asOf:"2026-09-21", status:"Kỳ do analyst gán cho snapshot 21/09; không phải số cuối tháng do BHX công bố", counts:[1076,264,220,194,176,175,173,166,121,97,93,91,88,82,78,76,61,60,44,33] },
-        { period:"10T/2026", asOf:null, status:"Chờ chụp đầy đủ số tỉnh/thành từ trang cửa hàng BHX", counts:null }
+        { period:"10T/2026", asOf:"2026-10-01", status:"Snapshot đầu tháng, không phải số cuối 10T/2026", counts:[1104,269,222,199,178,177,178,171,122,97,96,94,88,83,80,77,62,61,45,34] },
+        { period:"11T/2026", asOf:null, status:"Chờ snapshot BHX đầu tháng kế tiếp", counts:null }
       ],
       sourceUrl:"https://www.bachhoaxanh.com/he-thong-cua-hang",
       items: [
@@ -218,7 +219,7 @@ window.PVS_DATA = {
         { name:"Cà Mau", value:88, region:"Miền Nam" }, { name:"Khánh Hòa", value:82, region:"Miền Trung" }, { name:"Thanh Hóa", value:78, region:"Miền Trung" }, { name:"Gia Lai", value:76, region:"Miền Trung" },
         { name:"Hà Tĩnh", value:61, region:"Miền Trung" }, { name:"Quảng Trị", value:60, region:"Miền Trung" }, { name:"Huế", value:44, region:"Miền Trung" }, { name:"Quảng Ngãi", value:33, region:"Miền Trung" }
       ],
-      note: "Snapshot 21/09/2026 được quy ước là 9T/2026 theo yêu cầu analyst, không phải số cuối tháng. 10T/2026 chỉ hiện cột sau khi lấy đủ số địa phương mới; hiện chưa xác minh được từ website BHX. Tổng snapshot cũ: 3.368/20 địa phương; không so trực tiếp với 3.612 cửa hàng IR 8T vì phạm vi khác nhau."
+      note: "9T/2026: snapshot 21/09 (3.368 cửa hàng); 10T/2026: snapshot 01/10 (3.437 cửa hàng), tăng 69 trên cùng 20 địa phương. Nhãn kỳ theo quy ước analyst; số 10T là snapshot đầu tháng, không phải số chốt cuối tháng. Số từ API tìm cửa hàng BHX có thể khác tổng IR do phạm vi/trạng thái cửa hàng."
     },
     hideSide: true,   // analyst yêu cầu bỏ Milestone + Bảng theo chuỗi (21/09/2026)
 
