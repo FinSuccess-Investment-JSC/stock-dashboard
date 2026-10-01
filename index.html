@@ -1010,7 +1010,7 @@ table.analyst-table tr:hover td{background:#FAFBFF}
     <div class="card"><h3 class="sub" id="stPerStoreTitle">Doanh thu / cửa hàng / tháng (tỷ VND)</h3><div class="chart tall"><canvas id="stPerStore"></canvas></div><div class="note" id="stPerStoreNote"></div></div>
   </div>
   <div class="grid g2" style="margin-top:16px">
-    <div class="card"><h3 class="sub"><span id="stGeoTitle">Phân bổ theo tỉnh/thành</span></h3><div class="filters" id="stGeoView" role="group" aria-label="Xem số cửa hàng theo địa lý" hidden><button type="button" data-view="province" class="on" aria-pressed="true">Tỉnh/thành</button><button type="button" data-view="region" aria-pressed="false">Bắc – Trung – Nam</button></div><div class="filters" id="stGeoMetric" role="group" aria-label="Đơn vị biểu đồ theo miền" style="display:none"><button type="button" data-metric="region" aria-pressed="true" class="on">Số cửa hàng</button><button type="button" data-metric="region-pie" aria-pressed="false">Tỷ trọng (%) · Tròn</button></div><div class="chart" style="height:520px"><canvas id="stGeo"></canvas></div><div class="note" id="stGeoNote"></div><div class="src" id="stGeoSource"></div><details class="dd" id="stGeoRegions" hidden><summary>Phân loại tỉnh/thành theo miền <span class="hint">bấm để mở/đóng</span></summary><p id="stGeoRegionNote" class="note"></p><div class="tbl-wrap"><table id="stGeoRegionTable"></table></div></details></div>
+    <div class="card"><h3 class="sub"><span id="stGeoTitle">BHX — số cửa hàng theo tỉnh/thành</span></h3><div class="filters" id="stGeoView" role="group" aria-label="Xem số cửa hàng theo địa lý" hidden></div><div class="filters" id="stGeoMetric" role="group" aria-label="Đơn vị biểu đồ theo miền" style="display:none"></div><div class="chart" style="height:470px"><canvas id="stGeo"></canvas></div><div class="note" id="stGeoNote"></div><div class="src" id="stGeoSource"></div><details class="dd" id="stGeoRegions" hidden><summary>Phân loại tỉnh/thành theo miền <span class="hint">bấm để mở/đóng</span></summary><p id="stGeoRegionNote" class="note"></p><div class="tbl-wrap"><table id="stGeoRegionTable"></table></div></details></div>
     <div class="card" id="stSideCard"><h3 class="sub">Milestone</h3><ul class="list" id="stMilestones"></ul><h3 class="sub" style="margin-top:14px">Bảng theo chuỗi</h3><div class="tbl-wrap"><table id="stTable"></table></div><div class="src" id="stSrc"></div></div>
   </div>
   </div>
@@ -1434,27 +1434,17 @@ function renderStores(){
       $('stGeoRegionNote').textContent=g.regionNote||'';
       $('stGeoRegionTable').innerHTML='<tr><th>Miền</th><th>Tỉnh/thành trong dữ liệu</th><th class="num">Cửa hàng</th><th class="num">Tỷ trọng</th></tr>'+regions.map(r=>`<tr><td>${esc(r.name)}</td><td>${r.items.map(x=>esc(x.name)).join(', ')||'Chưa có dữ liệu'}</td><td class="num">${r.items.length?vnd(r.value):'—'}</td><td class="num">${r.items.length?share(r.value):'—'}</td></tr>`).join('')+`<tr class="total"><td>Tổng</td><td>${g.items.length} tỉnh/thành có dữ liệu</td><td class="num">${vnd(total)}</td><td class="num">${share(total)}</td></tr>`;
     }
-    const drawGeo=mode=>{
-      const regional=hasRegions&&(mode==='region'||mode==='region-pie');
-      const pie=regional&&mode==='region-pie';
-      const items=regional?regions.filter(r=>r.items.length):currentItems;
-      $('stGeoTitle').textContent=regional?(g.regionTitle||'Số cửa hàng theo miền'):(g.title||'Phân bổ theo tỉnh/thành');
-      $('stGeo').parentElement.style.height=pie?'340px':regional?'280px':'520px';
-      const metric=$('stGeoMetric'); metric.style.display=regional?'':'none';
-      metric.querySelectorAll('button').forEach(b=>{const active=b.dataset.metric===(pie?'region-pie':'region');b.classList.toggle('on',active);b.setAttribute('aria-pressed',String(active));});
-      view.querySelectorAll('button').forEach(b=>{const active=b.dataset.view===(regional?'region':'province');b.classList.toggle('on',active);b.setAttribute('aria-pressed',String(active));});
-      if(pie){
-        $('stGeoTitle').textContent=(g.regionTitle||'Số cửa hàng theo miền').replace('số cửa hàng','tỷ trọng cửa hàng')+' (%)';
-        mk('stGeo',{type:'pie',data:{labels:items.map(x=>x.name+' · '+share(x.value).replace('.',',')),datasets:[{label:'Tỷ trọng cửa hàng',data:items.map(x=>x.value),backgroundColor:items.map(x=>CAT[regionNames.indexOf(x.name)%CAT.length]),borderColor:'#fff',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12,padding:16,usePointStyle:true},onClick:()=>{}},tooltip:{callbacks:{label:c=>{const value=c.dataset.data[c.dataIndex];return vnd(value)+' cửa hàng ('+share(value).replace('.',',')+')';}}}}}});
-        return;
-      }
-      const datasets=snapshots.length?snapshots.map((snapshot,k)=>({label:snapshot.period,data:regional?items.map(r=>g.items.reduce((sum,x,i)=>sum+(x.region===r.name&&Number.isFinite(snapshot.counts[i])?snapshot.counts[i]:0),0)):snapshot.counts,backgroundColor:CAT[k%CAT.length],borderRadius:3,maxBarThickness:regional?32:16})): [{label:g.seriesLabel||'Cửa hàng',data:items.map(x=>x.value),backgroundColor:BLUE,borderRadius:3,maxBarThickness:16}];
-      mk('stGeo',{type:'bar',data:{labels:items.map(x=>x.name),datasets},options:{responsive:true,maintainAspectRatio:false,indexAxis:'x',plugins:{legend:{display:snapshots.length>0,position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+vnd(c.parsed.y)+' cửa hàng'}}},scales:{x:{stacked:false,grid:{display:false},ticks:{font:{size:11},maxRotation:45,minRotation:30}},y:{stacked:false,beginAtZero:true,grid:{color:'#EEF0F6'}}}}});
-    };
-    let mode='province'; try{mode=localStorage.getItem(KEY+'_geo_view')||mode;}catch(e){}
-    drawGeo(mode);
-    view.onclick=e=>{const button=e.target.closest('button[data-view]');if(!button)return;drawGeo(button.dataset.view);try{localStorage.setItem(KEY+'_geo_view',button.dataset.view);}catch(e){}};
-    $('stGeoMetric').onclick=e=>{const button=e.target.closest('button[data-metric]');if(!button)return;drawGeo(button.dataset.metric);try{localStorage.setItem(KEY+'_geo_view',button.dataset.metric);}catch(e){}};
+    // One cumulative column per verified snapshot; province values form the stack.
+    view.style.display='none';
+    $('stGeoMetric').style.display='none';
+    $('stGeoTitle').textContent='BHX — số cửa hàng theo tỉnh/thành';
+    $('stGeo').parentElement.style.height='470px';
+    const periodLabels=snapshots.map(snapshot=>snapshot.period.replace('/', '.').replace('2026', '26'));
+    const periodTotals=snapshots.map(snapshot=>snapshot.counts.reduce((sum,value)=>sum+value,0));
+    const provinceColors=g.items.map((_,i)=>`hsl(${Math.round(224+i*137.508)%360} 58% ${i%2?52:43}%)`);
+    const provinceDatasets=g.items.map((item,i)=>({label:item.name,data:snapshots.map(snapshot=>snapshot.counts[i]),backgroundColor:provinceColors[i],borderWidth:0,maxBarThickness:190,stack:'stores'}));
+    const totalLabels={id:'bhxGeoTotals',afterDatasetsDraw(chart){const {ctx,scales}=chart;const meta=chart.getDatasetMeta(chart.data.datasets.length-1);ctx.save();ctx.fillStyle=NAVY;ctx.font='bold 14px sans-serif';ctx.textAlign='center';periodTotals.forEach((value,i)=>{const bar=meta.data[i];if(bar)ctx.fillText(vnd(value)+' cửa hàng',bar.x,scales.y.getPixelForValue(value)-9);});ctx.restore();}};
+    mk('stGeo',{type:'bar',lockChartType:true,data:{labels:periodLabels,datasets:provinceDatasets},plugins:[totalLabels],options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{title:items=>items[0]?.label||'',label:c=>c.dataset.label+': '+vnd(c.parsed.y)+' cửa hàng',footer:items=>'Tổng: '+vnd(periodTotals[items[0]?.dataIndex]||0)+' cửa hàng'}}},scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,beginAtZero:true,grace:'8%',grid:{color:'#EEF0F6'},ticks:{callback:v=>vnd(v)}}}}});
   }
   if(st.hideSide){ $('stSideCard').style.display='none'; $('stGeo').closest('.card').style.gridColumn='1/-1'; }
   $('stMilestones').innerHTML=(st.milestones||[]).map(m=>`<li><span class="d">${m.d}</span><span>${m.ok?'✅':'⏳'} ${esc(m.t)}</span></li>`).join('');
