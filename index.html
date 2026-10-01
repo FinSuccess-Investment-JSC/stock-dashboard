@@ -185,24 +185,6 @@ window.PVS_DATA = {
       ],
       note: "Bảng theo dõi của analyst (số cuối kỳ từ báo cáo KQKD tháng/12 tháng MWG). An Khang hợp nhất từ 2022. Câu chuyện: 2022–2024 'giảm lượng – tăng chất' (đóng ~400 BHX, ~300 ĐMX/TGDĐ, ~200 An Khang); 2025–2026 quay lại mở rộng BHX (+1.053 sau 8T) và Erablue. Cập nhật: mỗi tháng thay cột cuối bằng lũy kế mới (9T/2026, 10T/2026…)."
     },
-    bhxMonthly: {
-      title: "Bách Hóa Xanh — số cửa hàng cuối kỳ",
-      labels: ["12/2025","1/2026","2/2026","3/2026","4/2026","5/2026","6/2026","7/2026","8/2026","9/2026"],
-      counts: [2559,null,2758,2839,2962,3051,3191,3378,3612,null],
-      asOf: "2026-08-31",
-      nextPeriod: "9/2026",
-      nextCheck: "Đầu T10/2026; điền số sau khi MWG công bố PDF 9T/2026",
-      note: "Số cửa hàng đang hoạt động cuối tháng theo báo cáo KQKD MWG. T1/2026 chưa có mốc riêng cùng nguồn; T9/2026 là chỗ chờ cập nhật, không phải 0. Cuối T8 tăng 1.053 cửa hàng so với cuối 2025. Kiểm tra báo cáo đầu mỗi tháng, chỉ điền số khi PDF IR đã công bố.",
-      sources: [
-        { label:"2T/2026", url:"https://cdnv2.tgdd.vn/mwgvn/investorrelations/files/posts/2026/3/5614/95/3d/953de42337b3ad0e7a2c7fbd6aa5f083.pdf" },
-        { label:"3T/2026", url:"https://cdnv2-tmdt.tgdd.vn/mwgvn/investorrelations/files/posts/2026/4/5673/b1/28/b128af509c422a6afacfec50992f9b90.pdf" },
-        { label:"4T/2026", url:"https://cdnv2-tmdt.tgdd.vn/mwgvn/investorrelations/files/posts/2026/5/5746/d2/00/d2005cbe4fed7c6b8d251fdaf49d6f45.pdf" },
-        { label:"5T/2026", url:"https://cdnv2-tmdt.tgdd.vn/mwgvn/investorrelations/files/posts/2026/6/5005772/2e/34/2e346e25b1995c65f4d7e367dcb39239.pdf" },
-        { label:"6T/2026", url:"https://cdnv2-tmdt.tgdd.vn/mwgvn/investorrelations/files/posts/2026/7/5005927/75/7c/757c9d983a7f7efdeb00fa5676480231.pdf" },
-        { label:"7T/2026", url:"https://cdnv2-tmdt.tgdd.vn/mwgvn/investorrelations/files/posts/2026/8/5006076/49/19/4919a4ab5eba4e3d1c1ebcd6b4031133.pdf" },
-        { label:"8T/2026", url:"https://cdnv2-tmdt.tgdd.vn/mwgvn/investorrelations/files/posts/2026/9/5006155/2c/1a/2c1a0251ae86672cc42c23210ff4b75b.pdf" }
-      ]
-    },
     perStore: {
       title: "BHX — doanh thu / cửa hàng / tháng (tỷ VND)",
       labels: ["2023","T2/24","T3/24","T4/24","T5/24","T6/24","T7/24","T8/24","T9/24","T10/24","T11/24","T12/24","T2/25","T3/25","T4/25","T5/25","T6/25","T7/25","T8/25","T9/25","T10/25","T11/25","T12/25","T2/26","T3/26","T4/26","T5/26","T6/26","T7/26","T8/26"],
@@ -223,6 +205,12 @@ window.PVS_DATA = {
       regionOrder: ["Miền Bắc", "Miền Trung", "Miền Nam"],
       regionNote: "Quy ước 3 miền: miền Bắc đến Ninh Bình; miền Trung từ Thanh Hóa đến duyên hải Nam Trung Bộ, gồm Tây Nguyên (Lâm Đồng, Đắk Lắk, Gia Lai); miền Nam gồm Đông Nam Bộ và Đồng bằng sông Cửu Long. Cộng theo tỉnh/thành sau sáp nhập trong dữ liệu hiện có; các tỉnh chưa có dữ liệu không được mặc định là 0 cửa hàng.",
       seriesLabel: "Cửa hàng",
+      // Mỗi phần tử counts khớp thứ tự items. Không thay số kỳ cũ khi thêm snapshot mới.
+      snapshots: [
+        { period:"9T/2026", asOf:"2026-09-21", status:"Kỳ do analyst gán cho snapshot 21/09; không phải số cuối tháng do BHX công bố", counts:[1076,264,220,194,176,175,173,166,121,97,93,91,88,82,78,76,61,60,44,33] },
+        { period:"10T/2026", asOf:null, status:"Chờ chụp đầy đủ số tỉnh/thành từ trang cửa hàng BHX", counts:null }
+      ],
+      sourceUrl:"https://www.bachhoaxanh.com/he-thong-cua-hang",
       items: [
         { name:"TP. Hồ Chí Minh", value:1076, region:"Miền Nam" }, { name:"Đồng Nai", value:264, region:"Miền Nam" }, { name:"Tây Ninh", value:220, region:"Miền Nam" }, { name:"Cần Thơ", value:194, region:"Miền Nam" },
         { name:"An Giang", value:176, region:"Miền Nam" }, { name:"Đồng Tháp", value:175, region:"Miền Nam" }, { name:"Vĩnh Long", value:173, region:"Miền Nam" }, { name:"Lâm Đồng", value:166, region:"Miền Trung" },
@@ -230,7 +218,7 @@ window.PVS_DATA = {
         { name:"Cà Mau", value:88, region:"Miền Nam" }, { name:"Khánh Hòa", value:82, region:"Miền Trung" }, { name:"Thanh Hóa", value:78, region:"Miền Trung" }, { name:"Gia Lai", value:76, region:"Miền Trung" },
         { name:"Hà Tĩnh", value:61, region:"Miền Trung" }, { name:"Quảng Trị", value:60, region:"Miền Trung" }, { name:"Huế", value:44, region:"Miền Trung" }, { name:"Quảng Ngãi", value:33, region:"Miền Trung" }
       ],
-      note: "Tổng theo API tỉnh: 3.368 (20 tỉnh/thành sau sáp nhập); trang chủ hiển thị 'Xem 3.785 cửa hàng'; IR 8T: 3.612 — chênh lệch do trạng thái cửa hàng (đang mở/sắp mở/ảo) ⚠ đối chiếu."
+      note: "Snapshot 21/09/2026 được quy ước là 9T/2026 theo yêu cầu analyst, không phải số cuối tháng. 10T/2026 chỉ hiện cột sau khi lấy đủ số địa phương mới; hiện chưa xác minh được từ website BHX. Tổng snapshot cũ: 3.368/20 địa phương; không so trực tiếp với 3.612 cửa hàng IR 8T vì phạm vi khác nhau."
     },
     hideSide: true,   // analyst yêu cầu bỏ Milestone + Bảng theo chuỗi (21/09/2026)
 
@@ -1016,13 +1004,12 @@ table.analyst-table tr:hover td{background:#FAFBFF}
   <div id="tab3Stores" style="display:none">
   <h2 class="sec" id="stTitle">Mạng lưới cửa hàng — số cửa hàng × doanh thu/cửa hàng × biên</h2>
   <div class="grid g4" id="stKpi"></div>
-  <div class="card" id="stBhxMonthlyCard" style="margin-top:16px;display:none"><h3 class="sub" id="stBhxMonthlyTitle">Bách Hóa Xanh — số cửa hàng cuối kỳ</h3><div class="chart tall"><canvas id="stBhxMonthly"></canvas></div><div class="note" id="stBhxMonthlyNote"></div><div class="src" id="stBhxMonthlySources"></div></div>
   <div class="grid g2" style="margin-top:16px">
     <div class="card"><h3 class="sub" id="stChainTitle">Số cửa hàng theo chuỗi</h3><div class="chart tall"><canvas id="stChain"></canvas></div><div class="note" id="stChainNote"></div></div>
     <div class="card"><h3 class="sub" id="stPerStoreTitle">Doanh thu / cửa hàng / tháng (tỷ VND)</h3><div class="chart tall"><canvas id="stPerStore"></canvas></div><div class="note" id="stPerStoreNote"></div></div>
   </div>
   <div class="grid g2" style="margin-top:16px">
-    <div class="card"><h3 class="sub"><span id="stGeoTitle">Phân bổ theo tỉnh/thành</span></h3><div class="filters" id="stGeoView" role="group" aria-label="Xem số cửa hàng theo địa lý" hidden><button type="button" data-view="province" class="on" aria-pressed="true">Tỉnh/thành</button><button type="button" data-view="region" aria-pressed="false">Bắc – Trung – Nam</button></div><div class="filters" id="stGeoMetric" role="group" aria-label="Đơn vị biểu đồ theo miền" style="display:none"><button type="button" data-metric="region" aria-pressed="true" class="on">Số cửa hàng</button><button type="button" data-metric="region-pie" aria-pressed="false">Tỷ trọng (%) · Tròn</button></div><div class="chart" style="height:520px"><canvas id="stGeo"></canvas></div><div class="note" id="stGeoNote"></div><details class="dd" id="stGeoRegions" hidden><summary>Phân loại tỉnh/thành theo miền <span class="hint">bấm để mở/đóng</span></summary><p id="stGeoRegionNote" class="note"></p><div class="tbl-wrap"><table id="stGeoRegionTable"></table></div></details></div>
+    <div class="card"><h3 class="sub"><span id="stGeoTitle">Phân bổ theo tỉnh/thành</span></h3><div class="filters" id="stGeoView" role="group" aria-label="Xem số cửa hàng theo địa lý" hidden><button type="button" data-view="province" class="on" aria-pressed="true">Tỉnh/thành</button><button type="button" data-view="region" aria-pressed="false">Bắc – Trung – Nam</button></div><div class="filters" id="stGeoMetric" role="group" aria-label="Đơn vị biểu đồ theo miền" style="display:none"><button type="button" data-metric="region" aria-pressed="true" class="on">Số cửa hàng</button><button type="button" data-metric="region-pie" aria-pressed="false">Tỷ trọng (%) · Tròn</button></div><div class="chart" style="height:520px"><canvas id="stGeo"></canvas></div><div class="note" id="stGeoNote"></div><div class="src" id="stGeoSource"></div><details class="dd" id="stGeoRegions" hidden><summary>Phân loại tỉnh/thành theo miền <span class="hint">bấm để mở/đóng</span></summary><p id="stGeoRegionNote" class="note"></p><div class="tbl-wrap"><table id="stGeoRegionTable"></table></div></details></div>
     <div class="card" id="stSideCard"><h3 class="sub">Milestone</h3><ul class="list" id="stMilestones"></ul><h3 class="sub" style="margin-top:14px">Bảng theo chuỗi</h3><div class="tbl-wrap"><table id="stTable"></table></div><div class="src" id="stSrc"></div></div>
   </div>
   </div>
@@ -1416,14 +1403,6 @@ function renderStores(){
   const st=D.stores;
   if(st.title)$('stTitle').textContent=st.title;
   $('stKpi').innerHTML=st.kpis.map(k=>`<div class="card kpi tight"><div class="l">${esc(k.l)}</div><div class="v">${esc(k.v)}</div><div class="s">${esc(k.s||'')}</div></div>`).join('');
-  const bhx=st.bhxMonthly, bhxCard=$('stBhxMonthlyCard');
-  if(bhx&&Array.isArray(bhx.labels)&&bhx.labels.length===bhx.counts?.length){
-    bhxCard.style.display='';
-    $('stBhxMonthlyTitle').textContent=bhx.title||'Bách Hóa Xanh — số cửa hàng cuối kỳ';
-    mk('stBhxMonthly',{type:'line',data:{labels:bhx.labels,datasets:[{label:'Cửa hàng BHX',data:bhx.counts,borderColor:BLUE,backgroundColor:BLUE,borderWidth:3,pointRadius:4,pointHoverRadius:6,tension:.15,spanGaps:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>vnd(c.parsed.y)+' cửa hàng'}}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:'#EEF0F6'},ticks:{callback:v=>vnd(v)}}}}});
-    $('stBhxMonthlyNote').textContent=(bhx.note||'')+(bhx.nextPeriod?' Mốc kế tiếp '+bhx.nextPeriod+': '+(bhx.nextCheck||'chờ công bố')+'.':'');
-    $('stBhxMonthlySources').innerHTML='Nguồn: '+(bhx.sources||[]).map(s=>`<a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.label)}</a>`).join(' · ');
-  }else bhxCard.style.display='none';
   // stores by chain over periods
   const nw=st.network; // {periods:[...], chains:[{name, counts:[...]}]}
   mk('stChain',{type:'bar',data:{labels:nw.periods,datasets:nw.chains.map((c,k)=>({label:c.name,data:c.counts,backgroundColor:CAT[k%CAT.length],borderRadius:3,maxBarThickness:40}))},options:baseOpts({plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+vnd(c.parsed.y)+' cửa hàng'}}}})});
@@ -1436,15 +1415,19 @@ function renderStores(){
     $('stPerStoreNote').textContent=ps.note||''; }
   // Optional regional grouping uses the same province values as the original view.
   const g=st.geo; if(g){
+    const snapshots=(g.snapshots||[]).filter(s=>Array.isArray(s.counts)&&s.counts.length===g.items.length&&s.counts.some(Number.isFinite));
+    const latest=snapshots[snapshots.length-1];
+    const currentItems=g.items.map((x,i)=>({...x,value:latest?latest.counts[i]:x.value}));
     const regionNames=g.regionOrder||[];
     const hasRegions=regionNames.length>0 && g.items.every(x=>regionNames.includes(x.region));
-    const regions=regionNames.map(name=>({name,items:g.items.filter(x=>x.region===name)})).map(r=>({...r,value:r.items.reduce((sum,x)=>sum+x.value,0)}));
-    const total=g.items.reduce((sum,x)=>sum+x.value,0);
+    const regions=regionNames.map(name=>({name,items:currentItems.filter(x=>x.region===name)})).map(r=>({...r,value:r.items.reduce((sum,x)=>sum+(Number.isFinite(x.value)?x.value:0),0)}));
+    const total=currentItems.reduce((sum,x)=>sum+(Number.isFinite(x.value)?x.value:0),0);
     const share=value=>total?(value/total*100).toFixed(1)+'%':'—';
     const view=$('stGeoView'); view.hidden=!hasRegions;
     // .filters uses display:flex, so explicitly hide it when grouping is unavailable.
     view.style.display=hasRegions?'':'none';
     $('stGeoNote').textContent=g.note||'';
+    $('stGeoSource').innerHTML=g.sourceUrl?`Nguồn: <a href="${esc(g.sourceUrl)}" target="_blank" rel="noopener noreferrer">Hệ thống cửa hàng BHX</a>${latest?' · snapshot '+esc(latest.asOf||'chưa rõ ngày'):''}`:'';
     $('stGeoRegions').hidden=!hasRegions;
     if(hasRegions){
       $('stGeoRegionNote').textContent=g.regionNote||'';
@@ -1453,7 +1436,7 @@ function renderStores(){
     const drawGeo=mode=>{
       const regional=hasRegions&&(mode==='region'||mode==='region-pie');
       const pie=regional&&mode==='region-pie';
-      const items=regional?regions.filter(r=>r.items.length):g.items;
+      const items=regional?regions.filter(r=>r.items.length):currentItems;
       $('stGeoTitle').textContent=regional?(g.regionTitle||'Số cửa hàng theo miền'):(g.title||'Phân bổ theo tỉnh/thành');
       $('stGeo').parentElement.style.height=pie?'340px':regional?'280px':'520px';
       const metric=$('stGeoMetric'); metric.style.display=regional?'':'none';
@@ -1464,7 +1447,8 @@ function renderStores(){
         mk('stGeo',{type:'pie',data:{labels:items.map(x=>x.name+' · '+share(x.value).replace('.',',')),datasets:[{label:'Tỷ trọng cửa hàng',data:items.map(x=>x.value),backgroundColor:items.map(x=>CAT[regionNames.indexOf(x.name)%CAT.length]),borderColor:'#fff',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12,padding:16,usePointStyle:true},onClick:()=>{}},tooltip:{callbacks:{label:c=>{const value=c.dataset.data[c.dataIndex];return vnd(value)+' cửa hàng ('+share(value).replace('.',',')+')';}}}}}});
         return;
       }
-      mk('stGeo',{type:'bar',data:{labels:items.map(x=>x.name),datasets:[{label:g.seriesLabel||'Cửa hàng',data:items.map(x=>x.value),backgroundColor:regional?items.map(x=>CAT[regionNames.indexOf(x.name)%CAT.length]):BLUE,borderRadius:3,maxBarThickness:regional?40:16}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{const value=c.dataset.data[c.dataIndex];return vnd(value)+' cửa hàng ('+share(value)+')';}}}},scales:{x:{beginAtZero:true,grid:{color:'#EEF0F6'}},y:{grid:{display:false},ticks:{font:{size:11}}}}}});
+      const datasets=snapshots.length?snapshots.map((snapshot,k)=>({label:snapshot.period,data:regional?items.map(r=>g.items.reduce((sum,x,i)=>sum+(x.region===r.name&&Number.isFinite(snapshot.counts[i])?snapshot.counts[i]:0),0)):snapshot.counts,backgroundColor:CAT[k%CAT.length],borderRadius:3,maxBarThickness:regional?32:16})): [{label:g.seriesLabel||'Cửa hàng',data:items.map(x=>x.value),backgroundColor:BLUE,borderRadius:3,maxBarThickness:16}];
+      mk('stGeo',{type:'bar',data:{labels:items.map(x=>x.name),datasets},options:{responsive:true,maintainAspectRatio:false,indexAxis:'x',plugins:{legend:{display:snapshots.length>0,position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+vnd(c.parsed.y)+' cửa hàng'}}},scales:{x:{stacked:false,grid:{display:false},ticks:{font:{size:11},maxRotation:45,minRotation:30}},y:{stacked:false,beginAtZero:true,grid:{color:'#EEF0F6'}}}}});
     };
     let mode='province'; try{mode=localStorage.getItem(KEY+'_geo_view')||mode;}catch(e){}
     drawGeo(mode);
