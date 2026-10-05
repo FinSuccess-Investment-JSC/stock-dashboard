@@ -3549,5 +3549,149 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 })();
 
 </script>
+<script>
+// Tab Tài chính chia 5 sub-tab: KQKD · Bảng cân đối · Dòng tiền · Bảng tóm tắt · Định giá.
+// Chạy sau khi mọi chart và financial-layout đã dựng xong, nên chỉ sắp xếp lại DOM có sẵn.
+(function(){
+  const GROUPS=[['kqkd','KQKD'],['balance','Bảng cân đối'],['cashflow','Dòng tiền'],['summary','Bảng tóm tắt'],['valuation','Định giá']];
+  const KEY='fin_subtab_v1';
+  // Khối dùng chung có id ổn định; phân nhóm theo id trước, đoán theo tiêu đề sau.
+  const BY_ID={incomeHistory10y:'kqkd',isBridgeCard:'summary',finTableCard:'summary',multiplesRow:'valuation'};
+  // Thứ tự quan trọng: cụm hẹp trước cụm rộng, vì một tiêu đề có thể chứa nhiều từ khoá.
+  const RULES=[
+    ['valuation',/bội số|p\/e|p\/b|ev\/ebitda|định giá/i],
+    ['summary',/bóc tách|waterfall|sankey|tóm tắt|từ doanh thu/i],
+    ['cashflow',/\bcfo\b|dòng tiền|chi đầu tư|capex|\bfcf\b|lưu chuyển tiền|chuyển đổi tiền/i],
+    ['balance',/tiền mặt|tiền ròng|cấu phần tiền|nợ vay|nợ ròng|vay ngắn|vay dài|vốn lưu động|tồn kho|phải thu|cân đối|vốn bị khóa|tài trợ|chu kỳ vốn|đòn bẩy/i],
+    ['kqkd',/doanh thu|lợi nhuận|biên |kqkd|kết quả kinh doanh|ebitda|thu nhập tài chính/i],
+  ];
+
+  const style=()=>{
+    if(document.getElementById('finSubtabStyle'))return;
+    const s=document.createElement('style');s.id='finSubtabStyle';
+    s.textContent='.fin-subnav{display:flex;gap:6px;margin:4px 0 16px;flex-wrap:wrap}'
+      +'.fin-subnav button{border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:700;line-height:1.5;cursor:pointer}'
+      +'.fin-subnav button.on{background:var(--navy);border-color:var(--navy);color:#fff}'
+      +'.fin-pane[hidden]{display:none!important}'
+      +'@media print{.fin-subnav{display:none}.fin-pane[hidden]{display:block!important}}';
+    document.head.appendChild(s);
+  };
+
+  const label=el=>{
+    const head=el.querySelector('h2,h3');
+    return ((head?head.textContent:'')+' '+[...el.querySelectorAll('canvas,table')].map(x=>x.id).join(' ')).trim();
+  };
+  const classify=(el,overrides)=>{
+    for(const node of [el,...el.querySelectorAll('[id]')]){
+      if(node.id&&overrides[node.id])return overrides[node.id];
+      if(node.id&&BY_ID[node.id])return BY_ID[node.id];
+    }
+    const text=label(el);
+    for(const [group,pattern] of RULES)if(pattern.test(text))return group;
+    return 'balance';
+  };
+
+  function build(){
+    const bs=document.getElementById('bs');
+    if(!bs||document.getElementById('finSubnav'))return;
+    const children=[...bs.children];
+    // Chưa dựng xong thì để lượt sau; chia sớm sẽ bỏ sót khối do module khác bơm vào.
+    if(!children.some(el=>el.id==='multiplesRow'||el.id==='finTableCard'))return;
+    style();
+    const overrides=(window.PVS_DATA?.financialProfile?.layout?.subTabs)||{};
+    const nav=document.createElement('div');nav.id='finSubnav';nav.className='fin-subnav';
+    const panes={};
+    for(const [key] of GROUPS){
+      const pane=document.createElement('div');pane.className='fin-pane';pane.dataset.pane=key;pane.hidden=true;
+      panes[key]=pane;
+    }
+    // KPI là bối cảnh chung của cả tab nên ở ngoài, không thuộc sub-tab nào.
+    const title=children.find(el=>el.id==='bsTitle'), kpi=children.find(el=>el.id==='bsKpi');
+    const anchor=kpi||title||null;
+    // Khối riêng của một mã gom nhiều mục dưới các tiêu đề h3.sec; tách theo mục để
+    // giữ nguyên thiết kế của mã mà vẫn đưa từng mục về đúng sub-tab.
+    const segments=el=>{
+      const parts=[];let current=null;
+      for(const node of [...el.children]){
+        if(node.tagName==='H3'&&node.classList.contains('sec')||!current){parts.push(current={nodes:[]});}
+        current.nodes.push(node);
+      }
+      return parts.filter(part=>part.nodes.length);
+    };
+
+    for(const el of children){
+      if(el===title||el===kpi)continue;
+      const cards=[...el.children].filter(x=>x.classList?.contains('card'));
+      // Một hàng grid có thể chứa nhiều chart thuộc nhóm khác nhau; tách theo từng card.
+      if(el.classList.contains('grid')&&cards.length>1){
+        const byGroup=new Map();
+        for(const card of cards){
+          const group=classify(card,overrides);
+          if(!byGroup.has(group)){
+            const row=document.createElement('div');row.className=el.className;row.style.cssText=el.style.cssText;
+            byGroup.set(group,row);panes[group].appendChild(row);
+          }
+          byGroup.get(group).appendChild(card);
+        }
+        el.remove();
+        continue;
+      }
+      if(!el.classList.contains('card')&&el.querySelectorAll(':scope > .grid').length>1){
+        const parts=segments(el);
+        const groups=parts.map(part=>{
+          const probe=document.createElement('div');part.nodes.forEach(n=>probe.appendChild(n.cloneNode(true)));
+          return classify(probe,overrides);
+        });
+        if(new Set(groups).size>1){
+          parts.forEach((part,i)=>part.nodes.forEach(node=>panes[groups[i]].appendChild(node)));
+          el.remove();
+          continue;
+        }
+      }
+      panes[classify(el,overrides)].appendChild(el);
+    }
+    // Có phần tử chưa chắc có nội dung: khối định giá của mã thiếu dữ liệu vẫn dựng
+    // nút điều khiển và dòng tiêu đề bảng. Chỉ coi là có nội dung khi thực sự có số.
+    const filled=pane=>!!pane.querySelector('canvas')
+      ||pane.querySelectorAll('tr').length>1
+      ||[...pane.querySelectorAll('.card,details')].some(el=>el.textContent.replace(/\s+/g,' ').trim().length>160);
+    for(const [key,text] of GROUPS){
+      if(!panes[key].children.length||!filled(panes[key]))continue;
+      const button=document.createElement('button');button.type='button';button.dataset.pane=key;button.textContent=text;
+      nav.appendChild(button);
+      bs.appendChild(panes[key]);
+    }
+    if(!nav.children.length)return;
+    if(anchor)anchor.after(nav); else bs.prepend(nav);
+
+    const show=key=>{
+      const available=[...nav.querySelectorAll('button')].map(b=>b.dataset.pane);
+      const target=available.includes(key)?key:available[0];
+      for(const [group] of GROUPS)if(panes[group])panes[group].hidden=group!==target;
+      nav.querySelectorAll('button').forEach(b=>{
+        const on=b.dataset.pane===target;b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on));
+      });
+      try{localStorage.setItem(KEY,target);}catch(e){}
+      // Chart dựng khi pane đang ẩn có kích thước 0; resize sau khi hiện lại.
+      Object.values(window.charts||{}).forEach(c=>{try{c.resize();}catch(e){}});
+    };
+    nav.addEventListener('click',event=>{
+      const button=event.target.closest('button[data-pane]');
+      if(button)show(button.dataset.pane);
+    });
+    let saved='kqkd';
+    try{saved=new URLSearchParams(location.search).get('fin')||localStorage.getItem(KEY)||'kqkd';}catch(e){}
+    show(saved);
+    // Bản in cần đủ nội dung, nên mở hết rồi trả lại lựa chọn cũ.
+    window.addEventListener('beforeprint',()=>{for(const [group] of GROUPS)if(panes[group])panes[group].hidden=false;});
+    window.addEventListener('afterprint',()=>show(saved));
+  }
+
+  const run=()=>{try{build();}catch(e){console.error('finance-subtabs',e);}};
+  document.addEventListener('DOMContentLoaded',run);
+  window.addEventListener('load',()=>{run();setTimeout(run,700);setTimeout(run,2000);});
+})();
+
+</script>
 </body>
 </html>
