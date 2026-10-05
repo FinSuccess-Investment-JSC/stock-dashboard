@@ -756,7 +756,7 @@ function applyChartTips(){
 const baseOpts=(extra={})=>({responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+money(c.parsed.y??c.parsed.x)+' tỷ'}}},scales:{x:{grid:{display:false}},y:{grid:{color:'#EEF0F6'},ticks:{callback:v=>vnd(v)}}},...extra});
 
 // =============== storage ===============
-const KEY='pvs_dashboard_notes_v1';
+const KEY='dhc_dashboard_notes_v1';
 const defaultThresholds=()=>Object.fromEntries(D.signals.map(s=>[s.id,s.threshold]));
 let S=load();
 function load(){
