@@ -982,11 +982,15 @@ function renderTab3(){
 function renderStores(){
   const st=D.stores;
   if(st.title)$('stTitle').textContent=st.title;
-  $('stKpi').innerHTML=st.kpis.map(k=>`<div class="card kpi tight"><div class="l">${esc(k.l)}</div><div class="v">${esc(k.v)}</div><div class="s">${esc(k.s||'')}</div></div>`).join('');
+  if(!st.kpis?.length) $('stKpi').style.display='none';
+  else $('stKpi').innerHTML=st.kpis.map(k=>`<div class="card kpi tight"><div class="l">${esc(k.l)}</div><div class="v">${esc(k.v)}</div><div class="s">${esc(k.s||'')}</div></div>`).join('');
   // stores by chain over periods
   const nw=st.network; // {periods:[...], chains:[{name, counts:[...]}]}
+  if(!nw?.chains?.length){ $('stChain').closest('.card').style.display='none'; }
+  else {
   mk('stChain',{type:'bar',data:{labels:nw.periods,datasets:nw.chains.map((c,k)=>({label:c.name,data:c.counts,backgroundColor:CAT[k%CAT.length],borderRadius:3,maxBarThickness:40}))},options:baseOpts({plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+vnd(c.parsed.y)+' cửa hàng'}}}})});
   $('stChainNote').textContent=nw.note||'';
+  }
   // revenue per store
   const ps=st.perStore; // {labels:[...], series:[{name, values:[...]}], threshold:{label,value}}
   if(ps){ if(ps.title)$('stPerStoreTitle').textContent=ps.title; const ds=ps.series.map((x,k)=>({label:x.name,data:x.values,borderColor:CAT[k],backgroundColor:CAT[k],borderWidth:2,pointRadius:4,tension:.25}));
@@ -994,7 +998,9 @@ function renderStores(){
     mk('stPerStore',{type:'line',data:{labels:ps.labels,datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+Number(c.parsed.y).toFixed(2)+' tỷ'}}},scales:{x:{grid:{display:false}},y:{grid:{color:'#EEF0F6'}}}}});
     $('stPerStoreNote').textContent=ps.note||''; }
   // Optional regional grouping uses the same province values as the original view.
-  const g=st.geo; if(g){
+  const g=st.geo;
+  if(!g){ $('stGeo').closest('.card').style.display='none'; }
+  if(g){
     const regionNames=g.regionOrder||[];
     const hasRegions=regionNames.length>0 && g.items.every(x=>regionNames.includes(x.region));
     const regions=regionNames.map(name=>({name,items:g.items.filter(x=>x.region===name)})).map(r=>({...r,value:r.items.reduce((sum,x)=>sum+x.value,0)}));
@@ -1946,6 +1952,7 @@ function tsWire(){
   const st=D.stores;
   if(st&&st.network){
     const nw=st.network;
+    if(!nw?.chains?.length){ $('stChain').closest('.card').style.display='none'; return; }
     mkTS('stChain',{y:{labels:nw.periods,datasets:nw.chains.map((c,k)=>({label:c.name,data:c.counts,backgroundColor:CAT[k%CAT.length],borderRadius:3,maxBarThickness:40}))},
       cfg:(labels,datasets)=>({type:'bar',data:{labels,datasets},options:baseOpts({plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+vnd(c.parsed.y)+' cửa hàng'}}}})})});
   }
@@ -2788,19 +2795,29 @@ document.addEventListener('DOMContentLoaded',()=>{
   };
 
   // Register legacy annual charts too. Split mixed year/quarter labels without deriving numbers.
-  document.addEventListener('DOMContentLoaded',()=>{
-    document.querySelectorAll('#seg .chart canvas').forEach(canvas=>{
-      const id=canvas.id,base=chartBase[id];
-      if(TSREG[id]){mkTS(id,TSREG[id]);return;}
-      if(!base||['pie','doughnut'].includes(base.type))return;
-      const spec={def:'y',cfg:(labels,datasets)=>({...deep(base),data:{labels,datasets}})};
-      for(const [p,pattern] of [['y',/^\d{4}$/],['q',/^(?:Q[1-4]\/\d{2,4}|\d{4}Q[1-4])$/]]){
-        const indices=base.data.labels.flatMap((label,i)=>pattern.test(String(label))?[i]:[]);
-        if(indices.length)spec[p]={labels:indices.map(i=>base.data.labels[i]),datasets:base.data.datasets.map(d=>({...deep(d),data:indices.map(i=>d.data[i])}))};
-      }
-      if(spec.y||spec.q)mkTS(id,spec);
-    });
-  });
+  const registered=new Set();
+  const adopt=canvas=>{
+    const id=canvas.id,base=chartBase[id];
+    if(registered.has(id))return;
+    if(TSREG[id]){registered.add(id);mkTS(id,TSREG[id]);return;}
+    // Chart chưa dựng xong thì để lượt quét sau; đăng ký sớm sẽ mất chuỗi dữ liệu.
+    if(!base)return;
+    registered.add(id);
+    if(['pie','doughnut'].includes(base.type)||base.lockChartType)return;
+    const spec={def:'y',cfg:(labels,datasets)=>({...deep(base),data:{labels,datasets}})};
+    // Nhãn tháng dạng T8/2026 là kỳ tháng, không phải năm; gắn đúng kỳ, không suy ra quý.
+    for(const [p,pattern] of [['y',/^\d{4}$/],['q',/^(?:Q[1-4]\/\d{2,4}|\d{4}Q[1-4])$/],['m',/^T\d{1,2}\/\d{2,4}\*?$/]]){
+      const indices=base.data.labels.flatMap((label,i)=>pattern.test(String(label))?[i]:[]);
+      if(indices.length)spec[p]={labels:indices.map(i=>base.data.labels[i]),datasets:base.data.datasets.map(d=>({...deep(d),data:indices.map(i=>d.data[i])}))};
+    }
+    if(!spec.y&&!spec.q&&!spec.m)return;
+    if(!hasData(spec[spec.def]))spec.def=['m','q','y'].find(p=>hasData(spec[p]))||'y';
+    mkTS(id,spec);
+  };
+  // enhancements.js của một số mã dựng chart sau DOMContentLoaded, nên quét một lượt là bỏ sót.
+  const scan=()=>document.querySelectorAll('#seg .chart canvas').forEach(adopt);
+  document.addEventListener('DOMContentLoaded',scan);
+  window.addEventListener('load',()=>{scan();setTimeout(scan,600);setTimeout(scan,1800);});
 })();
 
 </script>
