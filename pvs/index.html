@@ -2969,7 +2969,7 @@ body:has(#bs.active) nav.tabs .tabs button.active{border-bottom-color:#59C5C8}
   <h2 class="sec">Catalyst & sự kiện — hợp đồng, CBTT, giao dịch nội bộ, luật mới</h2>
   <div class="filters" id="evFilters"></div>
   <div class="card"><div class="tbl-wrap"><table id="evTable"></table></div></div>
-  <div class="note">Nguồn ưu tiên: <a href="https://www.ptsc.com.vn/co-dong/tin-co-dong" target="_blank">ptsc.com.vn › Tin cổ đông</a> · HNX CBTT · Wifeed (exchange_news / ai_news). Sự kiện analyst tự thêm ở tab Notes sẽ hiện ở đây với nhãn <span class="pill purple">Analyst</span>.</div>
+  <div class="note" id="evSourceNote"></div>
 </section>
 
 <!-- ================= TAB 6: CONSENSUS ================= -->
@@ -3053,7 +3053,7 @@ body:has(#bs.active) nav.tabs .tabs button.active{border-bottom-color:#59C5C8}
         <div><label class="f">Vùng giá mua (đ)</label><input type="text" id="n_buyzone" placeholder="vd 30.000–32.000"></div>
       </div>
       <label class="f">Lý do / điều kiện kích hoạt</label>
-      <textarea id="n_reason" placeholder="Mua khi: biên M&C Q3 ≥ 5% và ký HĐ Qatar..."></textarea>
+      <textarea id="n_reason" placeholder="Mua khi: nêu điều kiện kích hoạt cụ thể…"></textarea>
     </div>
     <div class="card">
       <h3 class="sub">2 · Thesis tracker — 5 trụ luận điểm</h3>
@@ -3411,6 +3411,12 @@ function renderEvents(){
     const src=e.src?(/^https?:/.test(e.src)?`<a href="${esc(e.src)}" target="_blank">link</a>`:esc(e.src)):'';
     return `<tr><td style="white-space:nowrap">${esc(e.d)}</td><td><span class="pill blue">${TYPE_LBL[e.type]||e.type}</span></td><td>${impactPill(e.impact)}</td><td>${esc(e.t)}${e.detail?'<div style="font-size:12px;color:var(--muted)">'+esc(e.detail)+'</div>':''}</td><td>${st}</td><td style="font-size:12px">${src}</td></tr>`; }).join('');
   $('evTable').innerHTML='<tr><th>Ngày</th><th>Loại</th><th>±</th><th>Sự kiện</th><th>Trạng thái</th><th>Nguồn</th></tr>'+rows;
+  const evNote=$('evSourceNote');
+  if(evNote){
+    const ir=D.meta&&D.meta.irUrl, who=(D.meta&&(D.meta.name||D.meta.ticker))||'', ex=(D.meta&&D.meta.exchange)||'';
+    evNote.innerHTML='Nguồn ưu tiên: '+(ir?`<a href="${esc(ir)}" target="_blank">${esc(who)} — công bố thông tin</a>`:'công bố thông tin doanh nghiệp')
+      +(ex?' · CBTT '+esc(ex):'')+'. Sự kiện analyst tự thêm ở tab Notes hiện ở đây với nhãn <span class="pill purple">Analyst</span>.';
+  }
 }
 
 // =============== tab 6: consensus ===============
