@@ -446,7 +446,7 @@ table.analyst-table tr:hover td{background:#FAFBFF}
 .stock-search button[type=submit]{width:42px;height:42px;margin:5px 6px;border:0;border-radius:11px;background:#1D2678;color:#fff;display:grid;place-items:center;cursor:pointer;transition:transform .18s,background .18s}
 .stock-search button[type=submit]:hover{background:#2938A8;transform:translateX(2px)}
 .stock-search button[type=submit]:focus-visible,.stock-search .option:focus-visible{outline:3px solid #59C5C8;outline-offset:2px}
-.stock-search .options{display:none;position:absolute;top:100%;left:0;right:0;margin-top:7px;padding:6px;background:#fff;border:1px solid #dce1e9;border-radius:13px;box-shadow:0 12px 30px rgba(20,25,113,.14);z-index:30}
+.stock-search .options{display:none;position:absolute;top:100%;left:0;right:0;max-height:360px;overflow-y:auto;margin-top:7px;padding:6px;background:#fff;border:1px solid #dce1e9;border-radius:13px;box-shadow:0 12px 30px rgba(20,25,113,.14);z-index:30}
 .stock-search .options.open{display:block}
 .stock-search .option{width:100%;border:0;background:#fff;color:#1D2678;text-align:left;padding:10px 12px;border-radius:9px;font:inherit;cursor:pointer;display:flex;gap:12px;align-items:center}
 .stock-search .option:hover,.stock-search .option.selected{background:#f0f3ff}
@@ -494,7 +494,7 @@ table.analyst-table tr:hover td{background:#FAFBFF}
   function render(){
     const q=input.value.trim().toLocaleLowerCase('vi');
     message.textContent='';
-    matches=q?stocks.filter(item=>item.code.toLowerCase().includes(q)||item.name.toLocaleLowerCase('vi').includes(q)):[];
+    matches=q?stocks.filter(item=>item.code.toLowerCase().includes(q)||item.name.toLocaleLowerCase('vi').includes(q)):stocks;
     selected=0;
     options.replaceChildren();
     matches.forEach((item,i)=>{
@@ -512,13 +512,15 @@ table.analyst-table tr:hover td{background:#FAFBFF}
   form.addEventListener('submit',async event=>{
     event.preventDefault();
     const q=input.value.trim().toLocaleLowerCase('vi');
-    if(!q){message.textContent='Hãy nhập mã hoặc tên công ty.';input.focus();return;}
+    if(!q){input.focus();render();return;}
     const exact=stocks.find(item=>item.code.toLowerCase()===q||item.name.toLocaleLowerCase('vi')===q);
     let match=exact||matches[selected]||stocks.find(item=>item.code.toLowerCase().includes(q)||item.name.toLocaleLowerCase('vi').includes(q));
     if(!match){await refreshStocks();match=stocks.find(item=>item.code.toLowerCase()===q||item.name.toLocaleLowerCase('vi')===q);}
     if(match){location.assign(match.path+'#overview');return;}
     close();message.textContent='Chưa có dashboard cho mã này.';
   });
+  input.addEventListener('focus',render);
+  input.addEventListener('click',render);
   input.addEventListener('input',render);
   input.addEventListener('keydown',event=>{
     if(event.key==='Escape'){close();return;}
