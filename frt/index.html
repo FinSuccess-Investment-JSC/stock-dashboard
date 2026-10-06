@@ -88,6 +88,8 @@ Object.assign(window.PVS_DATA.meta=window.PVS_DATA.meta||{},{"price":147000,"pri
 
 Object.assign(window.PVS_DATA.meta=window.PVS_DATA.meta||{},{"foreignRoom":{"shares":27857589,"percent":15.58,"limitPct":49.0,"foreignHeldPct":33.42,"listedShares":178815054,"basis":"trên KL cổ phiếu niêm yết","date":"2026-10-06","src":"https://finance.vietstock.vn/FRT/tai-chinh.htm"}});
 
+(function(v){var o=window.PVS_DATA;o["latestFilings"]=v;})([{"name":"Báo cáo tài chính hợp nhất quý 2 năm 2026 (đã soát xét)","period":"Q2/2026","version":"soát xét","consolidated":true,"published":"2026-08-22T10:42+07:00","url":"https://cafefnew.mediacdn.vn/Images/Uploaded/DuLieuDownload/BCTC/FRT_202608202020FRT2020BCTC20hop20nhat20soat20xet20ban20nien202026_signed_22082026104229.pdf?v=1787370150865"},{"name":"Báo cáo tài chính hợp nhất quý 2 năm 2026","period":"Q2/2026","version":"","consolidated":true,"published":"2026-07-30T09:37+07:00","url":"https://cafefnew.mediacdn.vn/Images/Uploaded/DuLieuDownload/BCTC/FRT_202607292020FRT2020Bao20cao20tai20chinh20hop20nhat20Q2202026_signed_30072026093720.pdf?v=1785379041648"},{"name":"Báo cáo tài chính hợp nhất quý 1 năm 2026","period":"Q1/2026","version":"","consolidated":true,"published":"2026-04-29T12:14+07:00","url":"https://cafefnew.mediacdn.vn/Images/Uploaded/DuLieuDownload/BCTC/20260428_-_FRT_-_Bao_cao_tai_chinh_hop_nhat_Q1_2026_1777430418.pdf"},{"name":"Báo cáo tài chính hợp nhất năm 2025 (đã kiểm toán)","period":"CN/2025","version":"kiểm toán","consolidated":true,"published":"2026-03-27T09:04+07:00","url":"https://cafefnew.mediacdn.vn/Images/Uploaded/DuLieuDownload/BCTC/20260326_-_FRT_-_BCTC_Hop_nhat_da_kiem_toan_nam_2025_signed_1774530882.pdf"},{"name":"Báo cáo tài chính hợp nhất quý 4 năm 2025","period":"Q4/2025","version":"","consolidated":true,"published":"2026-01-30T10:24+07:00","url":"https://cafefnew.mediacdn.vn/Images/Uploaded/DuLieuDownload/BCTC/20260129_-_FRT_-_Bao_cao_tai_chinh_hop_nhat_Q4.2025_-_vF_signed_1769740874.pdf"}]);
+
 </script>
 <style>
   :root{
@@ -3491,6 +3493,59 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
   const run=()=>{try{build();}catch(e){console.error('finance-subtabs',e);}};
   document.addEventListener('DOMContentLoaded',run);
   window.addEventListener('load',()=>{run();setTimeout(run,700);setTimeout(run,2000);});
+})();
+
+</script>
+<script>
+/* "Thông tin mới nhất" ở đầu tab Tài chính: BCTC doanh nghiệp vừa công bố, kèm link văn bản.
+   Dữ liệu `PVS_DATA.latestFilings` do _template/tools/refresh_filings.py ghi (live.json › filings).
+   Chỉ báo tin và link; số liệu kỳ mới được đưa vào dashboard sau khi rà soát, nên khung ghi rõ
+   số liệu hiện có đến kỳ nào. Chèn sau khi finance-subtabs.js dựng sub-tab (ngay trên thanh
+   sub-tab) để hiện ở mọi sub-tab. */
+(function () {
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function day(iso) { var d = new Date(iso); return isNaN(d) ? '' : ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2) + '/' + d.getFullYear(); }
+  function dataThrough(ticker) {
+    var years = (window.FS_INCOME_HISTORY_10Y || {})[ticker] || {}, last = '';
+    Object.keys(years).forEach(function (y) { (years[y].labels || []).forEach(function (l) { last = l; }); });
+    return last;
+  }
+  function render(force) {
+    var D = window.PVS_DATA, list = D && D.latestFilings, bs = document.getElementById('bs');
+    if (!list || !list.length || !bs || document.getElementById('latestFilings')) return true;
+    // Ưu tiên ngay trên thanh sub-tab; chỉ khi chờ quá lâu mới đặt sau dải KPI/tiêu đề.
+    var anchor = document.getElementById('finSubnav') ||
+      (force ? (document.getElementById('bsKpi') || document.getElementById('bsTitle')) : null);
+    if (!anchor) return false;
+    var through = dataThrough(D.meta && D.meta.ticker), top = list[0];
+    var box = document.createElement('div');
+    box.id = 'latestFilings';
+    box.className = 'card latest-filings';
+    box.innerHTML = '<div class="lf-head"><span class="lf-badge">Thông tin mới nhất</span>' +
+      '<b>' + esc(top.name) + '</b><span class="lf-date">công bố ' + esc(day(top.published)) + '</span>' +
+      '<a href="' + esc(top.url) + '" target="_blank" rel="noopener noreferrer">Xem BCTC (PDF)</a>' +
+      (through ? '<span class="lf-date" title="Số của kỳ mới được đưa vào dashboard sau khi rà soát">· số liệu dashboard đến ' + esc(through) + '</span>' : '') +
+      '</div>' +
+      (list.length > 1 ? '<details class="dd"><summary>Các BCTC công bố gần đây</summary><div class="body"><ul class="lf-list">' +
+        list.slice(1).map(function (f) { return '<li><a href="' + esc(f.url) + '" target="_blank" rel="noopener noreferrer">' + esc(f.name) + '</a> · ' + esc(day(f.published)) + '</li>'; }).join('') +
+        '</ul></div></details>' : '');
+    if (anchor.id === 'finSubnav') anchor.before(box); else anchor.after(box);
+    return true;
+  }
+  var tries = 0;
+  (function wait() {
+    if (render(tries >= 20) || ++tries > 40) return;
+    setTimeout(wait, 150);   // chờ finance-subtabs.js dựng thanh sub-tab (tối đa ~3 giây)
+  })();
+  var css = document.createElement('style');
+  css.textContent = '.latest-filings{margin:12px 0;border-left:4px solid var(--brand-turquoise,#59C5C8)}' +
+    '.latest-filings .lf-head{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}' +
+    '.latest-filings .lf-badge{background:#1D2678;color:#fff;font-size:12px;font-weight:700;padding:3px 8px;border-radius:6px}' +
+    '.latest-filings .lf-date{color:#596272;font-size:13px}' +
+    '.latest-filings a{color:#2938A8;font-weight:600}' +
+    '.latest-filings .lf-list{margin:6px 0 0 18px;padding:0}' +
+    '@media print{.latest-filings details{display:none}}';
+  document.head.appendChild(css);
 })();
 
 </script>
