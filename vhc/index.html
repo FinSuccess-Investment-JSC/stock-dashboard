@@ -1,6 +1,82 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+<script>
+/* Nhận dữ liệu trình duyệt mang từ địa chỉ cũ của website (ghi chú, giả định "Set làm mặc định",
+   lựa chọn chart, sub-tab…). localStorage gắn với tên miền, nên khi website đổi địa chỉ, trang
+   chuyển hướng ở địa chỉ cũ (_template/site-redirect/index.html) đọc các khóa của dashboard và
+   chuyển sang đây với #fsmig=<base64url JSON>.
+
+   build_stock_site.py chèn file này ngay đầu <head>, trước mọi script đọc localStorage.
+   Chỉ nhận từ các địa chỉ cũ của chính website (document.referrer), chỉ ghi các khóa của
+   dashboard, không ghi đè: khóa trống thì ghi; object JSON thì bổ sung trường còn thiếu; trùng
+   khác giá trị thì giữ bản hiện tại và lưu bản cũ ở `fsmig_backup:<khóa>`. */
+(function () {
+  var m = /^#fsmig=([A-Za-z0-9_-]+)$/.exec(location.hash);
+  if (!m) return;
+  var SENDERS = ['https://thanhnhan-04.github.io', 'https://finsuccess-investment-jsc.github.io'];
+  var ALLOW = /^(chart_types_v1|ts_chart_v1|chart_axis_range_v1|fin_subtab_v1|fs_subtab_v1|fs_analyst_unlocked)$|^(ctd|dhc|fpt|frt|gas|hpg|mwg|php|pow|pvd|pvs|pvt|qns|ree|vhc|vnm)_|_(multiple_visible_v2|valuation_horizon_v1)$/;
+  var hash = '', res = { added: 0, merged: 0, kept: 0 };
+
+  function plainObject(text) {
+    try { var o = JSON.parse(text); return o && typeof o === 'object' && !Array.isArray(o) ? o : null; }
+    catch (e) { return null; }
+  }
+
+  try {
+    var bin = atob(m[1].replace(/-/g, '+').replace(/_/g, '/'));
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    var p = JSON.parse(new TextDecoder().decode(bytes));
+    if (p && typeof p.hash === 'string' && /^(#[A-Za-z0-9_\-=&.%]*)?$/.test(p.hash)) hash = p.hash;
+    var ref = '';
+    try { ref = new URL(document.referrer).origin; } catch (e) { /* không có referrer */ }
+    if (SENDERS.indexOf(ref) < 0 || ref === location.origin) throw new Error('nguồn chuyển dữ liệu không hợp lệ: ' + (ref || 'trống'));
+    if (!p || p.v !== 1 || p.from !== ref || !p.data || typeof p.data !== 'object') throw new Error('gói dữ liệu không hợp lệ');
+    Object.keys(p.data).forEach(function (k) {
+      var v = p.data[k];
+      if (!ALLOW.test(k) || typeof v !== 'string') return;
+      var cur = localStorage.getItem(k);
+      if (cur === null) { localStorage.setItem(k, v); res.added++; return; }
+      if (cur === v) return;
+      var a = plainObject(cur), b = plainObject(v);
+      if (a && b) {
+        var changed = false;
+        Object.keys(b).forEach(function (f) { if (!Object.prototype.hasOwnProperty.call(a, f)) { a[f] = b[f]; changed = true; } });
+        if (changed) { localStorage.setItem(k, JSON.stringify(a)); res.merged++; }
+        return;
+      }
+      if (localStorage.getItem('fsmig_backup:' + k) === null) localStorage.setItem('fsmig_backup:' + k, v);
+      res.kept++;
+    });
+  } catch (e) {
+    if (window.console) console.warn('[fsmig] ' + e.message);
+  } finally {
+    history.replaceState(null, '', location.pathname + location.search + hash);
+  }
+
+  if (!res.added && !res.merged && !res.kept) return;
+  var parts = [];
+  if (res.added) parts.push(res.added + ' mục');
+  if (res.merged) parts.push(res.merged + ' mục bổ sung');
+  var text = 'Đã chuyển dữ liệu bạn lưu ở địa chỉ cũ của website' + (parts.length ? ': ' + parts.join(', ') : '') + '.'
+    + (res.kept ? ' ' + res.kept + ' mục đã có ở địa chỉ mới nên được giữ nguyên; bản cũ lưu dự phòng.' : '');
+  document.addEventListener('DOMContentLoaded', function () {
+    var box = document.createElement('div');
+    box.setAttribute('role', 'status');
+    box.style.cssText = 'position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:9999;max-width:min(560px,calc(100% - 32px));background:#1D2678;color:#fff;padding:12px 40px 12px 16px;border-radius:10px;box-shadow:0 8px 24px rgba(20,25,113,.25);font-size:14px;line-height:1.45';
+    box.textContent = text;
+    var close = document.createElement('button');
+    close.type = 'button'; close.setAttribute('aria-label', 'Đóng'); close.textContent = '×';
+    close.style.cssText = 'position:absolute;top:6px;right:8px;border:0;background:none;color:#fff;font-size:20px;cursor:pointer;line-height:1';
+    close.onclick = function () { box.remove(); };
+    box.appendChild(close);
+    document.body.appendChild(box);
+    setTimeout(function () { box.remove(); }, 12000);
+  });
+})();
+
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FinSuccess | VHC</title>
