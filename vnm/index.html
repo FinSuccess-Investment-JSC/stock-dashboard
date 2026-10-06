@@ -204,6 +204,7 @@ Object.assign(window.PVS_DATA.meta=window.PVS_DATA.meta||{},{"foreignRoom":{"sha
   .th-row{display:grid;grid-template-columns:1.6fr 90px 110px;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}
   .th-row:last-child{border-bottom:none}
   .callout{border-left:4px solid var(--gold);background:#FFF9EC;padding:10px 14px;border-radius:0 8px 8px 0;font-size:13px;margin-bottom:14px}
+  .callout-info{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;margin-right:6px;border-radius:50%;background:#E3EEF8;color:var(--blue);font-size:11px;font-weight:800;vertical-align:middle}
   .callout.red{border-color:var(--neg);background:#FDF0F2}
   .callout.green{border-color:var(--green);background:#F3FAEA}
 
@@ -657,7 +658,7 @@ table.analyst-table tr:hover td{background:#FAFBFF}
     <div class="card"><h3 class="sub">Bảng số liệu</h3><div class="tbl-wrap"><table id="bsSeriesTable"></table></div></div>
   </div>
   <div class="card" style="margin-top:16px">
-    <div class="callout" id="bsTodoBox">Các khoản mục <b>chưa có số tuyệt đối</b> — cần bóc từ thuyết minh BCTC kỳ gần nhất:
+    <div class="callout" id="bsTodoBox"><span class="callout-info" aria-hidden="true">i</span>Các khoản mục <b>chưa có số tuyệt đối</b> — cần bóc từ thuyết minh BCTC kỳ gần nhất:
       <ul style="margin:6px 0 0 18px" id="bsTodo"></ul></div>
     <div class="src" id="bsSrc"></div>
   </div>
@@ -5105,6 +5106,66 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
   window.addEventListener('load',()=>{run();setTimeout(run,700);setTimeout(run,2000);});
 })();
 
+</script>
+<script>
+// VNM: replay chart motion when entering Business Segments or Finance.
+(function(){
+  const duration=700;
+  if(!window.Chart)return;
+  Chart.register({
+    id:'vnmLineReveal',
+    beforeDatasetDraw(chart,args){
+      const reveal=chart.$vnmLineReveal;
+      if(!reveal||!reveal.active)return;
+      const dataset=chart.data.datasets[args.index];
+      if((dataset.type||chart.config.type)!=='line')return;
+      const area=chart.chartArea;
+      if(!area)return;
+      const progress=Math.min(1,(performance.now()-reveal.start)/duration);
+      chart.ctx.save();
+      chart.ctx.beginPath();
+      chart.ctx.rect(area.left-8,area.top-8,(area.right-area.left+16)*progress,area.bottom-area.top+16);
+      chart.ctx.clip();
+      reveal.clipped=true;
+    },
+    afterDatasetDraw(chart){
+      const reveal=chart.$vnmLineReveal;
+      if(reveal?.clipped){chart.ctx.restore();reveal.clipped=false;}
+    },
+    afterDraw(chart){
+      const reveal=chart.$vnmLineReveal;
+      if(!reveal?.active||reveal.queued)return;
+      if(performance.now()-reveal.start>=duration){reveal.active=false;return;}
+      reveal.queued=true;
+      requestAnimationFrame(()=>{reveal.queued=false;if(reveal.active)chart.draw();});
+    }
+  });
+  function replay(root){
+    if(!root||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+    root.querySelectorAll('canvas').forEach(canvas=>{
+      if(!canvas.getClientRects().length)return;
+      const chart=Chart.getChart(canvas);
+      if(!chart)return;
+      const kinds=chart.data.datasets.map(d=>d.type||chart.config.type);
+      if(!kinds.includes('bar')&&!kinds.includes('line'))return;
+      chart.resize();
+      chart.$vnmLineReveal={active:kinds.includes('line'),start:performance.now(),queued:false,clipped:false};
+      if(kinds.includes('bar')){chart.reset();chart.update();}
+      else chart.draw();
+    });
+  }
+  document.getElementById('tabbar')?.addEventListener('click',event=>{
+    const id=event.target.closest('button[data-tab]')?.dataset.tab;
+    if(id==='seg'||id==='bs')requestAnimationFrame(()=>replay(document.getElementById(id)));
+  });
+  document.addEventListener('click',event=>{
+    if(event.target.closest('#finSubnav button[data-pane]'))requestAnimationFrame(()=>replay(document.querySelector('#bs .fin-pane:not([hidden])')));
+  });
+  window.addEventListener('load',()=>{
+    const active=document.querySelector('section.tab.active');
+    if(active?.id==='seg'||active?.id==='bs')requestAnimationFrame(()=>replay(active));
+  });
+})();
 </script>
 </body>
 </html>
