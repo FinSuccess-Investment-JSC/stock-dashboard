@@ -4404,22 +4404,27 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 </script>
 <script>
-// Khóa các nút "Set làm mặc định" trên bản public: mặc định ai bấm cũng bị chặn và
-// phải nhập đúng mã analyst mới mở khóa được trên đúng trình duyệt đó (lưu localStorage,
-// dùng chung cho mọi dashboard vì cùng origin GitHub Pages). Không phải bảo mật thật —
-// ai xem được mã nguồn JS vẫn thấy ANALYST_PASS — chỉ để khách xem dashboard không bấm nhầm/tò mò.
-// Đổi mã: sửa ANALYST_PASS bên dưới rồi build lại (_template/tools/build_stock_site.py).
+// Analyst lưu giả định cho mọi người xem.
+//
+// Key analyst = token GitHub fine-grained chỉ có quyền Contents: Read and write trên repo nguồn
+// (không nằm trong mã trang). Nhập một lần trên mỗi trình duyệt, lưu ở localStorage
+// `fs_analyst_token`. Người không có key bấm "Set làm mặc định" sẽ bị chặn.
+//
+// Khi analyst bấm "Set làm mặc định": handler gốc của nút vẫn ghi localStorage như cũ; lớp này bắt
+// các khóa vừa ghi trong lượt bấm đó và lưu vào <MÃ>/published-defaults.json của repo nguồn qua
+// GitHub API. Workflow data-update build + publish khi file này đổi, nên khách và analyst ở máy
+// khác thấy giả định mới sau vài phút. Mỗi trang áp giả định đã publish trước khi dashboard đọc
+// localStorage (khối PUBLISHED trong _template/tools/build_stock_site.py).
 (function () {
-  var STORAGE_KEY = 'fs_analyst_unlocked';
-  var ANALYST_PASS = 'FS-Analyst-2026';
+  var REPO = 'FinSuccess-Investment-JSC/FinSuccess-dashboard-source';
+  var BRANCH = 'main';
+  var TOKEN_KEY = 'fs_analyst_token';
+  // Trạng thái giao diện và khóa hệ thống: không publish dù bị ghi trong lượt bấm lưu.
+  var LOCAL_ONLY = /^(chart_types_v1|ts_chart_v1|chart_axis_range_v1|fin_subtab_v1|fs_subtab_v1|fs_analyst_unlocked|fs_analyst_token)$|^fsmig_|^fs_pub_version:|_seg_period$|_geo_view$|_brk$|_multiple_visible_v2$|_valuation_horizon_v1$|_cash_ts_v1$|_dashboard_notes_v1$/;
+  var ls = window.localStorage, captured = null;
+  var origSet = Storage.prototype.setItem, origRemove = Storage.prototype.removeItem;
 
-  function isUnlocked() {
-    try { return localStorage.getItem(STORAGE_KEY) === '1'; } catch (e) { return false; }
-  }
-
-  function unlock() {
-    try { localStorage.setItem(STORAGE_KEY, '1'); } catch (e) {}
-  }
+  function token() { try { return ls.getItem(TOKEN_KEY) || ''; } catch (e) { return ''; } }
 
   function isSetDefaultButton(el) {
     if (!el) return false;
@@ -4427,22 +4432,121 @@ document.addEventListener('DOMContentLoaded',()=>{
     return t.indexOf('Set làm mặc định') === 0 || t.indexOf('Set mặc định') === 0;
   }
 
-  document.addEventListener('click', function (event) {
-    if (isUnlocked()) return; // đã mở khóa trên trình duyệt này, không chặn nữa
-    var btn = event.target.closest('button, a');
-    if (!isSetDefaultButton(btn)) return;
-    event.preventDefault();
-    event.stopPropagation();
-    event.stopImmediatePropagation();
-    var pass = window.prompt('Chức năng lưu mặc định dành cho analyst. Nhập mã để mở khóa trên trình duyệt này:');
-    if (pass === null) return; // bấm Cancel
-    if (pass === ANALYST_PASS) {
-      unlock();
-      window.alert('Đã mở khóa. Bấm lại nút "Set làm mặc định" để lưu.');
-    } else {
-      window.alert('Mã không đúng.');
+  // Bắt mọi lần ghi localStorage trong lượt bấm lưu (các nút đều ghi đồng bộ trong handler).
+  Storage.prototype.setItem = function (k, v) {
+    if (captured && this === ls && !LOCAL_ONLY.test(k)) captured[k] = String(v);
+    return origSet.apply(this, arguments);
+  };
+  Storage.prototype.removeItem = function (k) {
+    if (captured && this === ls && !LOCAL_ONLY.test(k)) captured[k] = null;
+    return origRemove.apply(this, arguments);
+  };
+
+  function toast(text, ok) {
+    var box = document.getElementById('fsAnalystToast');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'fsAnalystToast';
+      box.setAttribute('role', 'status');
+      box.style.cssText = 'position:fixed;right:20px;bottom:20px;z-index:9999;max-width:min(420px,calc(100% - 32px));padding:12px 16px;border-radius:10px;box-shadow:0 8px 24px rgba(20,25,113,.25);font-size:14px;line-height:1.45;color:#fff';
+      document.body.appendChild(box);
     }
-  }, true); // capture phase: chặn trước khi onclick của nút chạy
+    box.style.background = ok === false ? '#a33a48' : '#1D2678';
+    box.textContent = text;
+    clearTimeout(box._t);
+    box._t = setTimeout(function () { box.remove(); }, ok === false ? 15000 : 9000);
+  }
+
+  function api(method, path, body) {
+    return fetch('https://api.github.com' + path, {
+      method: method,
+      headers: { 'Authorization': 'Bearer ' + token(), 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' },
+      body: body ? JSON.stringify(body) : undefined
+    }).then(function (r) {
+      if (r.status === 404 && method === 'GET') return null;
+      if (!r.ok) return r.text().then(function (t) { var e = new Error('HTTP ' + r.status + ' ' + t.slice(0, 160)); e.status = r.status; throw e; });
+      return r.json();
+    });
+  }
+
+  function b64encode(text) {
+    var bytes = new TextEncoder().encode(text), bin = '';
+    for (var i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(bin);
+  }
+  function b64decode(b64) {
+    var bin = atob(b64.replace(/\s/g, '')), bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+
+  function publish(values, attempt) {
+    var ticker = window.PVS_DATA && PVS_DATA.meta && PVS_DATA.meta.ticker;
+    if (!ticker) return;
+    var path = '/repos/' + REPO + '/contents/' + encodeURIComponent(ticker) + '/published-defaults.json';
+    var prefix = ticker.toLowerCase() + '_';
+    var keys = Object.keys(values).filter(function (k) { return k.indexOf(prefix) === 0; }), doc;   // chỉ khóa của mã này
+    if (!keys.length) return;
+    toast('Đang lưu giả định cho mọi người…');
+    return api('GET', path + '?ref=' + BRANCH).then(function (cur) {
+      doc = cur ? JSON.parse(b64decode(cur.content)) : {};
+      doc.ticker = ticker;
+      doc.values = doc.values || {};
+      doc.removed = (doc.removed || []).filter(function (k) { return !(k in values) || values[k] === null; });
+      keys.forEach(function (k) {
+        if (values[k] === null) { delete doc.values[k]; if (doc.removed.indexOf(k) < 0) doc.removed.push(k); }
+        else doc.values[k] = values[k];
+      });
+      doc.version = new Date().toISOString();
+      return api('PUT', path, {
+        message: 'Analyst lưu giả định ' + ticker + ': ' + keys.join(', '),
+        content: b64encode(JSON.stringify(doc, null, 1) + '\n'),
+        branch: BRANCH,
+        sha: cur ? cur.sha : undefined
+      });
+    }).then(function () {
+      origSet.call(ls, 'fs_pub_version:' + ticker, doc.version);
+      toast('Đã lưu cho mọi người. Website cập nhật sau khoảng 2–3 phút.');
+    }).catch(function (e) {
+      if (e.status === 409 && !attempt) return publish(values, 1);   // ai đó vừa lưu cùng lúc: thử lại một lần
+      if (e.status === 401 || e.status === 403) origRemove.call(ls, TOKEN_KEY);
+      toast('Chưa lưu được cho mọi người (' + (e.status === 401 ? 'key không hợp lệ hoặc hết hạn' : e.status === 403 || e.status === 404 ? 'key không có quyền ghi' : 'lỗi mạng') + '). Giả định vẫn lưu trên trình duyệt này.', false);
+    });
+  }
+
+  function askToken() {
+    var t = window.prompt('Chức năng lưu giả định dành cho analyst.\nNhập key analyst (bắt đầu bằng github_pat_):');
+    if (t === null) return;
+    t = t.trim();
+    if (!t) return;
+    origSet.call(ls, TOKEN_KEY, t);
+    api('GET', '/repos/' + REPO).then(function (repo) {
+      if (!repo) throw Object.assign(new Error('not found'), { status: 404 });
+      toast('Đã mở khóa trên trình duyệt này. Bấm lại "Set làm mặc định" để lưu.');
+    }).catch(function () {
+      origRemove.call(ls, TOKEN_KEY);
+      toast('Key không đúng hoặc không có quyền vào repo dữ liệu.', false);
+    });
+  }
+
+  document.addEventListener('click', function (event) {
+    var btn = event.target.closest && event.target.closest('button, a');
+    if (!isSetDefaultButton(btn)) return;
+    if (!token()) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      askToken();
+      return;
+    }
+    captured = {};
+    setTimeout(function () {
+      var values = captured; captured = null;
+      if (values && Object.keys(values).length) publish(values);
+    }, 300);
+  }, true); // capture phase: chạy trước onclick của nút
+
+  window.fsAnalystLogout = function () { origRemove.call(ls, TOKEN_KEY); toast('Đã xóa key analyst khỏi trình duyệt này.'); };
 })();
 
 </script>
