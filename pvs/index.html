@@ -185,6 +185,7 @@ window.PVS_DATA = {
 
   // ---------- MẢNG KINH DOANH ----------
   segments: {
+  "quarterly": {"labels": ["Q1/23", "Q2/23", "Q3/23", "Q4/23", "Q1/24", "Q2/24", "Q3/24", "Q4/24", "Q1/25", "Q2/25", "Q3/25", "Q4/25", "Q1/26", "Q2/26"], "revenue": [[336.385, 389.864, 398.412, 482.437, 421.657, 631.973, 568.124, 538.706, 478.284, 443.848, 414.682, 487.452, 640.14, 892.289], [447.499, 522.986, 526.729, 710.018, 547.39, 563.187, 617.273, 641.6, 622.237, 651.686, 756.015, 761.727, 694.824, 673.771], [25.793, 41.643, 152.029, 185.759, 105.301, 120.621, 175.399, 105.752, 87.169, 152.556, 174.885, 144.514, 44.529, 92.602], [295.903, 366.219, 313.252, 436.683, 334.988, 306.579, 422.593, 485.852, 322.319, 592.865, 557.144, 521.479, 453.919, 710.008], [2131.19, 2833.531, 2120.46, 4087.303, 1802.444, 2600.346, 2406.278, 6960.88, 4017.563, 4803.161, 6484.243, 6498.807, 5910.956, 4574.033], [383.903, 360.757, 477.539, 690.669, 397.057, 592.54, null, 779.272, 402.334, 658.656, 1028.543, 1102.757, 704.918, 1389.093], [82.985, 195.582, 188.404, 189.628, 100.755, 762.618, null, 156.804, 83.773, 79.999, 190.632, 198.93, 249.455, 242.617]], "grossProfit": [[38.869, 43.885, 39.654, 90.843, 47.464, 55.705, 63.831, 56.358, 60.485, 68.993, 80.33, 100.587, 109.045, 143.265], [34.793, 56.57, -32.193, 112.56, 21.889, 24.188, 52.596, 34.015, 31.353, 36.664, 40.63, 52.676, 43.566, 26.802], [-11.478, -25.094, 63.184, 18.891, 12.489, 38.278, -21.084, 28.304, 9.239, 23.27, 42.622, 33.59, 0.681, 42.275], [55.087, 63.664, 94.696, 50.819, 80.622, 60.432, 72.938, 96.295, 82.629, 93.016, 89.228, 137.188, 116.742, 122.39], [71.14, 33.391, -17.087, 87.632, 52.063, -27.764, 83.912, 8.085, 47.728, 169.995, 23.611, 386.014, 538.038, 205.566], [10.541, 15.655, 18.606, 25.584, 33.006, 36.021, null, 38.523, 23.342, 18.26, 34.942, 59.659, 22.886, 92.896], [4.835, 0.31, 12.833, 80.838, 10.932, 43.998, null, -29.028, 2.286, 30.869, 11.892, 79.455, 23.955, 25.242]], "note": "Doanh thu thuần bán ra bên ngoài và LN gộp bộ phận (= DT ngoài − giá vốn ngoài, đúng dòng công bố) theo 7 bộ phận, từ thuyết minh bộ phận BCTC hợp nhất quý; Q2/Q3 = lũy kế trừ lũy kế quý trước, Q4 = năm kiểm toán − 9T (2023 dùng cột so sánh 2023 trong BCTC kiểm toán 2024; 6T/2026 dùng bản soát xét). Q3/2024 của Vận hành & bảo dưỡng và DV khác để trống: 9T/2024 phân loại lại khoảng 375 tỷ từ DV khác sang O&M so với 6T, phép trừ cho doanh thu âm."},
   "title": "Breakdown mảng kinh doanh",
   "names": [
     "DV tàu kỹ thuật dầu khí (OSV)",
@@ -3352,20 +3353,38 @@ function renderSeg(){
   }
   // --- annual revenue by segment (stacked) ---
   const top=[...Array(Math.min(n,5)).keys()], other=[...Array(n).keys()].slice(5);
-  const mkDs=(arr)=>[...top.map((i,k)=>({label:s.names[i],data:arr[i],backgroundColor:stackColor(k,top.length+(other.length?1:0)),stack:'s',borderRadius:2,maxBarThickness:60})),...(other.length?[{label:'Khác',data:s.years.map((_,y)=>other.every(i=>arr[i][y]!=null)?other.reduce((a,i)=>a+Number(arr[i][y]),0):null),backgroundColor:stackColor(top.length,top.length+1),stack:'s',borderRadius:2,maxBarThickness:60}]:[])];
-  const o=baseOpts({scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#EEF0F6'},ticks:{callback:v=>vnd(v)}}}});
+  const mkDs=(arr,period)=>[...top.map((i,k)=>({label:s.names[i],data:arr[i],backgroundColor:stackColor(k,top.length+(other.length?1:0)),stack:'s',borderRadius:2,maxBarThickness:60})),...(other.length?[{label:'Khác',data:period.labels.map((_,y)=>other.every(i=>arr[i][y]!=null)?other.reduce((a,i)=>a+Number(arr[i][y]),0):null),backgroundColor:stackColor(top.length,top.length+1),stack:'s',borderRadius:2,maxBarThickness:60}]:[])];
+  const stackCfg=(labels,datasets)=>({type:'bar',shareEligible:true,data:{labels,datasets},options:baseOpts({scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#EEF0F6'},ticks:{callback:v=>vnd(v)}}}})});
+  // Kỳ quý có thể công bố theo bộ mảng khác năm (vd GAS gộp Khí khô & LNG): dùng quarterly.names, không ép về tên năm.
+  const qNames=s.quarterly?.names||null;
+  const qDs=(arr,labels)=>qNames?qNames.map((nm,k)=>({label:nm,data:arr[k],backgroundColor:stackColor(k,qNames.length),stack:'s',borderRadius:2,maxBarThickness:60})):mkDs(arr,{labels});
+  const annual={labels:s.years,datasets:mkDs(s.revenue,{labels:s.years})};
+  const quarterly=s.quarterly?.labels?.length&&s.quarterly?.revenue?{labels:s.quarterly.labels,datasets:qDs(s.quarterly.revenue,s.quarterly.labels)}:null;
   if(s.revTitle)$('segRevTitle').textContent=s.revTitle;
-  mk('segRev',{type:'bar',shareEligible:true,data:{labels:s.years,datasets:mkDs(s.revenue)},options:o});
+  if(quarterly)mkTS('segRev',{def:'q',y:annual,q:quarterly,cfg:stackCfg}); else mk('segRev',stackCfg(annual.labels,annual.datasets));
   const prof=s.profit||s.grossProfit, profLabel=s.profitLabel||(s.profit?'LNST':'LN gộp');
-  if(prof){ $('segProfitTitle').textContent=profLabel+' theo mảng (tỷ VND)'; mk('segGP',{type:'bar',data:{labels:s.years,datasets:mkDs(prof)},options:o}); } else { $('segProfitCard').style.display='none'; $('segRev').closest('.card').style.gridColumn='1/-1'; }
+  if(prof){
+    $('segProfitTitle').textContent=profLabel+' theo mảng (tỷ VND)';
+    const py={labels:s.years,datasets:mkDs(prof,{labels:s.years})};
+    const pq=s.quarterly?.labels?.length&&(s.quarterly.profit||s.quarterly.grossProfit)?{labels:s.quarterly.labels,datasets:qDs(s.quarterly.profit||s.quarterly.grossProfit,s.quarterly.labels)}:null;
+    if(pq)mkTS('segGP',{def:'q',y:py,q:pq,cfg:stackCfg}); else mk('segGP',stackCfg(py.labels,py.datasets));
+  } else { $('segProfitCard').style.display='none'; $('segRev').closest('.card').style.gridColumn='1/-1'; }
   // --- margins ---
   const ms=s.marginSeries||[];
-  if(ms.length){ if(s.marginTitle)$('segGMTitle').textContent=s.marginTitle;
-    const extra=[...new Set(ms.flatMap(x=>Object.keys(x.values)))].filter(k=>!s.names.includes(k));
-    const segsWith=[...s.names.filter(nm=>ms.some(x=>x.values[nm]!=null)),...extra];
-    mk('segGM',{type:'bar',data:{labels:ms.map(x=>x.label),datasets:segsWith.map((nm,k)=>({label:nm,data:ms.map(x=>x.values[nm]??null),backgroundColor:s.names.includes(nm)?CAT[s.names.indexOf(nm)%CAT.length]:GREY,borderRadius:3,maxBarThickness:40}))},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y+'%'}}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:'#EEF0F6'},ticks:{callback:v=>v+'%'}}}}});
-    $('segGMNote').textContent=s.gmNote||''; } else $('segGMCard').style.display='none';
+  const marginPeriod=(labels,revenue,grossProfit,names=s.names)=>({labels,datasets:names.map((nm,i)=>({label:nm,data:labels.map((_,j)=>{const m=revenue[i]?.[j]&&grossProfit[i]?.[j]!=null?grossProfit[i][j]/revenue[i][j]*100:null;return m==null||Math.abs(m)>100?null:Number(m.toFixed(2));}),borderColor:CAT[i%CAT.length],backgroundColor:CAT[i%CAT.length]+'22',pointBackgroundColor:CAT[i%CAT.length],pointRadius:3,tension:.25,fill:false,type:'line'}))});
+  // Có LN theo mảng (năm hoặc quý) là phải có chart biên: biên = LN mảng / DT cùng mảng, không suy từ số hợp nhất.
+  // marginBasis: LN gộp chỉ công bố theo bộ mảng khác (vd POW theo loại nhiên liệu thay vì nhà máy) — vẽ biên theo đúng bộ đó.
+  const mb=!prof&&s.marginBasis?.grossProfit?s.marginBasis:null;
+  if(ms.length||prof||mb||s.quarterly?.grossProfit||s.quarterly?.profit){
+    $('segGMTitle').textContent=s.marginTitle||mb?.title||('Biên '+(prof?profLabel:'LN gộp')+' theo mảng (%)');
+    const msExtra=[...new Set(ms.flatMap(x=>Object.keys(x.values)))].filter(k=>!s.names.includes(k));
+    // Đường tham chiếu (vd biên hợp nhất) trong marginSeries giữ nguyên, nét đứt xám, không tính vào màu mảng.
+    const my=ms.length?{labels:ms.map(x=>x.label),datasets:[...s.names.map((nm,i)=>({label:nm,data:ms.map(x=>x.values[nm]??null),borderColor:CAT[i%CAT.length],backgroundColor:CAT[i%CAT.length]+'22',pointBackgroundColor:CAT[i%CAT.length],pointRadius:3,tension:.25,fill:false,type:'line'})),...msExtra.map(nm=>({label:nm,data:ms.map(x=>x.values[nm]??null),borderColor:'#697284',backgroundColor:'#69728422',borderDash:[6,4],pointRadius:2,tension:.25,fill:false,type:'line'}))]}:(prof?marginPeriod(s.years,s.revenue,prof):mb?marginPeriod(mb.years,mb.revenue,mb.grossProfit,mb.names):{labels:[],datasets:[]});
+    const mq=s.quarterly?.labels?.length&&s.quarterly?.revenue&&(s.quarterly.grossProfit||s.quarterly.profit)?marginPeriod(s.quarterly.labels,s.quarterly.revenue,s.quarterly.grossProfit||s.quarterly.profit,qNames||s.names):null;
+    const marginCfg=(labels,datasets)=>({type:'line',shareEligible:true,data:{labels,datasets},options:baseOpts({plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+(c.parsed.y==null?'—':c.parsed.y.toLocaleString('vi-VN',{maximumFractionDigits:2})+'%')}}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:'#EEF0F6'},ticks:{callback:v=>v+'%'}}}})});
+    if(mq)mkTS('segGM',{def:'q',y:my,q:mq,cfg:marginCfg}); else mk('segGM',marginCfg(my.labels,my.datasets));
+    $('segGMNote').textContent=s.gmNote||'';
+  } else $('segGMCard').style.display='none';
   if(s.drivers&&Object.keys(s.drivers).length){ $('segDrivers').innerHTML='<tr><th>Mảng</th><th>Driver / điều cần theo dõi</th></tr>'+s.names.map(k=>`<tr><td><b>${esc(k)}</b></td><td style="font-size:12.5px">${esc(s.drivers[k]||'')}</td></tr>`).join(''); }
   else { $('segDriversCard').style.display='none'; $('segGMCard').style.gridColumn='1/-1'; }
   // --- facts (chain-level disclosed numbers) ---
