@@ -2372,11 +2372,6 @@ document.addEventListener('DOMContentLoaded',()=>{
  const sourceCard=document.getElementById('bsSrc')?.closest('.card');if(sourceCard)sourceCard.style.display='none';
  const valNote=document.getElementById('valNote');if(valNote)valNote.style.display='none';
  brkIdx=D.isBridge.periods.length-1;renderBreakdown();
- for(const id of ['segRev','segGP','segGM']){
-  const base=chartBase[id];if(!base)continue;
-  const ds=base.data.datasets.map(d=>({...d,...(id==='segGM'?{borderColor:d.backgroundColor,borderWidth:2.5,pointRadius:3}:{} )}));
-  mkTS(id,{def:'y',y:{labels:D.segments.years,datasets:ds},cfg:(ls,ds)=>({...base,type:id==='segGM'?'line':base.type,data:{labels:ls,datasets:ds}})});
- }
  const seg=document.getElementById('seg');
  // Compact existing table keeps driver icons on its actual rows.
  const table=document.getElementById('segTable');table.innerHTML=`<tr><th>Mảng (tỷ VND)</th>${Q.years.map(y=>`<th class="num">DT ${y}</th>`).join('')}<th class="num">LN gộp 2025</th><th class="num">Biên 2025</th></tr>${D.segments.names.map((n,i)=>`<tr><td>${esc(n)}</td>${D.segments.revenue[i].map(v=>`<td class="num">${fmt(v)}</td>`).join('')}<td class="num">${fmt(D.segments.grossProfit[i][4])}</td><td class="num">${i===4?'—':fmt(D.segments.grossProfit[i][4]/D.segments.revenue[i][4]*100)+'%'}</td></tr>`).join('')}<tr class="total"><td>Hợp nhất</td>${Q.years.map(y=>`<td class="num">${fmt(Q.annual[y].rev)}</td>`).join('')}<td class="num">${fmt(Q.annual['2025'].gp)}</td><td class="num">${fmt(Q.annual['2025'].gp/Q.annual['2025'].rev*100)}%</td></tr>`;
