@@ -1069,13 +1069,13 @@ function renderSeg(){
   const annual={labels:s.years,datasets:mkDs(s.revenue,{labels:s.years})};
   const quarterly=s.quarterly?.labels?.length&&s.quarterly?.revenue?{labels:s.quarterly.labels,datasets:qDs(s.quarterly.revenue,s.quarterly.labels)}:null;
   if(s.revTitle)$('segRevTitle').textContent=s.revTitle;
-  if(quarterly)mkTS('segRev',{def:'q',y:annual,q:quarterly,cfg:stackCfg}); else mk('segRev',stackCfg(annual.labels,annual.datasets));
+  if(quarterly)mkTS('segRev',{def:'q',ytd:true,y:annual,q:quarterly,cfg:stackCfg}); else mk('segRev',stackCfg(annual.labels,annual.datasets));
   const prof=s.profit||s.grossProfit, profLabel=s.profitLabel||(s.profit?'LNST':'LN gộp');
   if(prof){
     $('segProfitTitle').textContent=profLabel+' theo mảng (tỷ VND)';
     const py={labels:s.years,datasets:mkDs(prof,{labels:s.years})};
     const pq=s.quarterly?.labels?.length&&(s.quarterly.profit||s.quarterly.grossProfit)?{labels:s.quarterly.labels,datasets:qDs(s.quarterly.profit||s.quarterly.grossProfit,s.quarterly.labels)}:null;
-    if(pq)mkTS('segGP',{def:'q',y:py,q:pq,cfg:stackCfg}); else mk('segGP',stackCfg(py.labels,py.datasets));
+    if(pq)mkTS('segGP',{def:'q',ytd:true,y:py,q:pq,cfg:stackCfg}); else mk('segGP',stackCfg(py.labels,py.datasets));
   } else { $('segProfitCard').style.display='none'; $('segRev').closest('.card').style.gridColumn='1/-1'; }
   // --- margins ---
   const ms=s.marginSeries||[];
@@ -1511,6 +1511,7 @@ const TS_NAME={m:'tháng',q:'quý',y:'năm',l:'năm'};
 function tsYtd(m,n){
   // Nhãn có năm: Tn/yy, T1+T2/yy, yyyy-MM, MM/yyyy. Nhãn chỉ có tháng (T1+T2, T3…) thì mỗi dataset là một năm.
   const parse=l=>{l=String(l);let x=/^T(\d{1,2})(?:\+T(\d{1,2}))?\/(\d{2}|\d{4})$/.exec(l);if(x)return {a:+x[1],b:+(x[2]||x[1]),y:x[3].slice(-2)};
+    x=/^Q([1-4])\/(\d{2}|\d{4})$/.exec(l);if(x)return {a:3*x[1]-2,b:3*x[1],y:x[2].slice(-2)};
     x=/^(\d{4})-(\d{2})$/.exec(l);if(x)return {a:+x[2],b:+x[2],y:x[1].slice(-2)};x=/^(\d{2})\/(\d{4})$/.exec(l);return x?{a:+x[1],b:+x[1],y:x[2].slice(-2)}:null;};
   const mon=l=>{const x=/^T(\d{1,2})(?:\+T(\d{1,2}))?$/.exec(String(l));return x?{a:+x[1],b:+(x[2]||x[1])}:null;};
   const sumN=(P,vals,y,n)=>{let s=0;const cov=new Set();
@@ -1528,10 +1529,14 @@ function tsYtd(m,n){
   const years=[...new Set(P.map(p=>p.y))];
   if(!n)n=latest(P,m.datasets.map(d=>d.data),years[years.length-1]);
   const datasets=m.datasets.map(d=>Object.assign({},d,{data:years.map(y=>sumN(P,d.data,y,n))}));
+  // Tỷ lệ (ytdRatio:{num,den} = chỉ số dataset) tính lại từ tổng lũy kế, không cộng tỷ lệ các kỳ.
+  datasets.forEach(d=>{const r=d.ytdRatio;if(r)d.data=years.map((_,k)=>{const a=datasets[r.num].data[k],b=datasets[r.den].data[k];return a!=null&&b?Math.round(a/b*10000)/100:null;});});
   // Bỏ các năm đầu chuỗi chưa có số ở mọi dataset (chuỗi tháng bắt đầu muộn hơn trục năm).
   let k=0;while(k<years.length-1&&datasets.every(d=>d.data[k]==null))k++;
   return {labels:years.slice(k).map(y=>n+'T/'+y),datasets:datasets.map(d=>Object.assign(d,{data:d.data.slice(k)})),n};
 }
+// Lũy kế dựng từ tháng (spec.m) hoặc, khi chart chỉ có quý, từ quý (spec.q, nhãn Qn/yy): 3T/6T/9T/12T so cùng kỳ.
+function tsYtdSpec(id,spec){const ok=x=>x&&x.labels&&x.labels.length&&x.datasets&&x.datasets.length,src=ok(spec.m)?spec.m:ok(spec.q)?spec.q:null,step=src===spec.m?1:3;if(!src){delete spec.l;return;}let n=(TSC[id]||{}).ytdN;if(n&&step===3)n=Math.max(3,n-n%3);const l=tsYtd(src,n);if(l){l.step=step;spec.l=l;}else delete spec.l;}
 const TS_COUNTS=[1,3,5,8,10];               // số kỳ — đơn vị luôn khớp chu kỳ đang chọn
 // ghi đè toàn cục để test: ?per=q&n=8
 let TS_FORCE={};
@@ -1561,7 +1566,7 @@ function tsCut(labels,datasets,n){
 // spec = {m:{labels,datasets}, q:{...}, y:{...}, def:'m'|'q'|'y', cfg:(labels,datasets,period)=>chartConfig}
 function mkTS(id,spec){
   if(!$(id))return; TSREG[id]=spec;
-  if(spec.ytd&&spec.m){const l=tsYtd(spec.m,(TSC[id]||{}).ytdN);if(l)spec.l=l;else delete spec.l;}
+  if(spec.ytd&&(spec.m||spec.q))tsYtdSpec(id,spec);
   const st=tsState(id,spec); if(!st)return;
   const cut=tsCut(spec[st.p].labels,deep(spec[st.p].datasets),st.n);
   mk(id,spec.cfg(cut.labels,cut.datasets,st.p));
@@ -1585,7 +1590,7 @@ function tsControls(id,spec,st){
       +yOpts.map(o=>`<option value="${o}" ${String(o)===String(st.n)?'selected':''}>${o} năm gần nhất</option>`).join('')
       +`<option value="all" ${st.n==='all'?'selected':''}>Tất cả (${st.total} năm)</option></select>`:'';
     bar.innerHTML=perSel+'<span class="sep"></span><span class="lb">Lũy kế</span><select class="tsy" aria-label="Số tháng lũy kế">'
-      +Array.from({length:12},(_,i)=>`<option value="${i+1}" ${i+1===spec.l.n?'selected':''}>${i+1}T (T1–T${i+1})</option>`).join('')+'</select>'+yCount;
+      +(spec.l.step===3?[3,6,9,12].map(k=>`<option value="${k}" ${k===spec.l.n?'selected':''}>${k}T (Q1${k>3?'–Q'+k/3:''})</option>`):Array.from({length:12},(_,i)=>`<option value="${i+1}" ${i+1===spec.l.n?'selected':''}>${i+1}T (T1–T${i+1})</option>`)).join('')+'</select>'+yCount;
     const nS=bar.querySelector('select.tsn');
     if(nS)nS.onchange=()=>{TSC[id]=Object.assign({},TSC[id],{n:nS.value});TS_FORCE={};tsSave();mkTS(id,TSREG[id]);applyChartTips();};
     const ySel=bar.querySelector('select.tsy');
@@ -2413,7 +2418,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   const table=(p,title,heads,rows,note)=>{const d=document.createElement('details');d.className='dd card';d.style.gridColumn='1/-1';d.innerHTML=`<summary>${esc(title)}</summary><div class="tbl-wrap"><table><tr><th>Chỉ tiêu</th>${heads.map(h=>`<th class="num">${esc(h)}</th>`).join('')}</tr>${rows.map(([l,a])=>`<tr><td>${esc(l)}</td>${a.map(x=>`<td class="num">${fmt(x)}</td>`).join('')}</tr>`).join('')}</table></div><p class="note">${esc(note)}</p>`;p.append(d);};
   // Chuỗi DT/LN gộp theo năm (analyst, khớp BCTC 2021–2025) và theo quý (thuyết minh bộ phận BCTC).
   const sq=D.segments.quarterly;
-  const plSpec=(i,rev,gp)=>({def:'y',y:{labels:yr,datasets:[ds('Doanh thu',rev,0),ds('LN gộp',gp,1),line('Biên gộp',rev.map((r,j)=>r&&gp[j]!=null?gp[j]/r*100:null),2)]},q:{labels:sq.labels,datasets:[ds('Doanh thu',sq.revenue[i],0),ds('LN gộp',sq.grossProfit[i],1),line('Biên gộp',sq.revenue[i].map((r,j)=>r&&sq.grossProfit[i][j]!=null?sq.grossProfit[i][j]/r*100:null),2)]},cfg:combo('tỷ VND','%')});
+  const plSpec=(i,rev,gp)=>({def:'y',y:{labels:yr,datasets:[ds('Doanh thu',rev,0),ds('LN gộp',gp,1),line('Biên gộp',rev.map((r,j)=>r&&gp[j]!=null?gp[j]/r*100:null),2)]},q:{labels:sq.labels,datasets:[ds('Doanh thu',sq.revenue[i],0),ds('LN gộp',sq.grossProfit[i],1),Object.assign(line('Biên gộp',sq.revenue[i].map((r,j)=>r&&sq.grossProfit[i][j]!=null?sq.grossProfit[i][j]/r*100:null),2),{ytdRatio:{num:1,den:0}})]},ytd:true,cfg:combo('tỷ VND','%')});
   const built={};
   const build={
    sugar(p){p.innerHTML='';const g=document.createElement('div');g.className='grid g2';p.append(g);
@@ -2431,7 +2436,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(wp&&wp.rows&&wp.rows.length){const r=wp.rows,last=r[r.length-1],ml=r.map(x=>x[0].slice(5)+'/'+x[0].slice(0,4)),yrs=[...new Set(r.map(x=>x[0].slice(0,4)))],full=yrs.filter(y=>r.filter(x=>x[0].startsWith(y)).length===12),avg=y=>{const a=r.filter(x=>x[0].startsWith(y)).map(x=>x[1]);return a.reduce((p,c)=>p+c,0)/a.length;};
      card(g,'qnsSugarWorld','Giá đường thô thế giới (US cent/lb)','Đường thô ICE No.11, bình quân tháng; mới nhất '+fmt(last[1])+' cent/lb tháng '+last[0].slice(5)+'/'+last[0].slice(0,4)+'. Chế độ Năm là bình quân 12 tháng, chỉ các năm đủ 12 tháng. Chỉ báo thị trường thế giới, không phải giá bán của QNS; giá đường trong nước chịu thêm thuế phòng vệ thương mại và đường nhập lậu.');
      mkTS('qnsSugarWorld',{def:'m',m:{labels:ml,datasets:[line('ICE No.11',r.map(x=>x[1]),0,'y')]},y:{labels:full,datasets:[ds('ICE No.11 (bình quân năm)',full.map(avg),0)]},cfg:combo('cent/lb','')});}
-    card(g,'qnsSugarPL','Doanh thu & LN gộp mảng đường','Doanh thu và LN gộp bộ phận đường (cột, tỷ VND), biên gộp (đường, %, trục phải). Năm 2021–2025 khớp thuyết minh bộ phận BCTC; quý riêng = lũy kế trừ kỳ trước, Q4 = năm kiểm toán − 9T.',true);
+    card(g,'qnsSugarPL','Doanh thu & LN gộp mảng đường','Doanh thu và LN gộp bộ phận đường (cột, tỷ VND), biên gộp (đường, %, trục phải). Năm 2021–2025 khớp thuyết minh bộ phận BCTC; quý riêng = lũy kế trừ kỳ trước, Q4 = năm kiểm toán − 9T. Lũy kế: cộng các quý từ đầu năm, so cùng kỳ; biên gộp tính lại từ tổng lũy kế.',true);
     mkTS('qnsSugarPL',plSpec(0,s.revenue,s.revenue.map((r,j)=>r!=null&&s.cogs[j]!=null?r-s.cogs[j]:null)));
     table(g,'Bảng driver mảng đường',yr,[['Diện tích vùng mía (ha)',s.area],['Năng suất (tấn mía/ha)',s.yield],['Mía thu mua (tấn)',s.caneProcured],['Tỷ lệ mía/đường (tấn mía/tấn đường)',s.caneToSugar],['Đường sản xuất (tấn)',s.sugarProduced],['Đường RS tiêu thụ (tấn)',s.soldRS],['Đường RE tiêu thụ (tấn)',s.soldRE],['Giá RS (VND/kg)',s.priceRS],['Giá RE (VND/kg)',s.priceRE],['Doanh thu ước tính = SL × giá (tỷ)',s.revenueEst],['Doanh thu bộ phận (tỷ)',s.revenue],['Giá vốn bộ phận (tỷ)',s.cogs],['Giá vốn/kg (VND)',s.costPerKg],['Biên gộp (%)',s.gm]],'Cột là năm tài chính; số vùng mía, mía thu mua, đường sản xuất thuộc niên vụ kết thúc trong năm đó ('+se.join(', ')+'). Doanh thu ước tính và chênh với doanh thu bộ phận phản ánh phụ phẩm, mật rỉ và sai số giá bình quân. Số analyst tổng hợp; doanh thu, giá vốn đối chiếu BCTC.');
    },
@@ -2440,7 +2445,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     mkTS('qnsMilkVol',{y:{labels:m.years,datasets:[ds('Tiêu thụ (triệu lít)',m.volume,0),line('Tiêu thụ / công suất (%)',m.volume.map((v,j)=>v!=null&&m.capacity[j]?v/m.capacity[j]*100:null),2)]},cfg:combo('triệu lít','%')});
     card(g,'qnsMilkPrice','Doanh thu & giá bán bình quân','Doanh thu bộ phận sữa (cột, tỷ VND) và giá bán bình quân = doanh thu ÷ sản lượng tiêu thụ (đường, nghìn VND/lít, trục phải); gộp cơ cấu sản phẩm nên phản ánh cả giá lẫn mix.');
     mkTS('qnsMilkPrice',{y:{labels:m.years,datasets:[ds('Doanh thu (tỷ VND)',m.revenue,0),line('Giá bình quân (nghìn VND/lít)',m.price,2)]},cfg:combo('tỷ VND','nghìn VND/lít')});
-    card(g,'qnsMilkPL','Doanh thu & LN gộp mảng sữa','Doanh thu và LN gộp bộ phận sữa đậu nành (cột, tỷ VND), biên gộp (đường, %, trục phải). Năm 2021–2025 khớp thuyết minh bộ phận BCTC; quý riêng = lũy kế trừ kỳ trước, Q4 = năm kiểm toán − 9T.',true);
+    card(g,'qnsMilkPL','Doanh thu & LN gộp mảng sữa','Doanh thu và LN gộp bộ phận sữa đậu nành (cột, tỷ VND), biên gộp (đường, %, trục phải). Năm 2021–2025 khớp thuyết minh bộ phận BCTC; quý riêng = lũy kế trừ kỳ trước, Q4 = năm kiểm toán − 9T. Lũy kế: cộng các quý từ đầu năm, so cùng kỳ; biên gộp tính lại từ tổng lũy kế.',true);
     mkTS('qnsMilkPL',plSpec(1,m.revenue,m.gp));
     table(g,'Bảng driver mảng sữa',m.years,[['Sản lượng tiêu thụ (triệu lít)',m.volume],['Công suất thiết kế (triệu lít/năm)',m.capacity],['Tiêu thụ / công suất (%)',m.volume.map((v,j)=>v!=null&&m.capacity[j]?v/m.capacity[j]*100:null)],['Thị phần sữa đậu nành Vinasoy (%)',m.share],['Giá bán bình quân (nghìn VND/lít)',m.price],['Doanh thu bộ phận (tỷ)',m.revenue],['LN gộp bộ phận (tỷ)',m.gp],['Biên gộp (%)',m.gm]],'Số analyst tổng hợp; doanh thu, LN gộp đối chiếu BCTC. Thị phần chỉ có các năm 2020–2023.');
    }
@@ -2945,7 +2950,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   };
   mkTS=function(id,spec){
     // Lũy kế (spec.ytd): dựng chu kỳ 'l' trước khi tính trạng thái để lựa chọn đã lưu được giữ.
-    if(spec.ytd&&spec.m&&typeof tsYtd==='function'){const l=tsYtd(spec.m,(TSC[id]||{}).ytdN);if(l)spec.l=l;else delete spec.l;}
+    if(spec.ytd&&(spec.m||spec.q)&&typeof tsYtdSpec==='function')tsYtdSpec(id,spec);
     if(!isSegment(id)||spec.operationalSnapshot)return originalMkTS(id,spec);
     const prepared={...spec,segmentPeriods:true};
     for(const p of ['q','y'])if(!hasData(prepared[p]))prepared[p]={labels:[],datasets:[]};
