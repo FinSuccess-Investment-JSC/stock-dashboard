@@ -2925,6 +2925,44 @@ document.addEventListener('DOMContentLoaded',()=>{
   style.textContent='.segment-no-data{height:100%;display:flex;align-items:center;justify-content:center;text-align:center;color:#697284;font-size:14px;padding:24px;box-sizing:border-box}@media(max-width:600px){#seg .info::after{position:fixed;left:14px;right:14px;bottom:16px;top:auto;width:auto;max-width:calc(100vw - 28px);box-sizing:border-box}}';
   document.head.appendChild(style);
 
+
+  // Tỷ trọng (%): mọi chart cột chồng giá trị trong tab Mảng kinh doanh có nút Tỷ VND / Tỷ trọng (%).
+  // Mẫu số = tổng các cấu phần đang trình bày cùng kỳ; kỳ thiếu một cấu phần thì để trống cả kỳ.
+  const SHARE_KEY='segment_share_v1',page=location.pathname.replace(/index\.html$/,'');
+  let shareModes={};try{shareModes=JSON.parse(localStorage.getItem(SHARE_KEY)||'{}')||{};}catch(e){}
+  try{const old=JSON.parse(localStorage.getItem('vnm_segment_share_v1')||'null');if(old&&/vnm/i.test(page))for(const k in old)if(!shareModes[page+k])shareModes[page+k]=old[k];}catch(e){}
+  const shareOn=id=>shareModes[page+id]==='percent';
+  const fmtPct=v=>Number(v).toLocaleString('vi-VN',{maximumFractionDigits:2})+'%';
+  const shareable=(spec,period)=>{
+    const src=['y','q','m'].map(p=>spec[p]).find(hasData);if(!src||typeof spec.cfg!=='function')return false;
+    let c;try{c=spec.cfg(src.labels,src.datasets,period||'y');}catch(e){return false;}
+    if(!c||c.type!=='bar'||c.shareView||c.options?.indexAxis==='y')return false;
+    const ds=(c.data?.datasets||[]).filter(d=>!d.type||d.type==='bar');
+    if(ds.length<2||ds.length!==(c.data?.datasets||[]).length)return false;
+    if(!(c.options?.scales?.x?.stacked||ds.every(d=>d.stack&&d.stack===ds[0].stack)))return false;
+    return ds.every(d=>(d.data||[]).every(v=>v==null||!(v<0)));
+  };
+  const shareCfg=orig=>(labels,datasets,period)=>{
+    if(!shareOn(orig.__id))return orig(labels,datasets,period);
+    const totals=labels.map((_,j)=>datasets.every(d=>Number.isFinite(d.data[j]))?datasets.reduce((a,d)=>a+d.data[j],0):null);
+    const pctDs=datasets.map(d=>({...d,data:d.data.map((v,j)=>totals[j]>0?v/totals[j]*100:null)}));
+    const c=orig(labels,pctDs,period);c.shareView=true;c.lockChartType=true;c.options=c.options||{};
+    const pl=c.options.plugins=c.options.plugins||{};pl.tooltip={...(pl.tooltip||{}),callbacks:{...(pl.tooltip?.callbacks||{}),label:x=>x.dataset.label+': '+fmtPct(x.parsed.y)}};
+    const sc=c.options.scales=c.options.scales||{};sc.x={...(sc.x||{}),stacked:true};sc.y={...(sc.y||{}),stacked:true,beginAtZero:true,min:0,max:100,ticks:{...(sc.y?.ticks||{}),callback:v=>v+'%'}};
+    return c;
+  };
+  const shareControls=id=>{
+    const box=document.getElementById(id)?.closest('.chart');if(!box)return;
+    let ctl=box.parentElement.querySelector('.seg-share-ctl,.vnm-share-ctl');
+    if(!ctl){ctl=document.createElement('div');ctl.className='filters seg-share-ctl';ctl.setAttribute('role','group');ctl.setAttribute('aria-label','Đơn vị biểu đồ');}
+    // Đặt trước hàng Chu kỳ/Số kỳ: hàng đó phải nằm sát khung chart, nếu không sẽ bị dựng lặp.
+    const bar=box.previousElementSibling?.classList?.contains('tsctl')?box.previousElementSibling:box;
+    if(ctl.nextElementSibling!==bar)bar.before(ctl);
+    const mode=shareOn(id)?'percent':'amount';
+    ctl.innerHTML=`<button type="button" data-view="amount" class="${mode==='amount'?'on':''}" aria-pressed="${mode==='amount'}">Tỷ VND</button><button type="button" data-view="percent" class="${mode==='percent'?'on':''}" aria-pressed="${mode==='percent'}">Tỷ trọng (%)</button>`;
+    ctl.onclick=e=>{const b=e.target.closest('button[data-view]');if(!b)return;shareModes[page+id]=b.dataset.view;try{localStorage.setItem(SHARE_KEY,JSON.stringify(shareModes));}catch(x){}mkTS(id,TSREG[id]);};
+  };
+
   tsAvail=function(spec){
     return spec.segmentPeriods?['m','q','y','l'].filter(p=>p==='l'?hasData(spec.l):p!=='m'||hasData(spec.m)):originalAvail(spec);
   };
@@ -2933,6 +2971,8 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(spec.ytd&&(spec.m||spec.q)&&typeof tsYtdSpec==='function')tsYtdSpec(id,spec);
     if(!isSegment(id)||spec.operationalSnapshot)return originalMkTS(id,spec);
     const prepared={...spec,segmentPeriods:true};
+    const canShare=!spec.noShare&&(spec.cfg?.__share||shareable(spec));
+    if(canShare&&!spec.cfg.__share){const o=spec.cfg;o.__id=id;prepared.cfg=shareCfg(o);prepared.cfg.__share=true;prepared.cfg.__id=id;}
     for(const p of ['q','y'])if(!hasData(prepared[p]))prepared[p]={labels:[],datasets:[]};
     // Open on actual data; a saved or explicitly selected missing period stays selected.
     if(!hasData(prepared[prepared.def]))prepared.def=['m','q','y'].find(p=>hasData(prepared[p]))||'y';
@@ -2947,12 +2987,15 @@ document.addEventListener('DOMContentLoaded',()=>{
       empty.textContent='Không có dữ liệu theo '+TS_NAME[state.p];
       if(ctl)ctl.style.visibility='hidden';
       tsControls(id,prepared,state);
+      if(canShare)shareControls(id);
       return;
     }
     canvas.style.display='';
     if(empty)empty.remove();
     if(ctl)ctl.style.visibility='';
-    return originalMkTS(id,prepared);
+    const r=originalMkTS(id,prepared);
+    if(canShare)shareControls(id);
+    return r;
   };
 
   // Register legacy annual charts too. Split mixed year/quarter labels without deriving numbers.
