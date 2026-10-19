@@ -2872,7 +2872,10 @@ document.addEventListener('DOMContentLoaded',()=>{
     const bar=box.previousElementSibling?.classList?.contains('tsctl')?box.previousElementSibling:box;
     if(ctl.nextElementSibling!==bar)bar.before(ctl);
     const mode=shareOn(id)?'percent':'amount';
-    ctl.innerHTML=`<button type="button" data-view="amount" class="${mode==='amount'?'on':''}" aria-pressed="${mode==='amount'}">Tỷ VND</button><button type="button" data-view="percent" class="${mode==='percent'?'on':''}" aria-pressed="${mode==='percent'}">Tỷ trọng (%)</button>`;
+    // Nhãn nút giá trị lấy đơn vị trong ngoặc ở tiêu đề chart (tỷ VND, nghìn tấn…).
+    const unit=(([...(box.closest('.card')?.querySelector('h3')?.childNodes||[])].filter(n=>n.nodeType===3||n.matches?.('[id$="Title"]')).map(n=>n.textContent).join('').trim()).match(/\(([^()%]+)\)$/)||[])[1]?.trim();
+    const amountLabel=unit?unit.charAt(0).toUpperCase()+unit.slice(1):'Giá trị';
+    ctl.innerHTML=`<button type="button" data-view="amount" class="${mode==='amount'?'on':''}" aria-pressed="${mode==='amount'}">${amountLabel}</button><button type="button" data-view="percent" class="${mode==='percent'?'on':''}" aria-pressed="${mode==='percent'}">Tỷ trọng (%)</button>`;
     ctl.onclick=e=>{const b=e.target.closest('button[data-view]');if(!b)return;shareModes[page+id]=b.dataset.view;try{localStorage.setItem(SHARE_KEY,JSON.stringify(shareModes));}catch(x){}mkTS(id,TSREG[id]);};
   };
 
