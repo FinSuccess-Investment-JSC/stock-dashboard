@@ -5425,8 +5425,8 @@ document.addEventListener('DOMContentLoaded',()=>{
     // Chuỗi có số âm (loại trừ nội bộ, điều chỉnh) không phải cấu phần: bỏ khỏi tỷ trọng, cần ≥2 mảng dương.
     return ds.filter(d=>!(d.data||[]).some(v=>v<0)).length>=2;
   };
-  const shareCfg=orig=>(labels,datasets,period)=>{
-    if(!shareOn(orig.__id))return orig(labels,datasets,period);
+  const shareCfg=(orig,id)=>(labels,datasets,period)=>{
+    if(!shareOn(id))return orig(labels,datasets,period);
     datasets=datasets.filter(d=>!(d.data||[]).some(v=>v<0));
     const totals=labels.map((_,j)=>datasets.every(d=>Number.isFinite(d.data[j]))?datasets.reduce((a,d)=>a+d.data[j],0):null);
     const pctDs=datasets.map(d=>({...d,data:d.data.map((v,j)=>totals[j]>0?v/totals[j]*100:null)}));
@@ -5456,7 +5456,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(!isSegment(id)||spec.operationalSnapshot)return originalMkTS(id,spec);
     const prepared={...spec,segmentPeriods:true};
     const canShare=!spec.noShare&&(spec.cfg?.__share||shareable(spec));
-    if(canShare&&!spec.cfg.__share){const o=spec.cfg;o.__id=id;prepared.cfg=shareCfg(o);prepared.cfg.__share=true;prepared.cfg.__id=id;}
+    if(canShare&&!spec.cfg.__share){prepared.cfg=shareCfg(spec.cfg,id);prepared.cfg.__share=true;}
     for(const p of ['q','y'])if(!hasData(prepared[p]))prepared[p]={labels:[],datasets:[]};
     // Open on actual data; a saved or explicitly selected missing period stays selected.
     if(!hasData(prepared[prepared.def]))prepared.def=['m','q','y'].find(p=>hasData(prepared[p]))||'y';
