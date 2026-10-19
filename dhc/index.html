@@ -2790,10 +2790,12 @@ document.addEventListener('DOMContentLoaded',()=>{
     const ds=(c.data?.datasets||[]).filter(d=>!d.type||d.type==='bar');
     if(ds.length<2||ds.length!==(c.data?.datasets||[]).length)return false;
     if(!(c.options?.scales?.x?.stacked||ds.every(d=>d.stack&&d.stack===ds[0].stack)))return false;
-    return ds.every(d=>(d.data||[]).every(v=>v==null||!(v<0)));
+    // Chuỗi có số âm (loại trừ nội bộ, điều chỉnh) không phải cấu phần: bỏ khỏi tỷ trọng, cần ≥2 mảng dương.
+    return ds.filter(d=>!(d.data||[]).some(v=>v<0)).length>=2;
   };
   const shareCfg=orig=>(labels,datasets,period)=>{
     if(!shareOn(orig.__id))return orig(labels,datasets,period);
+    datasets=datasets.filter(d=>!(d.data||[]).some(v=>v<0));
     const totals=labels.map((_,j)=>datasets.every(d=>Number.isFinite(d.data[j]))?datasets.reduce((a,d)=>a+d.data[j],0):null);
     const pctDs=datasets.map(d=>({...d,data:d.data.map((v,j)=>totals[j]>0?v/totals[j]*100:null)}));
     const c=orig(labels,pctDs,period);c.shareView=true;c.lockChartType=true;c.options=c.options||{};
