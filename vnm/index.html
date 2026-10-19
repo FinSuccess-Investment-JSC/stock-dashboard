@@ -2342,7 +2342,7 @@ const questionLayouts={
  PVD:[['finChart','pvdFixedAssets'],['pvdPbtBridge','pvdFinanceLeverage'],['cashChart']],
  FPT:[['fptFinanceITMargin','fptFinanceAssociates'],['finChart','fptFinanceCashAfter'],['cashChart']]
 };
-if(questionLayouts[ticker])d.financialProfile.layout={chartRows:questionLayouts[ticker]};
+if(questionLayouts[ticker])d.financialProfile.layout={...(d.financialProfile.layout||{}),chartRows:questionLayouts[ticker]};
 // The question is retained only when its observation can change a forecast input or a valuation risk.
 const questionTests={
  MWG:[
@@ -5747,11 +5747,9 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
       return parts.filter(part=>part.nodes.length);
     };
 
-    for(const el of children){
-      if(el===title||el===kpi)continue;
+    const distributeRow=el=>{
       const cards=[...el.children].filter(x=>x.classList?.contains('card'));
-      // Một hàng grid có thể chứa nhiều chart thuộc nhóm khác nhau; tách theo từng card.
-      if(el.classList.contains('grid')&&cards.length>1){
+      if(cards.length>1){
         const byGroup=new Map();
         for(const card of cards){
           const group=classify(card,overrides);
@@ -5762,6 +5760,21 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
           byGroup.get(group).appendChild(card);
         }
         el.remove();
+      }else panes[classify(el,overrides)].appendChild(el);
+    };
+    for(const el of children){
+      if(el===title||el===kpi)continue;
+      // financial-layout tạo nhiều hàng trong một khối; phân từng hàng/card
+      // để chart KQKD không kéo theo Bảng cân đối và Dòng tiền.
+      if(el.id==='financePrimaryCharts'){
+        for(const row of [...el.children])distributeRow(row);
+        el.remove();
+        continue;
+      }
+      const cards=[...el.children].filter(x=>x.classList?.contains('card'));
+      // Một hàng grid có thể chứa nhiều chart thuộc nhóm khác nhau; tách theo từng card.
+      if(el.classList.contains('grid')&&cards.length>1){
+        distributeRow(el);
         continue;
       }
       if(!el.classList.contains('card')&&el.querySelectorAll(':scope > .grid').length>1){
