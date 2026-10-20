@@ -77,6 +77,28 @@
 })();
 
 </script>
+<script>
+/* Áp giả định analyst đã publish cho mã này (<MÃ>/published-defaults.json, do analyst-gate.js lưu).
+   build_stock_site.py chèn ngay đầu <head> kèm dữ liệu, trước mọi script đọc localStorage.
+   Bản publish mới hơn bản trình duyệt đã áp thì ghi đè giá trị trên trình duyệt người xem;
+   khóa đang trống luôn được điền. So sánh version theo thời gian để không lấy bản cũ đè bản
+   analyst vừa lưu khi website chưa kịp build lại. */
+(function (pub, ticker) {
+  if (!pub || !pub.version || !pub.values) return;
+  try {
+    var vk = 'fs_pub_version:' + ticker, seen = localStorage.getItem(vk);
+    var fresh = !seen || pub.version > seen;
+    Object.keys(pub.values).forEach(function (k) {
+      if (typeof pub.values[k] === 'string' && (fresh || localStorage.getItem(k) === null)) localStorage.setItem(k, pub.values[k]);
+    });
+    if (fresh) {
+      (pub.removed || []).forEach(function (k) { localStorage.removeItem(k); });
+      localStorage.setItem(vk, pub.version);
+    }
+  } catch (e) { /* trình duyệt chặn localStorage: dùng giả định trong dữ liệu */ }
+})({"version": "2026-10-20T03:06:44.246Z", "values": {"qns_analyst_v2": "{\"ops\":{\"cane\":[2259,2259,2259],\"caneRatio\":[9.58,9.58,9.58],\"sugarPrice\":[16,17,17],\"sugarCost\":[12.82,13,13],\"milkVolG\":[4,4,4],\"milkAspG\":[2,2,2],\"milkKeptG\":[6,1,1],\"tpRevG\":[0,0,0],\"tpGM\":[2.29,2.29,2.29],\"otherRevG\":[2,2,2],\"otherGM\":[27.16,27.16,27.16]}}"}, "removed": []}, "QNS");
+
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FinSuccess | QNS</title>
