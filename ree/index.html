@@ -4314,5 +4314,28 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 })();
 
 </script>
+<script>
+/* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
+   version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
+(function(){
+  const PAGE='ree',BUILD='6fca42649a90',URL_JSON='../version.json';
+  async function check(){
+    try{
+      const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
+      const v=await r.json(),latest=v&&v.pages&&v.pages[PAGE];
+      if(!latest||latest===BUILD||document.getElementById('fs-update-bar'))return;
+      const bar=document.createElement('div');bar.id='fs-update-bar';bar.setAttribute('role','status');
+      bar.style.cssText='position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:9999;background:#1D2678;color:#fff;padding:10px 14px;border-radius:12px;box-shadow:0 8px 24px rgba(20,25,113,.25);font:600 14px system-ui,sans-serif;display:flex;gap:12px;align-items:center';
+      bar.innerHTML='<span>Có bản cập nhật mới</span><button type="button" style="border:0;border-radius:8px;background:#59C5C8;color:#0f1640;font:700 13px system-ui,sans-serif;padding:6px 12px;cursor:pointer">Tải lại</button>';
+      bar.querySelector('button').onclick=()=>{const u=new URL(location.href);u.searchParams.set('v',latest);location.replace(u.toString());};
+      document.body.appendChild(bar);
+    }catch(e){}
+  }
+  if(document.readyState==='complete')check();else window.addEventListener('load',check);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')check();});
+  setInterval(check,5*60*1000);
+})();
+
+</script>
 </body>
 </html>
