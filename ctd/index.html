@@ -3884,21 +3884,29 @@ window.FS_ANALYST_VAULT={"iter": 600000, "salt": "1J1KSPRXSLtd3z2nYwmUpA==", "iv
     const roeRow=(D.financials&&D.financials.sections||[]).flatMap(s=>s.rows||[]).find(r=>/^ROE\s*\(trượt 4 quý\)/i.test(r.l||''));
     const roeLatest=roeRow&&Array.isArray(roeRow.q)?roeRow.q.at(-1):null;
     const roePeriod=D.financials&&Array.isArray(D.financials.quarterly)?D.financials.quarterly.at(-1):'';
-    const shares=m.sharesOutstanding!=null?m.sharesOutstanding:m.sharesOutBasis==='proxy'?null:m.sharesOut;
-    const shareNote=m.sharesOutstanding!=null?period(m.sharesOutstandingNote)||'triệu CP đang lưu hành':m.sharesOutBasis==='proxy'?'Chờ số CP lưu hành':'';
+    const adj=m.shareAdjustment;
+    const adjustedShares=adj&&Number.isFinite(Number(adj.issuedShares))&&Number.isFinite(Number(adj.excludedShares))
+      ?Number(adj.issuedShares)-Number(adj.excludedShares):null;
+    const shares=adjustedShares!=null?adjustedShares:m.sharesOutstanding!=null?m.sharesOutstanding:m.sharesOutBasis==='proxy'?null:m.sharesOut;
+    const shareNote=adjustedShares!=null?'Ngoài tập đoàn · '+period(adj.asOf):m.sharesOutstanding!=null?period(m.sharesOutstandingNote)||'triệu CP đang lưu hành':m.sharesOutBasis==='proxy'?'Chờ số CP lưu hành':'';
     const ev=val(m.evEbitda!=null?m.evEbitda:histEv,'x',2),roe=val(m.roe!=null?m.roe:roeLatest,'%',2);
     const facts=[
-      ['Vốn hóa',val(m.mcap,' tỷ VND',2),period(m.mcapDate||m.priceDate)],
+      [m.mcapLabel?m.mcapLabel.replace(/^VỐN HÓA/i,'Vốn hóa'):'Vốn hóa',val(m.mcap,' tỷ VND',2),period(m.mcapDate||m.priceDate)],
       ['Giá trị sổ sách',val(m.bvps,' đ/CP',2),period(m.bookValueDate)],
       ['Kiểm toán',m.auditor||'—',period(m.auditPeriod)||'Chờ đối chiếu kỳ báo cáo'],
       ['CP lưu hành',val(shares,' triệu',2),sub(val(shares,' triệu',2),shareNote)],
+      ...(adjustedShares!=null?[
+        ['CP phát hành',val(adj.issuedShares,' triệu',2),period(adj.asOf)],
+        [adj.label||'CP quỹ / nội bộ loại trừ',val(adj.excludedShares,' triệu',2),period(adj.asOf)]
+      ]:[]),
       ['EV/EBITDA',ev,sub(ev,period(m.evEbitdaPeriod||histEvLabel),'TTM')],
       ['EPS',val(m.epsTTM,' đ/CP',2),sub(val(m.epsTTM,' đ/CP',2),period(m.epsPeriod),'TTM')],
       ['Room NĐTNN',room.shares!=null?val(room.shares,' CP'): '—',room.percent!=null?val(room.percent,'%',2)+(room.date?' · '+period(room.date):''):'Chờ số room còn lại và giới hạn sở hữu'],
       ['ROA',val(m.roa,'%',2),sub(val(m.roa,'%',2),period(m.roaPeriod),'TTM')],
       ['ROE',roe,sub(roe,period(m.roePeriod||roePeriod),'TTM')]
     ];
-    info.innerHTML='<h3 class="sub">Thông tin doanh nghiệp</h3><div class="overview-facts">'+facts.map(x=>`<div class="fact"><div class="l">${esc(x[0])}</div><div class="v">${esc(x[1])}</div><div class="s">${esc(x[2])}</div></div>`).join('')+'</div><div class="note">—: chưa có dữ liệu đã đối chiếu. Mỗi ô ghi kỳ hoặc ngày của số liệu; các chỉ số có thể khác kỳ.'+(room.limitPct!=null?' Trần sở hữu NĐTNN: '+val(room.limitPct,'%',2)+'.':'')+'</div>';
+    const adjustmentNote=adjustedShares!=null?` CP ngoài tập đoàn = ${num(Number(adj.issuedShares)*1e6)} − ${num(Number(adj.excludedShares)*1e6)} = ${num(Math.round(adjustedShares*1e6))} CP; vốn hóa ngoài tập đoàn = giá ${num(m.price)} đ × ${num(Math.round(adjustedShares*1e6))} CP ÷ 1 tỷ. ${esc(adj.explanation||'')}`:'';
+    info.innerHTML='<h3 class="sub">Thông tin doanh nghiệp</h3><div class="overview-facts">'+facts.map(x=>`<div class="fact"><div class="l">${esc(x[0])}</div><div class="v">${esc(x[1])}</div><div class="s">${esc(x[2])}</div></div>`).join('')+'</div><div class="note">—: chưa có dữ liệu đã đối chiếu. Mỗi ô ghi kỳ hoặc ngày của số liệu; các chỉ số có thể khác kỳ.'+adjustmentNote+(room.limitPct!=null?' Trần sở hữu NĐTNN: '+val(room.limitPct,'%',2)+'.':'')+'</div>';
     let box=document.getElementById('governanceBox');if(!box){box=document.createElement('div');box.id='governanceBox';box.className='card';box.style.marginTop='16px';info.after(box);}
     const section=(title,items,draw)=>items&&items.length?`<div class="gov-section"><h4>${title}</h4>${draw(items)}</div>`:'';
     const table=(heads,items,draw)=>'<div class="tbl-wrap"><table><thead><tr>'+heads.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+items.map(draw).join('')+'</tbody></table></div>';
