@@ -2500,7 +2500,17 @@ const HIST={
  taxPct:()=>Q.years.map((y,i)=>[y,Q.history.taxPct[i]]),
  rate:()=>Q.years.slice(1).map(y=>[y,finRate(y)]),
 };
-function options(key){const f=HIST[key];if(!f)return [];const raw=f().filter(([,v])=>v!=null&&Number.isFinite(v)),yrs=raw.filter(([l])=>/^\d{4}(\/\d{2})?$/.test(l));const opts=raw.map(([l,v])=>({id:l,label:l,value:v}));for(const n of [2,3,5]){if(yrs.length>=n){const s=yrs.slice(-n);opts.push({id:'avg'+n,label:`Bình quân ${s[0][0]}–${s.at(-1)[0]}`,value:avg(s.map(x=>x[1]))});}}return opts;}
+// Lũy kế 6T/2026 so với 6T/2025 cho các dòng tăng trưởng có số nửa năm.
+const H125=qSum(['Q1/25','Q2/25']),MQP=Q.milkSoldQPrev||{},MQ26=Q.milkSoldQ||{};
+const h1v26=sumOf(['Q1/26','Q2/26'].map(l=>MQ26[l])),h1v25=sumOf(['Q1/25','Q2/25'].map(l=>MQP[l]));
+const YTD={
+ sellOthG:()=>yoy(SELL_H126,sellOthH(['2025Q1','2025Q2'],['Q1/25','Q2/25'])),
+ admG:()=>yoy(ADM_H126,sumOf(['2025Q1','2025Q2'].map(k=>qf(k,'adm')))),
+ milkVolG:()=>yoy(h1v26,h1v25),
+ milkKeptG:()=>H126&&H125&&h1v26&&h1v25?yoy(H126.milkKept/h1v26,H125.milkKept/h1v25):null,
+ otherKeptG:()=>H126&&H125?yoy(H126.otherKept,H125.otherKept):null,
+};
+function options(key){const f=HIST[key];if(!f)return [];const raw=f().filter(([,v])=>v!=null&&Number.isFinite(v)),yrs=raw.filter(([l])=>/^\d{4}(\/\d{2})?$/.test(l));const opts=raw.map(([l,v])=>({id:l,label:l,value:v}));for(const n of [2,3,5]){if(yrs.length>=2){const s=yrs.slice(-n),short=s.length<n;if(short&&n<5)continue;opts.push({id:'avg'+n,label:`Bình quân ${n} năm ${s[0][0]}–${s.at(-1)[0]}${short?` (chỉ ${s.length} năm có số)`:''}`,value:avg(s.map(x=>x[1]))});}}const y=YTD[key]?.();if(y!=null&&Number.isFinite(y))opts.push({id:'ytd',label:'Lũy kế 6T/2026 so cùng kỳ',value:y});return opts;}
 const LBL={cane:['Mía ép (nghìn tấn)'],caneRatio:['Số tấn mía cho 1 tấn đường'],sugarPrice:['Giá bán thực chưa VAT (nghìn đ/kg)'],sugarCost:['Giá vốn (nghìn đ/kg)'],milkVolG:['Tăng sản lượng (%) · ô 2026F = nửa cuối 2026 so với nửa cuối 2025'],milkKeptG:['Tăng lãi giữ lại/lít (%) · ô 2026F = nửa cuối 2026 so với nửa cuối 2025'],tpElimGP:['Thành Phát + loại trừ nội bộ · LN gộp (tỷ)'],otherKeptG:['Mảng khác · tăng phần giữ lại sau đẩy hàng (%) · ô 2026F = nửa cuối 2026 so với nửa cuối 2025'],powerPrice:['Giá điện sinh khối (đ/kWh)'],sellOthG:['CPBH ngoài đẩy hàng · tăng (%) · ô 2026F = nửa cuối 2026 so với nửa cuối 2025'],admG:['Chi phí quản lý · tăng (%) · ô 2026F = nửa cuối 2026 so với nửa cuối 2025'],taxPct:['Thuế / LNTT (%)'],other:['Lợi nhuận khác (tỷ)'],rate:['Lãi suất trên tiền ròng bình quân (%/năm)'],projCapex:['Tổng vốn dự án An Khê chi trong năm (tỷ)'],capex:['Capex duy trì (tỷ/năm)'],da:['Khấu hao (tỷ/năm)'],dividends:['Cổ tức tiền mặt (tỷ/năm)'],pe:['P/E mục tiêu (x)'],shares:['CP ngoài tập đoàn (triệu)'],fundPct:['Trích quỹ khi tính EPS (%)'],valYear:['Năm định giá (2026/2027/2028)']};
 const HISTNOTE={projCapex:'Tổng ~4.500 tỷ (vốn tự có 3.317 + vay 1.183), theo tiến độ; giả định analyst',powerPrice:'Giá FIT hiện hành ≈ 1.828 đ/kWh; khung 2025 tối đa 2.091,74',other:'2025',elimPct:'Bình quân lịch sử',elimGP:'2025',otherFinCost:'2025',debtAdd:'Giả định analyst',projEq:'Giả định analyst',capex:'Giả định analyst',da:'≈ 2025',dividends:'4.000 đ/cp',pe:'Giả định analyst',shares:'BCTC soát xét 6T/2026',fundPct:'Quỹ 1%',valYear:'—'};
 function input(group,key,i){const v=i==null?state[group][key]:state[group][key][i];return `<input type="number" step="0.01" aria-label="${esc(LBL[key][0])}${i!=null?' '+FY[i]:''}" data-group="${group}" data-key="${key}"${i!=null?` data-i="${i}"`:''} value="${v==null?'':Math.round(v*100)/100}">`;}
@@ -4739,7 +4749,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='qns',BUILD='9bfa4a3d5f51',URL_JSON='../version.json';
+  const PAGE='qns',BUILD='ea8a98521c52',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
