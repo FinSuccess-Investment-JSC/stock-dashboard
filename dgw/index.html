@@ -92,9 +92,9 @@ Object.assign(window.PVS_DATA.governance,{"adjustedPrices":[{"date":"2016-01-04"
 
 Object.assign(window.PVS_DATA,{"consensus":[{"broker":"VIX","date":"2026-10-05","rating":"MUA","tpRaw":58346,"tpAdj":58346,"adjusted":false,"revF":36026,"revF1":null,"npF":1063,"npF1":null,"thesis":"","src":"","origin":"PDF CTCK","verified":"2026-10-15"},{"broker":"BVSC","date":"2026-09-11","rating":"MUA","tpRaw":53000,"tpAdj":53000,"adjusted":false,"revF":34122,"revF1":38208,"npF":875,"npF1":938,"thesis":"","src":"","origin":"PDF CTCK","verified":"2026-10-15"},{"broker":"SSI","date":"2026-09-09","rating":"TRUNG LẬP","tpRaw":48000,"tpAdj":48000,"adjusted":false,"revF":35294,"revF1":42251,"npF":978,"npF1":1066,"thesis":"","src":"","origin":"PDF CTCK","verified":"2026-10-15"}],"consensusFY":["2026F","2027F"],"consensusNote":"Báo cáo CTCK, số liệu đọc trực tiếp từ PDF báo cáo gốc của CTCK. Khuyến nghị là nhãn đã chuẩn hóa MUA/BÁN/TRUNG LẬP/KHÁC (Tích cực, Khả quan, Outperform → MUA); cột thiếu giữ trống.","consensusFcstNote":"Dự phóng doanh thu thuần và LNST cổ đông mẹ (tỷ VND) theo PDF từng CTCK; ô PDF không nêu để trống. TP điều chỉnh = TP công bố.","consensusBase":{"rev":26631.5,"revLabel":"DT 2025","np":547.3,"npLabel":"LNST mẹ 2025"}});
 
-Object.assign(window.PVS_DATA.meta=window.PVS_DATA.meta||{},{"price":46000,"priceDate":"2026-10-20","priceNote":"đóng cửa 20/10/2026","mcap":10180.73,"mcapDate":"20/10/2026","peTTM":12.19,"pb":2.74});
+Object.assign(window.PVS_DATA.meta=window.PVS_DATA.meta||{},{"price":46350,"priceDate":"2026-10-21","priceNote":"đóng cửa 21/10/2026","mcap":10258.19,"mcapDate":"21/10/2026","peTTM":12.28,"pb":2.76});
 
-(function(v){(window.PVS_DATA.signals||[]).forEach(function(s){if(Object.prototype.hasOwnProperty.call(v,s.id))s.value=v[s.id];});})({"pe":12.19,"netcash":765.7});
+(function(v){(window.PVS_DATA.signals||[]).forEach(function(s){if(Object.prototype.hasOwnProperty.call(v,s.id))s.value=v[s.id];});})({"pe":12.28,"netcash":759.9});
 
 (function(v){var o=window.PVS_DATA;o["latestFilings"]=v;})([{"name":"Báo cáo tài chính hợp nhất quý 2 năm 2026 (đã soát xét)","period":"Q2/2026","version":"soát xét","consolidated":true,"published":"2026-08-28T15:37+07:00","url":"https://cafefnew.mediacdn.vn/Images/Uploaded/DuLieuDownload/BCTC/DGW_202608272020DGW2020Bao20cao20tai20chinh_Hop20nhat_6T2026_signed_28082026153718.pdf?v=1787906239321"},{"name":"Báo cáo tài chính hợp nhất quý 2 năm 2026","period":"Q2/2026","version":"","consolidated":true,"published":"2026-07-29T16:23+07:00","url":"https://cafefnew.mediacdn.vn/Images/Uploaded/DuLieuDownload/BCTC/DGW_202607292020DGW2020Bao20cao20tai20chinh_Hop20nhat_2Q2026_signed_29072026162313.pdf?v=1785316994266"},{"name":"Báo cáo tài chính hợp nhất quý 1 năm 2026","period":"Q1/2026","version":"","consolidated":true,"published":"2026-04-28T10:40+07:00","url":"https://cafefnew.mediacdn.vn/Images/Uploaded/DuLieuDownload/BCTC/20260424_-_DGW_-_Bao_cao_tai_chinh_Hopnhat_1Q2026_1777028093.pdf"},{"name":"Báo cáo tài chính hợp nhất năm 2025 (đã kiểm toán)","period":"CN/2025","version":"kiểm toán","consolidated":true,"published":"2026-03-26T15:30+07:00","url":"https://cafefnew.mediacdn.vn/Images/Uploaded/DuLieuDownload/BCTC/20260324_-_DGW_-_BCTC_Hop_nhat_2025_Kiem_toan_signed__1774406429.pdf"},{"name":"Báo cáo tài chính hợp nhất quý 4 năm 2025","period":"Q4/2025","version":"","consolidated":true,"published":"2026-01-30T14:59+07:00","url":"https://cafefnew.mediacdn.vn/Images/Uploaded/DuLieuDownload/BCTC/20260128_-_DGW_-_Bao_cao_tai_chinh_Hop_nhat_4Q2025_signed_1769680270.pdf"}]);
 
@@ -4363,7 +4363,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='dgw',BUILD='392a8a78fe32',URL_JSON='../version.json';
+  const PAGE='dgw',BUILD='7632e32f9e98',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;

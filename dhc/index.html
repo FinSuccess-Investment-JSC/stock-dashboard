@@ -86,9 +86,9 @@ window.PVS_DATA = {"meta":{"ticker":"DHC","name":"Công ty Cổ phần Đông H�
 
 Object.assign(window.PVS_DATA,{"consensus":[{"broker":"Vietcap","date":"2026-09-16","rating":"MUA","tpRaw":45800,"tpAdj":45800,"adjusted":false,"revF":4093,"revF1":4895,"npF":566,"npF1":501,"thesis":"","src":"","origin":"PDF CTCK","verified":"2026-10-15"},{"broker":"DSC","date":"2026-08-10","rating":"MUA","tpRaw":42320,"tpAdj":42320,"adjusted":false,"revF":3881,"revF1":null,"npF":null,"npF1":null,"thesis":"","src":"","origin":"PDF CTCK","verified":"2026-10-15"}],"consensusFY":["2026F","2027F"],"consensusNote":"Báo cáo CTCK đọc từ file PDF gốc do CTCK phát hành. Khuyến nghị chuẩn hóa MUA/BÁN/TRUNG LẬP/KHÁC; cột thiếu giữ trống. Với báo cáo ra năm 2025, cột 2026F/2027F là số dự phóng năm kế tiếp nêu trong chính báo cáo.","consensusFcstNote":"Dự phóng lấy từ chính báo cáo PDF của CTCK; LNST = lợi nhuận cổ đông công ty mẹ (để trống nếu báo cáo chỉ nêu LNST toàn doanh nghiệp). TP điều chỉnh = TP công bố, chưa điều chỉnh pha loãng.","consensusBase":{"rev":3631,"revLabel":"DT 2025","np":393.1,"npLabel":"LNST mẹ 2025"}});
 
-Object.assign(window.PVS_DATA.meta=window.PVS_DATA.meta||{},{"price":38150,"priceDate":"2026-10-20","priceNote":"đóng cửa 20/10/2026","mcap":4053.42,"mcapDate":"20/10/2026","peTTM":7.38,"pb":1.61});
+Object.assign(window.PVS_DATA.meta=window.PVS_DATA.meta||{},{"price":38800,"priceDate":"2026-10-21","priceNote":"đóng cửa 21/10/2026","mcap":4122.49,"mcapDate":"21/10/2026","peTTM":7.5,"pb":1.64});
 
-(function(v){(window.PVS_DATA.signals||[]).forEach(function(s){if(Object.prototype.hasOwnProperty.call(v,s.id))s.value=v[s.id];});})({"netcash":346.3});
+(function(v){(window.PVS_DATA.signals||[]).forEach(function(s){if(Object.prototype.hasOwnProperty.call(v,s.id))s.value=v[s.id];});})({"netcash":340.5});
 
 Object.assign(window.PVS_DATA.meta=window.PVS_DATA.meta||{},{"foreignRoom":{"shares":15650688,"percent":14.73,"limitPct":50.0,"foreignHeldPct":35.27,"listedShares":106249620,"basis":"trên KL cổ phiếu niêm yết","date":"2026-10-21","src":"https://finance.vietstock.vn/DHC/tai-chinh.htm"}});
 
@@ -4371,7 +4371,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='dhc',BUILD='e5301d51e0af',URL_JSON='../version.json';
+  const PAGE='dhc',BUILD='156e98f4ede7',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;

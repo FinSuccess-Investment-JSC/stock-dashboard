@@ -92,9 +92,9 @@ Object.assign(window.PVS_DATA.governance,{"adjustedPrices":[{"date":"2017-07-20"
 
 Object.assign(window.PVS_DATA,{"consensus":[{"broker":"KBSV","date":"2026-09-23","rating":"MUA","tpRaw":59000,"tpAdj":59000,"adjusted":false,"revF":4926,"revF1":5337,"npF":1097,"npF1":1106,"thesis":"Đơn giá xử lý chất thải được phê duyệt","src":"","origin":"PDF CTCK","verified":"2026-10-15"},{"broker":"KIS","date":"2026-09-11","rating":"KHÁC","tpRaw":null,"tpAdj":null,"adjusted":false,"revF":null,"revF1":null,"npF":null,"npF1":null,"thesis":"Lợi nhuận tăng trưởng ổn định","src":"","origin":"PDF CTCK","verified":"2026-10-15"},{"broker":"MAS","date":"2026-08-10","rating":"MUA","tpRaw":51400,"tpAdj":51400,"adjusted":false,"revF":4809,"revF1":5323,"npF":1129,"npF1":1287,"thesis":"Lợi nhuận tiếp tục duy trì đi lên","src":"","origin":"PDF CTCK","verified":"2026-10-15"},{"broker":"KBSV","date":"2026-03-23","rating":"MUA","tpRaw":59000,"tpAdj":59000,"adjusted":false,"revF":4792,"revF1":5161,"npF":1126,"npF1":1168,"thesis":"Tăng tốc mở rộng thị phần nước sạch","src":"","origin":"PDF CTCK","verified":"2026-10-15"},{"broker":"MAS","date":"2026-02-28","rating":"MUA","tpRaw":52500,"tpAdj":52500,"adjusted":false,"revF":4917,"revF1":null,"npF":1120,"npF1":null,"thesis":"Vươn rộng, nối dài","src":"","origin":"PDF CTCK","verified":"2026-10-15"},{"broker":"KBSV","date":"2025-12-17","rating":"MUA","tpRaw":56200,"tpAdj":56200,"adjusted":false,"revF":4358,"revF1":null,"npF":854,"npF1":null,"thesis":"Giá nước đầu vào giảm giúp lợi nhuận tăng trưởng","src":"","origin":"PDF CTCK","verified":"2026-10-15"}],"consensusFY":["2026F","2027F"],"consensusNote":"Báo cáo CTCK phát hành từ 2025, số liệu đọc trực tiếp từ PDF báo cáo gốc của CTCK. Khuyến nghị là nhãn đã chuẩn hóa MUA/BÁN/TRUNG LẬP/KHÁC; cột thiếu giữ trống. Với báo cáo ra năm 2025, cột 2026F/2027F lấy số dự phóng năm kế tiếp của chính báo cáo đó.","consensusFcstNote":"Dự phóng lấy từ chính PDF báo cáo của CTCK; LNST = lợi nhuận cổ đông mẹ. TP điều chỉnh = TP công bố.","consensusBase":{"rev":4543,"revLabel":"DT 2025","np":991,"npLabel":"LNST mẹ 2025"}});
 
-Object.assign(window.PVS_DATA.meta=window.PVS_DATA.meta||{},{"price":41800,"priceDate":"2026-10-20","priceNote":"đóng cửa 20/10/2026","mcap":10506.31,"mcapDate":"20/10/2026","peTTM":9.73,"pb":1.76});
+Object.assign(window.PVS_DATA.meta=window.PVS_DATA.meta||{},{"price":41850,"priceDate":"2026-10-21","priceNote":"đóng cửa 21/10/2026","mcap":10518.87,"mcapDate":"21/10/2026","peTTM":9.74,"pb":1.76});
 
-(function(v){(window.PVS_DATA.signals||[]).forEach(function(s){if(Object.prototype.hasOwnProperty.call(v,s.id))s.value=v[s.id];});})({"pe":9.73});
+(function(v){(window.PVS_DATA.signals||[]).forEach(function(s){if(Object.prototype.hasOwnProperty.call(v,s.id))s.value=v[s.id];});})({"pe":9.74});
 
 Object.assign(window.PVS_DATA.meta=window.PVS_DATA.meta||{},{"foreignRoom":{"shares":118006979,"percent":53.66,"limitPct":56.0,"foreignHeldPct":2.05,"listedShares":219928644,"basis":"trên KL cổ phiếu niêm yết","date":"2026-10-21","src":"https://finance.vietstock.vn/BWE/tai-chinh.htm"}});
 
@@ -4424,7 +4424,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='bwe',BUILD='07839473557e',URL_JSON='../version.json';
+  const PAGE='bwe',BUILD='e3f9ad635c28',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;

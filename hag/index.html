@@ -92,9 +92,9 @@ Object.assign(window.PVS_DATA.governance,{"adjustedPrices":[{"date":"2016-01-04"
 
 Object.assign(window.PVS_DATA,{"consensus":[{"broker":"KAFI","date":"2025-12-03","rating":"TRUNG LẬP","tpRaw":17344,"tpAdj":17344,"adjusted":false,"revF":7921,"revF1":null,"npF":1929,"npF1":null,"thesis":"","src":"","origin":"PDF CTCK","verified":"2026-10-15"}],"consensusFY":["2026F","2027F"],"consensusNote":"Báo cáo CTCK đọc từ file PDF gốc do CTCK phát hành. Khuyến nghị chuẩn hóa MUA/BÁN/TRUNG LẬP/KHÁC; cột thiếu giữ trống. Với báo cáo ra năm 2025, cột 2026F/2027F là số dự phóng năm kế tiếp nêu trong chính báo cáo. HAG: trong 24 tháng gần nhất chỉ tìm được một báo cáo PDF có giá mục tiêu (KAFI 03/12/2025).","consensusFcstNote":"Dự phóng lấy từ chính báo cáo PDF của CTCK; LNST = lợi nhuận cổ đông công ty mẹ (để trống nếu báo cáo chỉ nêu LNST toàn doanh nghiệp). TP điều chỉnh = TP công bố, chưa điều chỉnh pha loãng.","consensusBase":{"rev":7432.3,"revLabel":"DT 2025","np":2122.8,"npLabel":"LNST mẹ 2025"}});
 
-Object.assign(window.PVS_DATA.meta=window.PVS_DATA.meta||{},{"price":14400,"priceDate":"2026-10-20","priceNote":"đóng cửa 20/10/2026","mcap":18250.55,"mcapDate":"20/10/2026","peTTM":5.35,"pb":1.23});
+Object.assign(window.PVS_DATA.meta=window.PVS_DATA.meta||{},{"price":14650,"priceDate":"2026-10-21","priceNote":"đóng cửa 21/10/2026","mcap":18567.4,"mcapDate":"21/10/2026","peTTM":5.45,"pb":1.25});
 
-(function(v){(window.PVS_DATA.signals||[]).forEach(function(s){if(Object.prototype.hasOwnProperty.call(v,s.id))s.value=v[s.id];});})({"pe":5.35});
+(function(v){(window.PVS_DATA.signals||[]).forEach(function(s){if(Object.prototype.hasOwnProperty.call(v,s.id))s.value=v[s.id];});})({"pe":5.45});
 
 Object.assign(window.PVS_DATA.meta=window.PVS_DATA.meta||{},{"foreignRoom":{"shares":599350618,"percent":47.29,"limitPct":49.0,"foreignHeldPct":1.71,"listedShares":1267467947,"basis":"trên KL cổ phiếu niêm yết","date":"2026-10-21","src":"https://finance.vietstock.vn/HAG/tai-chinh.htm"}});
 
@@ -4423,7 +4423,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='hag',BUILD='8514cc888600',URL_JSON='../version.json';
+  const PAGE='hag',BUILD='57d77e522217',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
