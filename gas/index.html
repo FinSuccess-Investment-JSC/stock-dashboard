@@ -95,7 +95,7 @@ Object.assign(window.PVS_DATA,{"consensus":[{"broker":"VPBS","date":"2026-10-14"
 
 Object.assign(window.PVS_DATA.meta=window.PVS_DATA.meta||{},{"price":76400,"priceDate":"2026-10-20","priceNote":"đóng cửa 20/10/2026","mcap":184349.36,"mcapDate":"20/10/2026","peTTM":14.5,"pb":null});
 
-Object.assign(window.PVS_DATA.meta=window.PVS_DATA.meta||{},{"foreignRoom":{"shares":1130876207,"percent":46.87,"limitPct":49.0,"foreignHeldPct":2.13,"listedShares":2412949756,"basis":"trên KL cổ phiếu niêm yết","date":"2026-10-20","src":"https://finance.vietstock.vn/GAS/tai-chinh.htm"}});
+Object.assign(window.PVS_DATA.meta=window.PVS_DATA.meta||{},{"foreignRoom":{"shares":1130850306,"percent":46.87,"limitPct":49.0,"foreignHeldPct":2.13,"listedShares":2412949756,"basis":"trên KL cổ phiếu niêm yết","date":"2026-10-21","src":"https://finance.vietstock.vn/GAS/tai-chinh.htm"}});
 
 (function(v){var o=window.PVS_DATA;o["latestFilings"]=v;})([{"name":"Báo cáo tài chính hợp nhất quý 2 năm 2026 (đã soát xét)","period":"Q2/2026","version":"soát xét","consolidated":true,"published":"2026-08-19T10:01+07:00","url":"https://cafefnew.mediacdn.vn/Images/Uploaded/DuLieuDownload/BCTC/GAS_202608142020GAS2020Bao20cao20tai20chinh20hop20nhat20soat20xet206T2026_19082026100108.pdf?v=1787108470307"},{"name":"Báo cáo tài chính hợp nhất quý 2 năm 2026","period":"Q2/2026","version":"","consolidated":true,"published":"2026-07-31T11:27+07:00","url":"https://cafefnew.mediacdn.vn/Images/Uploaded/DuLieuDownload/BCTC/GAS_202607302020GAS2020Bao20cao20tai20chinh20Q220202620hop20nhat_31072026112705.pdf?v=1785472027254"},{"name":"Báo cáo tài chính hợp nhất quý 1 năm 2026","period":"Q1/2026","version":"","consolidated":true,"published":"2026-04-28T10:23+07:00","url":"https://cafefnew.mediacdn.vn/Images/Uploaded/DuLieuDownload/BCTC/20260424_-_GAS_-_CBTT_BCTC_Hop_nhat_Quy_1_2026_1777028240.pdf"},{"name":"Báo cáo tài chính hợp nhất năm 2025 (đã kiểm toán)","period":"CN/2025","version":"kiểm toán","consolidated":true,"published":"2026-04-21T11:03+07:00","url":"https://cafefnew.mediacdn.vn/Images/Uploaded/DuLieuDownload/BCTC/GAS_Baocaotaichinh_2025_Kiemtoan_Hopnhat_21042026110305.pdf"},{"name":"Báo cáo tài chính hợp nhất quý 4 năm 2025","period":"Q4/2025","version":"","consolidated":true,"published":"2026-02-03T14:41+07:00","url":"https://cafefnew.mediacdn.vn/Images/Uploaded/DuLieuDownload/BCTC/20260202_-_GAS_-_Bao_cao_tai_chinh_Quy_4._2025_HN_1770102911.pdf"}]);
 
@@ -493,6 +493,7 @@ div.src,p.src,a.src{display:none!important}
 
 /* Icon ⓘ gọn (người dùng chốt 16/10/2026): nút ghi chú 15px, ⓘ cạnh tiêu đề chart 14px. */
 .info{width:14px!important;height:14px!important;font-size:9px!important}
+.chart .axis-mode .axis-values{margin-left:4px;border-left:1px solid var(--line,#DCE1E9);border-radius:0 5px 5px 0}
 
 </style>
 <style>
@@ -4088,6 +4089,34 @@ try{localStorage.removeItem('chart_axis_range_v1')}catch(e){}   // khoảng zoom
 const direct=new Map();   // chart dựng trực tiếp (không qua mk): id → {chart, base}
 const finite=v=>v!==null&&v!==''&&Number.isFinite(Number(v));
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(modes))}catch(e){}}
+// Hiện số liệu trên chart (bật/tắt theo từng chart, mặc định tắt; lưu chart_value_labels_v1).
+const LKEY='chart_value_labels_v1';
+let labels={};try{labels=JSON.parse(localStorage.getItem(LKEY)||'{}')||{}}catch(e){}
+const fmtVal=v=>Number(v).toLocaleString('vi-VN',{maximumFractionDigits:Math.abs(v)>=100?0:Math.abs(v)>=10?1:2});
+const valuePlugin={id:'fsValueLabels',afterDatasetsDraw(chart){
+  const id=chart.canvas&&chart.canvas.id;if(!id||!labels[id]||['pie','doughnut','polarArea'].includes(chart.config.type))return;
+  const ctx=chart.ctx,area=chart.chartArea,horiz=chart.options.indexAxis==='y';
+  ctx.save();ctx.font='600 10.5px Arial,sans-serif';ctx.textAlign='center';
+  chart.data.datasets.forEach((d,i)=>{
+    const meta=chart.getDatasetMeta(i);if(!chart.isDatasetVisible(i)||meta.hidden)return;
+    const isLine=meta.type==='line',els=meta.data||[];if(els.length>40)return;
+    const stacked=!isLine&&!!(chart.options.scales&&chart.options.scales[horiz?'x':'y']&&chart.options.scales[horiz?'x':'y'].stacked);
+    const color=isLine?(d.borderColor||'#1D2678'):'#1F2533';
+    els.forEach((el,j)=>{
+      const raw=d.data[j],v=raw&&typeof raw==='object'?(horiz?raw.x:raw.y):raw;if(!finite(v)||el.skip)return;
+      const t=fmtVal(v);let x=el.x,y=el.y;
+      if(stacked){const size=horiz?Math.abs(el.x-el.base):Math.abs(el.base-el.y);if(size<14||(horiz&&size<ctx.measureText(t).width+4))return;
+        x=horiz?(el.x+el.base)/2:el.x;y=horiz?el.y:(el.y+el.base)/2;ctx.fillStyle='#fff';ctx.textBaseline='middle';}
+      else if(horiz){ctx.fillStyle=color;ctx.textBaseline='middle';ctx.textAlign=v<0?'right':'left';x+=v<0?-4:4;}
+      else{ctx.fillStyle=color;ctx.textBaseline=v<0&&!isLine?'top':'bottom';y+=v<0&&!isLine?4:-5;}
+      if(y<area.top-ROOM||y>area.bottom+14)return;
+      ctx.fillText(t,x,y);ctx.textAlign='center';
+    });
+  });
+  ctx.restore();
+}};
+function ensurePlugin(){if(window.Chart&&!ensurePlugin.done){try{Chart.register(valuePlugin);ensurePlugin.done=true}catch(e){}}}
+ensurePlugin();
 function axes(cfg){
   if(!cfg||!cfg.data||['pie','doughnut','polarArea'].includes(cfg.type)||cfg.shareView)return [];
   const scales=cfg.options&&cfg.options.scales||{};
@@ -4109,6 +4138,7 @@ function fit(scale){
 }
 function restore(scale,base){for(const k of RANGE_KEYS)delete scale[k];Object.assign(scale,base||{});}
 window.configureChartAxes=function(id,cfg){
+  ensurePlugin();
   const list=axes(cfg);if(!list.length)return;
   const o=cfg.options=cfg.options||{};o.scales=o.scales||{};
   const base={};for(const {axis} of list)base[axis]=snapshot(o.scales[axis]);
@@ -4153,7 +4183,14 @@ window.areaConfig=function(cfg){
 };
 function sync(ctl,id){
   const mode=modes[id]==='fit'?'fit':'zero';
-  for(const b of ctl.querySelectorAll('button'))b.setAttribute('aria-pressed',String(b.dataset.mode===mode));
+  for(const b of ctl.querySelectorAll('button'))if(b.dataset.values)b.setAttribute('aria-pressed',String(!!labels[id]));else b.setAttribute('aria-pressed',String(b.dataset.mode===mode));
+}
+function toggleValues(id,ctl){
+  if(labels[id])delete labels[id];else labels[id]=1;
+  try{localStorage.setItem(LKEY,JSON.stringify(labels))}catch(e){}
+  ensurePlugin();
+  const c=window.Chart&&Chart.getChart&&Chart.getChart(id);if(c)c.update('none');
+  sync(ctl,id);
 }
 function setMode(id,mode,ctl){
   if(mode==='fit')modes[id]='fit';else delete modes[id];
@@ -4182,7 +4219,8 @@ window.renderChartAxes=function(id,cfg,directChart){
     for(const [mode,text,tip] of [['zero','Từ 0','Trục giá trị bắt đầu từ 0'],['fit','Vừa dữ liệu','Trục ôm sát số liệu đang hiện; có thể không bắt đầu từ 0']]){
       const b=document.createElement('button');b.type='button';b.dataset.mode=mode;b.textContent=text;b.title=tip;ctl.append(b);
     }
-    ctl.addEventListener('click',e=>{const b=e.target.closest('button');if(b&&b.dataset.mode)setMode(id,b.dataset.mode,ctl);});
+    const vb=document.createElement('button');vb.type='button';vb.dataset.values='1';vb.className='axis-values';vb.textContent='Số liệu';vb.title='Hiện/ẩn số liệu trên chart';ctl.append(vb);
+    ctl.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.values)toggleValues(id,ctl);else if(b.dataset.mode)setMode(id,b.dataset.mode,ctl);});
     box.appendChild(ctl);
   }
   sync(ctl,id);
@@ -4497,7 +4535,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='gas',BUILD='97fc3165ea3b',URL_JSON='../version.json';
+  const PAGE='gas',BUILD='35f698538d2c',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
