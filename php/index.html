@@ -3964,7 +3964,7 @@ function bindAxisDrag(canvas){
     const chart=Chart.getChart(canvas);if(!chart)return;
     if(drag){
       const p=pos(e),horiz=drag.horiz,d=horiz?drag.x-p.x:p.y-drag.y;   // kéo xuống/trái = giãn thang (cột cao hơn)
-      const f=Math.exp(-d/120),span=(drag.max-drag.min)*f;
+      const f=Math.exp(-d/120),raw=(drag.max-drag.min)*f,step=Math.pow(10,Math.floor(Math.log10(raw)))/2,span=Math.max(step,Math.round(raw/step)*step);   // mốc trên làm tròn (vd 15.000, không 15.088,05)
       const s=chart.options.scales[drag.key]=chart.options.scales[drag.key]||{};
       s.min=drag.min;s.max=drag.min+span;s.beginAtZero=false;chart.update('none');e.preventDefault();return;
     }
@@ -4469,7 +4469,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='php',BUILD='d3044b39aaa0',URL_JSON='../version.json';
+  const PAGE='php',BUILD='de1f95d5715a',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
