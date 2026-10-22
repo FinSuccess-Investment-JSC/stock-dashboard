@@ -2833,14 +2833,16 @@ document.addEventListener('DOMContentLoaded',()=>{
     const ds=(c.data?.datasets||[]).filter(d=>!d.type||d.type==='bar');
     if(ds.length<2||ds.length!==(c.data?.datasets||[]).length)return false;
     if(!(c.options?.scales?.x?.stacked||ds.every(d=>d.stack&&d.stack===ds[0].stack)))return false;
-    // Chuỗi có số âm (loại trừ nội bộ, điều chỉnh) không phải cấu phần: bỏ khỏi tỷ trọng, cần ≥2 mảng dương.
-    return ds.filter(d=>!(d.data||[]).some(v=>v<0)).length>=2;
+    // Chuỗi không có kỳ nào dương (loại trừ nội bộ, điều chỉnh) không phải cấu phần: bỏ khỏi tỷ trọng, cần ≥2 mảng.
+    return ds.filter(isPart).length>=2;
   };
+  const isPart=d=>(d.data||[]).some(v=>v>0);
   const shareCfg=(orig,id)=>(labels,datasets,period)=>{
     if(!shareOn(id))return orig(labels,datasets,period);
-    datasets=datasets.filter(d=>!(d.data||[]).some(v=>v<0));
-    const totals=labels.map((_,j)=>datasets.every(d=>Number.isFinite(d.data[j]))?datasets.reduce((a,d)=>a+d.data[j],0):null);
-    const pctDs=datasets.map(d=>({...d,data:d.data.map((v,j)=>totals[j]>0?v/totals[j]*100:null)}));
+    datasets=datasets.filter(isPart);
+    // Mẫu số = tổng các mảng dương cùng kỳ; mảng âm ở kỳ nào thì để trống tỷ trọng của mảng đó ở kỳ ấy.
+    const totals=labels.map((_,j)=>datasets.every(d=>Number.isFinite(d.data[j]))?datasets.reduce((a,d)=>a+Math.max(d.data[j],0),0):null);
+    const pctDs=datasets.map(d=>({...d,data:d.data.map((v,j)=>totals[j]>0&&v>=0?v/totals[j]*100:null)}));
     const c=orig(labels,pctDs,period);c.shareView=true;c.lockChartType=true;c.options=c.options||{};
     const pl=c.options.plugins=c.options.plugins||{};pl.tooltip={...(pl.tooltip||{}),callbacks:{...(pl.tooltip?.callbacks||{}),label:x=>x.dataset.label+': '+fmtPct(x.parsed.y)}};
     const sc=c.options.scales=c.options.scales||{};sc.x={...(sc.x||{}),stacked:true};sc.y={...(sc.y||{}),stacked:true,beginAtZero:true,min:0,max:100,ticks:{...(sc.y?.ticks||{}),callback:v=>v+'%'}};
@@ -4412,7 +4414,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='hdg',BUILD='7c66eb020efa',URL_JSON='../version.json';
+  const PAGE='hdg',BUILD='57df8f71f096',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
