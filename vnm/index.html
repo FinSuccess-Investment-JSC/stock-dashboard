@@ -5503,24 +5503,70 @@ function persist(){try{localStorage.setItem(KEY,JSON.stringify(modes))}catch(e){
 const LKEY='chart_value_labels_v1';
 let labels={};try{labels=JSON.parse(localStorage.getItem(LKEY)||'{}')||{}}catch(e){}
 const fmtVal=v=>Number(v).toLocaleString('vi-VN',{maximumFractionDigits:Math.abs(v)>=100?0:Math.abs(v)>=10?1:2});
+const LABEL_FONT='600 10.5px Arial,sans-serif',LABEL_HEIGHT=12,LABEL_PAD=2;
+const INK_DARK='#111827',INK_LIGHT='#ffffff';
+function overlap(a,b){return a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;}
+function inside(a,b){return a.left>=b.left&&a.right<=b.right&&a.top>=b.top&&a.bottom<=b.bottom;}
+function rgb(v){
+  if(typeof v!=='string')return null;
+  const hex=/^#([\da-f]{3}|[\da-f]{6}|[\da-f]{8})$/i.exec(v.trim());
+  if(hex){let s=hex[1];if(s.length===3)s=[...s].map(c=>c+c).join('');
+    return [parseInt(s.slice(0,2),16),parseInt(s.slice(2,4),16),parseInt(s.slice(4,6),16),s.length===8?parseInt(s.slice(6,8),16)/255:1];}
+  const m=/^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:[,\s\/]+([\d.]+))?\s*\)$/i.exec(v.trim());
+  return m?[Number(m[1]),Number(m[2]),Number(m[3]),m[4]===undefined?1:Number(m[4])]:null;
+}
+function luminance(c){const a=c.slice(0,3).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;});return .2126*a[0]+.7152*a[1]+.0722*a[2];}
+function contrast(a,b){const x=luminance(a),y=luminance(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05);}
+function labelInk(ctx,chart,rect,fill,insideBar){
+  const solid=insideBar&&rgb(fill);
+  let samples=solid&&solid[3]>=.99?[solid]:[];
+  if(!samples.length&&typeof ctx.getImageData==='function')try{
+    const ratio=chart.currentDevicePixelRatio||1;
+    for(const px of [.2,.5,.8])for(const py of [.25,.75]){
+      const x=Math.floor((rect.left+(rect.right-rect.left)*px)*ratio),y=Math.floor((rect.top+(rect.bottom-rect.top)*py)*ratio);
+      const c=ctx.getImageData(x,y,1,1).data,a=c[3]/255;
+      samples.push([c[0]*a+255*(1-a),c[1]*a+255*(1-a),c[2]*a+255*(1-a)]);
+    }
+  }catch(e){samples=[];}
+  if(!samples.length){const c=insideBar?(rgb(fill)||[255,255,255,1]):[255,255,255,1],a=c[3];samples=[[c[0]*a+255*(1-a),c[1]*a+255*(1-a),c[2]*a+255*(1-a)]];}
+  const dark=Math.min(...samples.map(c=>contrast([17,24,39],c)));
+  const light=Math.min(...samples.map(c=>contrast([255,255,255],c)));
+  if(Math.max(dark,light)>=4.5)return {color:dark>=light?INK_DARK:INK_LIGHT,box:false};
+  return {color:INK_LIGHT,box:true};
+}
 const valuePlugin={id:'fsValueLabels',afterDatasetsDraw(chart){
   const id=chart.canvas&&chart.canvas.id;if(!id||!labels[id]||['pie','doughnut','polarArea'].includes(chart.config.type))return;
   const ctx=chart.ctx,area=chart.chartArea,horiz=chart.options.indexAxis==='y';
-  ctx.save();ctx.font='600 10.5px Arial,sans-serif';ctx.textAlign='center';
+  const placed=[];ctx.save();ctx.font=LABEL_FONT;ctx.textAlign='center';ctx.textBaseline='middle';
   chart.data.datasets.forEach((d,i)=>{
     const meta=chart.getDatasetMeta(i);if(!chart.isDatasetVisible(i)||meta.hidden)return;
     const isLine=meta.type==='line',els=meta.data||[];if(els.length>40)return;
-    const stacked=!isLine&&!!(chart.options.scales&&chart.options.scales[horiz?'x':'y']&&chart.options.scales[horiz?'x':'y'].stacked);
-    const color=isLine?(d.borderColor||'#1D2678'):'#1F2533';
+    const stacked=!isLine&&!!(meta._stacked||chart.options.scales&&chart.options.scales[horiz?'x':'y']&&chart.options.scales[horiz?'x':'y'].stacked);
     els.forEach((el,j)=>{
       const raw=d.data[j],v=raw&&typeof raw==='object'?(horiz?raw.x:raw.y):raw;if(!finite(v)||el.skip)return;
-      const t=fmtVal(v);let x=el.x,y=el.y;
-      if(stacked){const size=horiz?Math.abs(el.x-el.base):Math.abs(el.base-el.y);if(size<14||(horiz&&size<ctx.measureText(t).width+4))return;
-        x=horiz?(el.x+el.base)/2:el.x;y=horiz?el.y:(el.y+el.base)/2;ctx.fillStyle='#fff';ctx.textBaseline='middle';}
-      else if(horiz){ctx.fillStyle=color;ctx.textBaseline='middle';ctx.textAlign=v<0?'right':'left';x+=v<0?-4:4;}
-      else{ctx.fillStyle=color;ctx.textBaseline=v<0&&!isLine?'top':'bottom';y+=v<0&&!isLine?4:-5;}
-      if(y<area.top-ROOM||y>area.bottom+14)return;
-      ctx.fillText(t,x,y);ctx.textAlign='center';
+      const t=fmtVal(v),width=ctx.measureText(t).width;
+      const box=(x,y)=>({left:x-width/2-LABEL_PAD,right:x+width/2+LABEL_PAD,top:y-LABEL_HEIGHT/2-LABEL_PAD,bottom:y+LABEL_HEIGHT/2+LABEL_PAD});
+      const valid=r=>inside(r,area)&&!placed.some(p=>overlap(r,p));
+      let x=el.x,y=el.y,r,insideBar=stacked;
+      if(stacked){
+        const lo=Math.max(horiz?area.left:area.top,Math.min(el.base,horiz?el.x:el.y));
+        const hi=Math.min(horiz?area.right:area.bottom,Math.max(el.base,horiz?el.x:el.y));
+        if(hi<=lo)return;
+        if(horiz){x=(lo+hi)/2;if(hi-lo<width+2*LABEL_PAD||el.height<LABEL_HEIGHT+2*LABEL_PAD)return;}
+        else{y=(lo+hi)/2;if(hi-lo<LABEL_HEIGHT+2*LABEL_PAD||el.width<width+2*LABEL_PAD)return;}
+        r=box(x,y);
+      }else if(horiz){
+        x=el.x+(v<0?-(width/2+5):width/2+5);r=box(x,y);
+        if(!valid(r)&&!isLine){const lo=Math.max(area.left,Math.min(el.base,el.x)),hi=Math.min(area.right,Math.max(el.base,el.x));x=(lo+hi)/2;r=box(x,y);insideBar=true;if(hi-lo<width+2*LABEL_PAD||el.height<LABEL_HEIGHT+2*LABEL_PAD)return;}
+      }else{
+        y=el.y+(v<0&&!isLine?LABEL_HEIGHT/2+5:-(LABEL_HEIGHT/2+5));r=box(x,y);
+        if(!valid(r)&&!isLine){const lo=Math.max(area.top,Math.min(el.base,el.y)),hi=Math.min(area.bottom,Math.max(el.base,el.y));y=(lo+hi)/2;r=box(x,y);insideBar=true;if(hi-lo<LABEL_HEIGHT+2*LABEL_PAD||el.width<width+2*LABEL_PAD)return;}
+      }
+      if(!valid(r))return;
+      const fill=el.options&&el.options.backgroundColor||d.backgroundColor;
+      const ink=labelInk(ctx,chart,r,fill,insideBar);
+      if(ink.box){ctx.fillStyle=INK_DARK;ctx.fillRect(r.left,r.top,r.right-r.left,r.bottom-r.top);}
+      ctx.fillStyle=ink.color;ctx.fillText(t,x,y);placed.push(r);
     });
   });
   ctx.restore();
@@ -6067,7 +6113,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='vnm',BUILD='ee01f3056408',URL_JSON='../version.json';
+  const PAGE='vnm',BUILD='e321649335fc',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
