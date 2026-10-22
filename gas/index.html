@@ -2449,12 +2449,61 @@ document.addEventListener('DOMContentLoaded',()=>{
         q:{labels:Object.keys(LA.quarterly).filter(k=>+k.slice(-2)>=21),datasets:[ln('Giá LNG châu Á',Object.keys(LA.quarterly).filter(k=>+k.slice(-2)>=21).map(k=>LA.quarterly[k]),PURPLE,'y1')]},
         m:{labels:LA.months.filter(m=>m>='2021').map(m=>m.slice(5)+'/'+m.slice(2,4)),datasets:[ln('Giá LNG châu Á',LA.months.map((m,i)=>m>='2021'?LA.monthly[i]:undefined).filter(v=>v!==undefined),PURPLE,'y1')]},
         cfg:cfg2('triệu m³','USD/mmBTU')});
-    // LPG: giá nhập/bán neo Saudi Aramco CP (propan:butan) + premium; doanh thu gồm cả kinh doanh quốc tế.
-    if(CP&&add('lpg',card('Giá bán LPG bình quân & Saudi CP','gasLpgPrice','Giá bán bình quân thực tế = doanh thu LPG ÷ sản lượng LPG kinh doanh (triệu đồng/tấn, cột). Saudi Aramco CP propan, butan bình quân năm (USD/tấn, đường, trục phải). Cơ chế: LPG nhập khẩu và bán trong nước/quốc tế định giá theo CP cộng premium và cước; LPG sản xuất tại Dinh Cố, Cà Mau cũng bán theo giá tham chiếu CP. 2023–2025 sản lượng chưa có số chính xác (2025 PV GAS chỉ công bố LPG/LNG gộp) nên giá bình quân các năm này là tham khảo. Phần cộng thêm so với CP (USD/tấn, đường nét đứt) = giá bán bình quân quy USD theo tỷ giá chính thức bình quân năm của World Bank − CP bình quân propan/butan 50:50; gồm premium, cước, chi phí và cả lãi/lỗ tồn kho, kinh doanh quốc tế. Tỷ giá chính thức thấp hơn tỷ giá thị trường vài phần trăm nên phần cộng thêm có thể bị phóng đại; 2025 chưa có tỷ giá World Bank nên để trống. Nguồn: BCTC hợp nhất PV GAS, PV GAS BCTN; Saudi Aramco CP (tổng hợp 3mgas.vn)')))
-      mkTS('gasLpgPrice',{def:'y',y:{labels:Y,datasets:[{label:'Giá bán LPG bình quân',order:1,data:Y.map((_,i)=>r2(V.lpg[i]?S.revenue[2][i]/V.lpg[i]:null)),backgroundColor:Y.map((_,i)=>i<2?NAVY:'#8997D6'),yAxisID:'y'},ln('Saudi CP propan',Y.map(y=>cpAvg(CP.propane,y)),PURPLE,'y1'),ln('Saudi CP butan',Y.map(y=>cpAvg(CP.butane,y)),GOLD,'y1'),{...ln('Phần cộng thêm so với CP',Y.map((y,i)=>{const fx=g.fxAnnual?.annual?.[y],c=[cpAvg(CP.propane,y),cpAvg(CP.butane,y)];return fx&&V.lpg[i]&&c[0]!=null&&c[1]!=null?Math.round(S.revenue[2][i]/V.lpg[i]*1e6/fx-(c[0]+c[1])/2):null}),GREEN,'y1'),borderDash:[5,4]}]},cfg:cfg2('triệu đồng/tấn','USD/tấn')});
     // Condensate: bán theo giá dầu thô (Brent/Dated Brent) ± chênh lệch.
     if(add('other',card('Giá bán condensate bình quân & Brent','gasCondPrice','Giá bán bình quân thực tế = doanh thu condensate ÷ sản lượng condensate (triệu đồng/tấn, cột). Brent bình quân năm (USD/thùng, đường, trục phải). Cơ chế: condensate là sản phẩm lỏng nhẹ thu hồi từ khí, bán theo giá dầu thô tham chiếu (Brent) cộng/trừ chênh lệch theo chất lượng, nên giá bán đi sát Brent; LN gộp phụ thuộc chênh lệch giá mua đầu vào. Nguồn: BCTC hợp nhất PV GAS, PV GAS (sản lượng), EIA Brent qua FRED')))
       mkTS('gasCondPrice',{def:'y',y:{labels:Y,datasets:[{label:'Giá bán condensate bình quân',order:1,data:Y.map((_,i)=>r2(V.condensate[i]?S.revenue[4][i]/V.condensate[i]:null)),backgroundColor:NAVY,yAxisID:'y'},ln('Brent bình quân',yr(Y,B.annual),PURPLE,'y1')]},cfg:cfg2('triệu đồng/tấn','USD/thùng')});
+  }
+  // LPG: chart 1 giá Saudi CP; chart 2 giá bán ước tính = (CP phối trộn + phần cộng thêm) × tỷ giá, so với giá bán thực tế.
+  function lpgPricing(){
+    const CP=g.lpgCp,S=d.segments,V=g.volume,Y=S.years,FXA=(g.fxAnnual||{}).annual||{};if(!CP)return;
+    const sec=document.getElementById('gas-lpg');if(!sec)return;
+    const KEY='gas_lpg_price_v1',num=v=>v==null||v===''||!Number.isFinite(+v)?null:+v;
+    const months=CP.months,cpAvgY=(a,y)=>{const v=months.map((m,i)=>m.startsWith(y)?a[i]:null).filter(x=>x!=null);return v.length===12?v.reduce((s,x)=>s+x,0)/12:null};
+    // Phần cộng thêm lịch sử = giá bán thực tế quy USD (tỷ giá chính thức World Bank) − CP 50:50; chỉ năm có đủ số.
+    const hist=Y.map((y,i)=>{const fx=FXA[y],p=cpAvgY(CP.propane,y),b=cpAvgY(CP.butane,y);return fx&&V.lpg[i]&&p!=null&&b!=null?{y,v:Math.round(S.revenue[2][i]/V.lpg[i]*1e6/fx-(p+b)/2)}:null}).filter(Boolean);
+    const avg=a=>a.length?Math.round(a.reduce((s,x)=>s+x.v,0)/a.length):0;
+    const opts=[['avg',`Bình quân ${hist.map(h=>h.y).join(', ')}`,avg(hist)],...hist.map(h=>['y'+h.y,'Năm '+h.y,h.v])];
+    let st={prem:avg(hist),share:50,fx:25670,src:'avg'};try{Object.assign(st,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(_){}
+    const w=document.createElement('div');w.style.marginTop='16px';
+    w.innerHTML=`<div class="grid g2">${card('Giá Saudi CP','gasLpgCp','Saudi Aramco Contract Price propan, butan (USD/tấn, công bố cuối tháng cho hàng giao tháng sau) và CP phối trộn theo tỷ trọng propan ở bảng giả định (đường đậm). CP phối trộn quy VND (triệu đồng/tấn, đường nét đứt, trục phải) = CP phối trộn × tỷ giá: 2021–2024 tỷ giá chính thức bình quân năm của World Bank, từ 2025 tỷ giá giả định ở bảng. Chu kỳ Quý/Năm là bình quân các tháng đủ kỳ. T3/2026 trùng T2/2026 và T4–T6/2026 tăng vọt: chưa đối chiếu với công bố gốc của Aramco. Nguồn: Saudi Aramco CP (tổng hợp 3mgas.vn), World Bank')}
+      ${card('Giá bán LPG ước tính & thực tế','gasLpgSell','Giá bán ước tính = (CP phối trộn + phần cộng thêm) × tỷ giá (triệu đồng/tấn, đường); phần cộng thêm gồm premium, cước, chi phí kho/phân phối và cả lãi/lỗ tồn kho, kinh doanh quốc tế, lấy theo bảng giả định. Giá theo cách tính của model = CP × tỷ giá, không cộng thêm (đường nét đứt). Giá bán thực tế = doanh thu LPG ÷ sản lượng LPG kinh doanh (cột, chỉ có năm; 2023–2025 sản lượng chưa có số chính xác nên chỉ tham khảo). Giá ước tính là suy luận từ công thức, không phải giá GAS công bố; PV GAS không công bố premium. Nguồn: BCTC hợp nhất PV GAS, PV GAS BCTN; Saudi Aramco CP (tổng hợp 3mgas.vn); World Bank (tỷ giá)')}</div>
+      <div class="card" style="margin-top:16px"><div class="row" style="justify-content:space-between;gap:12px"><h3 class="sub" style="margin:0">Giả định giá bán LPG</h3><div class="row"><span class="saved" id="lpgSaved"></span><button type="button" class="btn ghost sm" id="lpgSave">Set làm mặc định</button></div></div>
+      <div class="tbl-wrap"><table class="analyst-table"><tr><th>Giả định</th><th>Mốc lịch sử</th><th class="num">Giá trị</th><th>Ghi chú</th></tr>
+      <tr><td>Phần cộng thêm so với CP (USD/tấn)</td><td><select id="lpgPremSrc">${opts.map(o=>`<option value="${o[0]}">${o[1]}: ${o[2]}</option>`).join('')}<option value="manual">Nhập tay</option></select></td><td class="num"><input id="lpgPrem" type="number" step="1"></td><td>Lịch sử = giá bán thực tế quy USD − CP 50:50 (tỷ giá chính thức World Bank nên có thể bị phóng đại vài chục USD/tấn).</td></tr>
+      <tr><td>Tỷ trọng propan trong CP phối trộn (%)</td><td>—</td><td class="num"><input id="lpgShare" type="number" step="5" min="0" max="100"></td><td>Thị trường Việt Nam thường dùng 50:50 hoặc 30:70 (propan:butan).</td></tr>
+      <tr><td>Tỷ giá từ 2025 (VND/USD)</td><td>—</td><td class="num"><input id="lpgFx" type="number" step="10"></td><td>Giả định analyst; 2021–2024 dùng tỷ giá chính thức World Bank.</td></tr></table></div>
+      <details class="dd" style="margin-top:8px"><summary>Cầu nối giá bán ước tính · tháng gần nhất</summary><div class="body"><div class="tbl-wrap"><table id="lpgBridge"></table></div></div></details></div>`;
+    const anchor=document.getElementById('gasLpgVol')?.closest('.grid');(anchor||sec.lastChild).after(w);
+    const $=s=>w.querySelector(s);
+    $('#lpgPremSrc').value=opts.some(o=>o[0]===st.src)?st.src:'manual';$('#lpgPrem').value=st.prem;$('#lpgShare').value=st.share;$('#lpgFx').value=st.fx;
+    const fxOf=y=>+y<=2024&&FXA[y]?FXA[y]:num($('#lpgFx').value);
+    const per=(arr,p)=>{const g2={};months.forEach((m,i)=>{if(arr[i]==null)return;const k=p==='y'?m.slice(0,4):p==='q'?`Q${Math.floor((+m.slice(5)-1)/3)+1}/${m.slice(2,4)}`:m.slice(5)+'/'+m.slice(2,4);(g2[k]=g2[k]||[]).push(arr[i])});return g2};
+    const agg=(arr,p)=>{const g2=per(arr,p),need=p==='y'?12:p==='q'?3:1;const L=Object.keys(g2);return {labels:L,values:L.map(k=>g2[k].length===need?g2[k].reduce((s,x)=>s+x,0)/need:null)}};
+    const r2=x=>x==null?null:Math.round(x*100)/100,ln=(label,data,color,axis,extra={})=>({label,data,type:'line',yAxisID:axis,borderColor:color,backgroundColor:color,pointRadius:2,borderWidth:2,spanGaps:false,order:0,...extra});
+    const cfgOne=(u)=>(labels,datasets)=>({type:'line',data:{labels,datasets},options:baseOpts({interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y,2)+' '+(c.dataset.yAxisID==='y1'?'triệu đồng/tấn':u)}}},
+      scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:'#EEF0F6'},title:{display:true,text:u}},...(datasets.some(d=>d.yAxisID==='y1')?{y1:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false},title:{display:true,text:'triệu đồng/tấn'}}}:{})}})});
+    const yearOf=(lab,p)=>p==='y'?lab:'20'+lab.slice(-2);
+    const render=()=>{
+      const sh=Math.min(100,Math.max(0,num($('#lpgShare').value)??50))/100,prem=num($('#lpgPrem').value)??0;
+      const mix=months.map((_,i)=>CP.propane[i]==null||CP.butane[i]==null?null:CP.propane[i]*sh+CP.butane[i]*(1-sh));
+      const build=p=>{const P=agg(CP.propane,p),B=agg(CP.butane,p),M=agg(mix,p);const vnd=M.values.map((v,i)=>{const fx=fxOf(yearOf(M.labels[i],p));return v==null||!fx?null:r2(v*fx/1e6)});
+        const est=M.values.map((v,i)=>{const fx=fxOf(yearOf(M.labels[i],p));return v==null||!fx?null:r2((v+prem)*fx/1e6)});
+        const actual=p==='y'?M.labels.map(y=>{const i=Y.indexOf(y);return i<0||!V.lpg[i]?null:r2(S.revenue[2][i]/V.lpg[i])}):null;
+        return {P,B,M,vnd,est,actual}};
+      const spec1={},spec2={};
+      for(const p of ['m','q','y']){const b=build(p);
+        spec1[p]={labels:b.M.labels,datasets:[ln('CP propan',b.P.values.map(r2),PURPLE,'y'),ln('CP butan',b.B.values.map(r2),GOLD,'y'),ln(`CP phối trộn (${Math.round(sh*100)}:${Math.round(100-sh*100)})`,b.M.values.map(r2),NAVY,'y',{borderWidth:3}),ln('CP phối trộn quy VND',b.vnd,BLUE,'y1',{borderDash:[5,4]})]};
+        spec2[p]={labels:b.M.labels,datasets:[...(b.actual?[{label:'Giá bán thực tế',data:b.actual,backgroundColor:b.M.labels.map(y=>+y<=2022?NAVY:'#8997D6'),yAxisID:'y',order:1}]:[]),ln(`Giá bán ước tính (CP + ${prem} USD/tấn)`,b.est,GREEN,'y',{borderWidth:3}),ln('Giá theo cách tính model (CP × tỷ giá)',b.vnd,PURPLE,'y',{borderDash:[5,4]})]};}
+      const cfg2=(labels,datasets)=>{const c=cfgOne('triệu đồng/tấn')(labels,datasets);c.type='bar';return c};
+      mkTS('gasLpgCp',{def:'m',...spec1,cfg:cfgOne('USD/tấn')});
+      mkTS('gasLpgSell',{def:'y',...spec2,cfg:cfg2});
+      const li=months.length-1,fx=fxOf(months[li].slice(0,4)),m=mix[li];
+      $('#lpgBridge').innerHTML=`<tr><th>Bước</th><th class="num">T${months[li].slice(5)}/${months[li].slice(0,4)}</th></tr>`+[['CP propan (USD/tấn)',CP.propane[li]],['CP butan (USD/tấn)',CP.butane[li]],[`CP phối trộn ${Math.round(sh*100)}:${Math.round(100-sh*100)} (USD/tấn)`,m],['+ Phần cộng thêm (USD/tấn)',prem],['= Giá bán quy USD (USD/tấn)',m+prem],['× Tỷ giá (VND/USD)',fx],['= Giá bán ước tính (triệu đồng/tấn)',(m+prem)*fx/1e6],['Giá theo cách tính model (triệu đồng/tấn)',m*fx/1e6]].map(([k,v])=>`<tr><td>${k}</td><td class="num">${fmt(v,2)}</td></tr>`).join('');
+    };
+    $('#lpgPremSrc').onchange=e=>{const o=opts.find(x=>x[0]===e.target.value);if(o)$('#lpgPrem').value=o[2];render()};
+    $('#lpgPrem').oninput=()=>{$('#lpgPremSrc').value='manual';render()};$('#lpgShare').oninput=render;$('#lpgFx').oninput=render;
+    $('#lpgSave').onclick=()=>{const x={prem:num($('#lpgPrem').value),share:num($('#lpgShare').value),fx:num($('#lpgFx').value),src:$('#lpgPremSrc').value};try{localStorage.setItem(KEY,JSON.stringify(x));$('#lpgSaved').textContent='✓ Đã set mặc định'}catch(_){$('#lpgSaved').textContent='Không lưu được'}};
+    render();
   }
   function finance(){
     const x=g.capex,c=g.capexDetail,bs=document.getElementById('bs');if(!bs)return;
@@ -2652,7 +2701,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       d.segments.names.forEach((_,j)=>[0,1].forEach(i=>{const v=wrap.querySelector(`.gas-margin[data-seg="${j}"][data-year="${i}"]`).value;wrap.querySelector(`#gasMarginView${j}${i}`).textContent=v===''?'—':fmt(Number(v),2)}));
     };wrap.addEventListener('input',e=>{if(e.target?.tagName?.toLowerCase()==='input')e.target.dataset.touched='1';render()});wrap.addEventListener('change',e=>{if(e.target?.tagName?.toLowerCase()==='input'&&e.target.value!==''){e.target.value=display(e.target.value);e.target.dataset.touched='1'}render()});render();
   }
-  document.addEventListener('DOMContentLoaded',()=>{business();try{priceDrivers()}catch(e){console.error('GAS priceDrivers',e)}finance();forecast();applyChartTips()});
+  document.addEventListener('DOMContentLoaded',()=>{business();try{priceDrivers()}catch(e){console.error('GAS priceDrivers',e)}try{lpgPricing()}catch(e){console.error('GAS lpgPricing',e)}finance();forecast();applyChartTips()});
 })();
 
 </script>
@@ -5028,7 +5077,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='gas',BUILD='ec146d555c60',URL_JSON='../version.json';
+  const PAGE='gas',BUILD='0feb75b707ca',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
