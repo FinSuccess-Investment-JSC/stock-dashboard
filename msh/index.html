@@ -3514,7 +3514,8 @@ window.FS_ANALYST_VAULT={"iter": 600000, "salt": "1J1KSPRXSLtd3z2nYwmUpA==", "iv
   // (chỉ <MÃ>/enhancements.js), gửi ảnh xem trước → Áp dụng gộp commit đó vào main.
   var KINDS = [
     ['data', 'Cập nhật số liệu', { hint: 'AI đọc ảnh/link, đề xuất bảng số cũ → mới để bạn duyệt.', fileLabel: 'Ảnh hoặc PDF bản tin (tối đa 8 MB/file) — hoặc dán ảnh bằng Cmd/Ctrl+V', noteLabel: 'Ghi chú cho AI (kỳ, chuỗi cần cập nhật…)', placeholder: 'vd: bản tin 9T/2026, cập nhật doanh thu tháng 9 cho BHX và ĐMX' }],
-    ['chart', 'Thêm/sửa chart', { hint: 'AI dựng chart từ số đã có trên dashboard, gửi ảnh xem trước; bấm Áp dụng thì chart lên website. Ảnh mẫu là tùy chọn. Cần số mới thì gửi phiếu Cập nhật số liệu trước.', fileLabel: 'Ảnh chart mẫu (tùy chọn, tối đa 8 MB/file) — hoặc dán ảnh bằng Cmd/Ctrl+V', noteLabel: 'Mô tả chart (chỉ tiêu, kiểu chart, kỳ, đặt ở đâu…)', placeholder: 'vd: thêm chart lũy kế sản lượng phát từ đầu năm theo nhà máy, so cùng kỳ 2024–2026, đặt dưới chart Sản lượng phát' }]
+    ['chart', 'Thêm/sửa chart', { hint: 'AI dựng chart từ số đã có trên dashboard, gửi ảnh xem trước; bấm Áp dụng thì chart lên website. Ảnh mẫu là tùy chọn. Cần số mới thì gửi phiếu Cập nhật số liệu trước.', fileLabel: 'Ảnh chart mẫu (tùy chọn, tối đa 8 MB/file) — hoặc dán ảnh bằng Cmd/Ctrl+V', noteLabel: 'Mô tả chart (chỉ tiêu, kiểu chart, kỳ, đặt ở đâu…)', placeholder: 'vd: thêm chart lũy kế sản lượng phát từ đầu năm theo nhà máy, so cùng kỳ 2024–2026, đặt dưới chart Sản lượng phát' }],
+    ['model', 'Cập nhật model', { hint: 'Dán link chia sẻ OneDrive của mô hình dự phóng vào ô Link (Chia sẻ → "Bất kỳ ai có liên kết" → Có thể xem → Sao chép; link dạng https://1drv.ms/…). Hệ thống tải model, chạy lại mô hình của mã và đề xuất bảng số cũ → mới để bạn duyệt, khoảng 5–10 phút.', fileLabel: 'Không cần đính kèm file — model lấy qua link', noteLabel: 'Ghi chú (đã sửa giả định/sheet nào)', placeholder: 'vd: cập nhật giả định tăng trưởng DX 2026–2027, thêm số Q3/2026' }]
   ];
   var KIND = {}; KINDS.forEach(function (k) { KIND[k[0]] = k[2]; });
   var MAX_BYTES = 8 * 1024 * 1024;
@@ -3643,6 +3644,7 @@ window.FS_ANALYST_VAULT={"iter": 600000, "salt": "1J1KSPRXSLtd3z2nYwmUpA==", "iv
     var kind = document.getElementById('fsInKind').value;
     var note = document.getElementById('fsInNote').value.trim();
     if (kind === 'chart' && !note) return window.fsAnalystToast('Mô tả chart cần thêm/sửa.', false);
+    if (kind === 'model' && !urls.some(function (u) { return /^https:\/\/(1drv\.ms|onedrive\.live\.com)\//.test(u); })) return window.fsAnalystToast('Dán link chia sẻ OneDrive của model (https://1drv.ms/…).', false);
     if (kind !== 'chart' && !files.length && !urls.length) return window.fsAnalystToast('Chọn file, dán ảnh hoặc nhập link nguồn.', false);
     if (files.some(function (f) { return f.size > MAX_BYTES; })) return window.fsAnalystToast('File lớn hơn 8 MB, hãy chụp/cắt nhỏ lại.', false);
     var btn = document.getElementById('fsInSend');
@@ -4523,7 +4525,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='msh',BUILD='3ec291748538',URL_JSON='../version.json';
+  const PAGE='msh',BUILD='baeb46fd8ac5',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
