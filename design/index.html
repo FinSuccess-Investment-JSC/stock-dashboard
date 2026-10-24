@@ -799,19 +799,14 @@ table.fintbl thead th{color:#fff!important}
 :root[data-theme=dark] .fs-rv-t{opacity:.34}:root[data-theme=dark] .fs-rv-t img{filter:brightness(0) invert(1)}:root[data-theme=dark] .fs-rv-t span{color:#E8EAED}
 @media print{.fs-reveal,.fs-rv-ring{display:none!important}}
 @media (prefers-reduced-motion:reduce),(hover:none){.fs-reveal,.fs-rv-ring{display:none!important}}
-/* Nền sáng kiểu hologram/vũ trụ (thử 23/10/2026): tím + xanh là chính, phủ toàn màn hình kể cả phần đầu; card vẫn trắng */
-:root:not([data-theme=dark]) body{background-color:#F8F9FD!important;background-image:
-  radial-gradient(1px 1px at 12% 18%,rgba(41,56,168,.35),transparent 60%),radial-gradient(1px 1px at 78% 12%,rgba(120,90,220,.3),transparent 60%),
-  radial-gradient(1.5px 1.5px at 42% 64%,rgba(41,56,168,.3),transparent 60%),radial-gradient(1px 1px at 88% 72%,rgba(120,90,220,.28),transparent 60%),
-  radial-gradient(22vw 22vw at 6% 8%,rgba(98,116,240,.24),transparent 70%),
-  radial-gradient(18vw 18vw at 92% 22%,rgba(150,115,240,.24),transparent 70%),
-  radial-gradient(16vw 16vw at 30% 55%,rgba(150,115,240,.16),transparent 70%),
-  radial-gradient(20vw 20vw at 75% 70%,rgba(98,116,240,.18),transparent 70%),
-  radial-gradient(18vw 18vw at 8% 92%,rgba(150,115,240,.2),transparent 70%),
-  radial-gradient(14vw 14vw at 55% 4%,rgba(98,116,240,.16),transparent 70%)!important;
-  background-size:420px 420px,380px 380px,460px 460px,400px 400px,auto,auto,auto,auto,auto,auto!important;background-attachment:fixed!important}
+/* Nền sáng: gần trắng, chỉ vài ánh xanh/tím rất nhạt ở góc (người dùng chỉnh 24/10/2026: trước đó quá xanh tím) */
+:root:not([data-theme=dark]) body{background-color:#F9FAFD!important;background-image:
+  radial-gradient(28vw 22vw at 4% 0%,rgba(98,116,240,.07),transparent 70%),
+  radial-gradient(24vw 20vw at 98% 14%,rgba(150,115,240,.06),transparent 70%),
+  radial-gradient(26vw 22vw at 90% 96%,rgba(89,197,200,.05),transparent 70%)!important;
+  background-size:auto!important;background-attachment:fixed!important}
 :root:not([data-theme=dark]) :is(.brandbar,.stock-search,.titleband){background:transparent!important;border-color:rgba(41,56,168,.08)!important}
-:root:not([data-theme=dark]) nav.tabs{background:rgba(244,243,255,.72)!important;backdrop-filter:blur(12px);border-bottom:1px solid rgba(41,56,168,.08)}
+:root:not([data-theme=dark]) nav.tabs{background:rgba(249,250,253,.82)!important;backdrop-filter:blur(12px);border-bottom:1px solid rgba(41,56,168,.08)}
 .titleband .co-logo{height:32px;width:auto;max-width:84px;object-fit:contain;margin-right:10px;padding:3px 5px;background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(29,38,120,.12);vertical-align:middle;flex:none}
 @media(max-width:600px){.titleband .co-logo{height:34px;max-width:90px}}
 .titleband .in>h1#coName{flex:1 1 0!important;min-width:0!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
