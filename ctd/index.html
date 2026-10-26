@@ -6612,6 +6612,56 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
   else setTimeout(boot,300);
 })();
 
+/* Quan điểm ở header (badge #viewBadge): analyst chọn Tích cực / Theo dõi / Tiêu cực.
+   Người dùng chốt 26/10/2026: như "Set làm mặc định", chỉ ai có key analyst mới đổi được.
+   Lựa chọn lưu ở khóa <mã>_view_stance; nút "Set làm mặc định" đi qua analyst-gate.js nên được
+   publish vào <MÃ>/published-defaults.json và áp cho mọi người xem. Chưa chọn thì giữ meta.view. */
+(function () {
+  var b = document.getElementById('viewBadge'), D = window.PVS_DATA;
+  if (!b || !D || !D.meta || !D.meta.ticker) return;
+  var KEY = D.meta.ticker.toLowerCase() + '_view_stance';
+  var OPTS = [['TÍCH CỰC', 'var(--pos)'], ['THEO DÕI', 'var(--gold)'], ['TIÊU CỰC', 'var(--neg)']];
+  var COLOR = { 'TRUNG LẬP': 'var(--gold)' };
+  OPTS.forEach(function (o) { COLOR[o[0]] = o[1]; });
+  function saved() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
+  function paint() {
+    var v = saved() || D.meta.view || '';
+    b.innerHTML = v + '<small>QUAN ĐIỂM</small>';
+    b.style.background = COLOR[v] || '';
+    b.style.color = v === 'THEO DÕI' || v === 'TRUNG LẬP' ? 'var(--navy)' : '';
+  }
+  paint();
+  b.style.cursor = 'pointer';
+  b.title = 'Analyst: bấm để đổi quan điểm';
+
+  function close() { var m = document.getElementById('fsStanceMenu'); if (m) m.remove(); document.removeEventListener('click', outside, true); }
+  function outside(e) { var m = document.getElementById('fsStanceMenu'); if (m && !m.contains(e.target) && e.target !== b && !b.contains(e.target)) close(); }
+  function open() {
+    close();
+    var cur = saved() || D.meta.view, pick = cur;
+    var m = document.createElement('div');
+    m.id = 'fsStanceMenu';
+    m.style.cssText = 'position:absolute;z-index:9999;background:var(--card,#fff);border:1px solid var(--line,#E5E7F0);border-radius:10px;box-shadow:0 8px 24px rgba(29,38,120,.18);padding:10px;min-width:180px;font-size:13px';
+    m.innerHTML = '<div style="font-weight:600;margin-bottom:6px;color:var(--muted)">Quan điểm</div>'
+      + OPTS.map(function (o) { return '<label style="display:flex;align-items:center;gap:8px;padding:5px 2px;cursor:pointer"><input type="radio" name="fsStance" value="' + o[0] + '"' + (o[0] === cur ? ' checked' : '') + '><span style="width:10px;height:10px;border-radius:50%;background:' + o[1] + '"></span>' + o[0].charAt(0) + o[0].slice(1).toLowerCase() + '</label>'; }).join('')
+      + '<button type="button" style="margin-top:8px;width:100%;border:0;border-radius:8px;padding:7px 10px;background:var(--navy,#1D2678);color:#fff;font-weight:600;cursor:pointer">Set làm mặc định</button>';
+    m.addEventListener('change', function (e) { if (e.target.name === 'fsStance') pick = e.target.value; });
+    m.querySelector('button').onclick = function () {
+      try { localStorage.setItem(KEY, pick); } catch (e) {}
+      paint(); close();
+    };
+    var r = b.getBoundingClientRect();
+    m.style.top = (r.bottom + window.scrollY + 6) + 'px';
+    m.style.left = Math.max(8, Math.min(r.left + window.scrollX, document.documentElement.clientWidth - 196)) + 'px';
+    document.body.appendChild(m);
+    setTimeout(function () { document.addEventListener('click', outside, true); }, 0);
+  }
+  b.addEventListener('click', function () {
+    var unlock = window.fsAnalystUnlock ? window.fsAnalystUnlock() : Promise.resolve(false);
+    unlock.then(function (ok) { if (ok) open(); });
+  });
+})();
+
 
 </script>
 <script>
@@ -6915,7 +6965,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='ctd',BUILD='34f6fb48594e',URL_JSON='../version.json';
+  const PAGE='ctd',BUILD='1462b58c198e',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
