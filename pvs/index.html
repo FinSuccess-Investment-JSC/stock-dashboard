@@ -8271,6 +8271,16 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
     const stacked=Object.values(ch.options.scales||{}).some(sc=>sc&&sc.stacked);
     const bars=vis.filter(o=>(o.d.type||t)==='bar');
     // Ưu tiên chuỗi tổng/hợp nhất/ròng; cột chồng không có chuỗi tổng thì cộng các chuỗi cột đang hiện.
+    // Mỗi năm một chuỗi, trục ngang là tháng/quý trong năm (DT tháng nhiều năm): lấy kỳ cuối có số của năm mới nhất, so cùng kỳ năm trước.
+    if(vis.length>1&&vis.every(o=>/^\d{4}$/.test(String(o.d.label||'').trim()))){
+      const yrs=vis.slice().sort((a,b)=>+a.d.label-+b.d.label), cur=yrs[yrs.length-1], prev=yrs[yrs.length-2];
+      const cd=cur.d.data.map(val); let i=cd.length-1; while(i>=0&&cd[i]==null) i--; if(i<0) return null;
+      const pv=prev&&+prev.d.label===+cur.d.label-1?val(prev.d.data[i]):null, lb=String(labels[i]==null?'':labels[i]);
+      const unit=(title.match(/\(([^)]+)\)\s*$/)||[])[1]||'', pct=/%/.test(unit);
+      const seq=[]; yrs.forEach(o=>o.d.data.forEach(x=>seq.push(val(x)))); while(seq.length&&seq[seq.length-1]==null) seq.pop();
+      const d=pv==null?null:pct?cd[i]-pv:(pv>0?(cd[i]/pv-1)*100:null);
+      return {card,h,title:title.replace(/\s*\([^)]*\)\s*$/,''),unit,series:'',v:cd[i],lab:lb+'/'+cur.d.label,prevLab:pv==null?'':lb+'/'+prev.d.label,d,pct,data:seq.filter(x=>x!=null)};
+    }
     const pref=vis.find(o=>/hợp nhất|tổng|ròng|net/i.test(o.d.label||''));
     let ds, data;
     if(pref){ ds=pref.d; data=ds.data.map(val); }
@@ -9439,7 +9449,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='pvs',BUILD='3eee06a2c580',URL_JSON='../version.json';
+  const PAGE='pvs',BUILD='3767c7271a41',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
