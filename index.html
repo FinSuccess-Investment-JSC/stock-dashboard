@@ -2726,11 +2726,26 @@ function tsCut(labels,datasets,n){
   return {labels:labels.slice(c),datasets:datasets.map(d=>Object.assign({},d,{data:d.data.slice(c)}))};
 }
 // spec = {m:{labels,datasets}, q:{...}, y:{...}, def:'m'|'q'|'y', cfg:(labels,datasets,period)=>chartConfig}
+// Số vận hành DN chỉ công bố lũy kế năm (D.opsYtd.charts[id], từ <MÃ>/sources/ops-ytd.json): ở Chu kỳ Năm nối
+// một cột lũy kế (vd 9T/2026) tô nhạt sau chuỗi năm. Chuỗi không có số (giá, %) để trống; không annualize.
+function tsOpsYtd(id,p,cut){
+  const o=p==='y'&&D.opsYtd&&D.opsYtd.charts&&D.opsYtd.charts[id]; if(!o)return;
+  const L=cut.labels.map(String); if(L.includes(o.label)||L.includes(String(o.year)))return;
+  cut.labels=[...cut.labels,o.label]; const n=cut.labels.length;
+  const fade=c=>typeof c==='string'&&/^#[0-9a-f]{6}$/i.test(c)?c+'73':c;
+  cut.datasets.forEach(d=>{ const v=o.values&&o.values[d.label]; d.data=[...(d.data||[]),v==null?null:v];
+    if(d.type!=='line'){ const c=d.backgroundColor; d.backgroundColor=Array.from({length:n},(_,i)=>{const b=Array.isArray(c)?(c[i]??c[c.length-1]):c;return i===n-1?fade(b):b;}); } });
+  const card=$(id).closest('.card'), host=card&&(card.querySelector('.note')||card);
+  if(host&&!card.querySelector('.ops-ytd-note')){ const e=document.createElement('div'); e.className='note ops-ytd-note';
+    e.innerHTML='Cột tô nhạt '+esc(o.label)+' là số lũy kế '+o.months+' tháng đầu năm'+(o.bound==='lower'?' (cận dưới, nguồn ghi “trên”)':'')+', không phải cả năm. Nguồn: <a href="'+esc(o.url)+'" target="_blank" rel="noopener">'+esc(o.src)+'</a>.';
+    (host===card?card:host.parentNode).insertBefore(e,host===card?null:host.nextSibling); }
+}
 function mkTS(id,spec){
   if(!$(id))return; TSREG[id]=spec;
   if(spec.ytd&&(spec.m||spec.q))tsYtdSpec(id,spec);
   const st=tsState(id,spec); if(!st)return;
   const cut=tsCut(spec[st.p].labels,deep(spec[st.p].datasets),st.n);
+  tsOpsYtd(id,st.p,cut);
   mk(id,spec.cfg(cut.labels,cut.datasets,st.p));
   tsControls(id,spec,st);
 }
@@ -6066,7 +6081,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
     return [...h.childNodes].filter(n=>n.nodeType===3||(n.nodeType===1&&/^(B|STRONG|EM|SPAN)$/.test(n.tagName)&&!n.querySelector('button')&&!/ctl|note|info|tip|db-n/.test(n.className||''))).map(n=>n.textContent).join('').replace(/[ⓘ]/g,'').replace(/\s+/g,' ').trim();
   }
   function chartCards(scope){
-    return [...scope.querySelectorAll('.card')].filter(c=>c.offsetParent!==null&&!c.closest('.db,.tb')&&c.querySelector(':scope canvas')&&c.querySelector('h3'))
+    return [...scope.querySelectorAll('.card')].filter(c=>c.offsetParent!==null&&!c.closest('.db,.tb,.fs-combo')&&c.querySelector(':scope canvas')&&c.querySelector('h3'))
       .filter(c=>!c.parentElement.closest('.card'));
   }
   function digest(card){
@@ -7007,6 +7022,66 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
   });
 })();
 
+/* Ghép chart (người dùng chốt 26/10/2026): nút "Ghép chart" cạnh tiêu đề mỗi tab/tab con có từ 2 chart theo kỳ.
+   Chuỗi lấy từ các chart mkTS sẵn có trong khối (TSREG), giữ nguyên số gốc; mỗi dòng chọn chuỗi · Cột/Đường · Trục trái/phải.
+   Khớp theo nhãn kỳ chung của Chu kỳ đang chọn; không nội suy, không cộng dồn. Lựa chọn lưu theo trang + khối (fs_combo_v1|…). */
+(function(){
+  if(typeof TSREG==='undefined'||typeof mkTS!=='function')return;
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fmt=(v,n=2)=>v==null||!Number.isFinite(Number(v))?'—':Number(v).toLocaleString('vi-VN',{maximumFractionDigits:n});
+    const norm=(p,L)=>{L=String(L??'').trim();let m;
+      if(p==='y')return (m=L.match(/^(\d{4})(A)?$/))?m[1]:(m=L.match(/^(\d{4})([EF])$/))?m[1]+m[2]:null;
+      if(p==='q')return (m=L.match(/^Q([1-4])\/(\d{2})/))?`Q${m[1]}/${m[2]}`:null;
+      if((m=L.match(/^(\d{4})-(\d{2})/)))return `${m[2]}/${m[1].slice(2)}`;if((m=L.match(/^T?(\d{1,2})\/(\d{2})$/)))return `${m[1].padStart(2,'0')}/${m[2]}`;return null};
+    const ord=(p,k)=>p==='y'?+k.slice(0,4)*10+(k.length>4?5:0):p==='q'?+k.slice(-2)*10+ +k[1]:+k.slice(-2)*100+ +k.slice(0,2);
+    const title=card=>{const h=card?.querySelector('h3');return h?[...h.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join('').replace(/\s+/g,' ').trim():''};
+    const harvest=sec=>{const out=new Map();
+      sec.querySelectorAll('canvas').forEach(cv=>{const sp=TSREG[cv.id];if(!sp||/^fsCombo/.test(cv.id))return;const t=title(cv.closest('.card')),ch=window.Chart&&Chart.getChart(cv);
+        const tUnit=(t.match(/\(([^)]+)\)\s*$/)||t.match(/·\s*([^·]+)$/)||[])[1]||'';
+        ['y','q','m'].forEach(p=>{const P=sp[p];if(!P||!P.labels)return;(P.datasets||[]).forEach(ds=>{if(!ds.label)return;
+          const unit=(ch?.options?.scales?.[ds.yAxisID||'y']?.title?.text)||tUnit,key=ds.label+'|'+unit;const e=out.get(key)||{key,label:ds.label,unit,src:t};
+          if(!e[p]){const m={};P.labels.forEach((L,i)=>{const v=ds.data?.[i],k=norm(p,L);if(k&&typeof v==='number'&&Number.isFinite(v))m[k]=v});if(Object.keys(m).length)e[p]=m}
+          if(e.y||e.q||e.m)out.set(key,e)})})});
+      return [...out.values()]};
+    const COL=[NAVY,BLUE,GREEN,'#8997D6'],LCOL=[PURPLE,GOLD,'#C2185B','#E07B39'];
+  let seq=0;
+  function attach(h){
+    if(h.dataset.combo||h.closest('.card')||h.closest('.fs-combo,.fs-combo'))return;const sec=h.parentElement;if(!sec)return;
+    const n=[...sec.querySelectorAll('canvas')].filter(cv=>TSREG[cv.id]&&!/^fsCombo/.test(cv.id)).length;if(n<2)return;
+    const tab=(sec.id||sec.closest('section.tab')?.id||'s')+'-'+(++seq);h.dataset.combo=tab;
+    const btn=document.createElement('button');btn.type='button';btn.className='btn ghost sm';btn.textContent='Ghép chart';btn.style.marginLeft='12px';btn.style.verticalAlign='middle';btn.setAttribute('aria-expanded','false');h.appendChild(btn);
+
+      const KEY='fs_combo_v1|'+location.pathname+'|'+(sec.id||'')+'|'+h.textContent.replace('Ghép chart','').trim().slice(0,60);
+      let panel=null,cat=[],rows=null;
+      const open=()=>{cat=harvest(sec);if(!panel){panel=document.createElement('div');panel.className='card fs-combo';panel.style.margin='0 0 16px';h.after(panel)}
+        if(!rows){try{rows=JSON.parse(localStorage.getItem(KEY)||'null')}catch(_){}
+          if(!Array.isArray(rows)||!rows.length){const c0=cat[0],c1=cat.find(c=>c.src!==c0?.src&&c.unit!==c0?.unit)||cat.find(c=>c!==c0);rows=[{key:c0?.key,type:'bar',axis:'y'},{key:c1?.key,type:'line',axis:'y1'}];rows=rows.filter(r=>r.key)}}
+        const groups=[...new Set(cat.map(c=>c.src))];
+        const opt=sel=>groups.map(gp=>`<optgroup label="${esc(gp||'Chart')}">${cat.filter(c=>c.src===gp).map(c=>`<option value="${esc(c.key)}"${c.key===sel?' selected':''}>${esc(c.label)} (${esc(c.unit)})</option>`).join('')}</optgroup>`).join('');
+        const row=(r,i)=>`<div class="cb-row" data-i="${i}"><select class="cb-s">${opt(r.key)}</select><select class="cb-t"><option value="bar"${r.type==='bar'?' selected':''}>Cột</option><option value="line"${r.type==='line'?' selected':''}>Đường</option></select><select class="cb-a"><option value="y"${r.axis==='y'?' selected':''}>Trục trái</option><option value="y1"${r.axis==='y1'?' selected':''}>Trục phải</option></select><button type="button" class="btn ghost sm cb-x" title="Bỏ chuỗi" aria-label="Bỏ chuỗi"${rows.length<2?' disabled':''}>✕</button></div>`;
+        panel.innerHTML=`<style>.fs-combo .cb-head,.fs-combo .cb-row{display:grid;grid-template-columns:minmax(0,1fr) 110px 120px 34px;gap:8px;align-items:center;max-width:880px}.fs-combo .cb-head{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:4px}.fs-combo .cb-row{margin-bottom:6px}.fs-combo .cb-row select{width:100%;min-width:0;height:34px;padding:4px 8px;font-size:13px;line-height:1.4}.fs-combo .cb-x{height:34px;padding:0}.fs-combo .cb-add{margin:4px 0 14px}@media(max-width:640px){.fs-combo .cb-head{display:none}.fs-combo .cb-row{grid-template-columns:1fr 1fr 34px}.fs-combo .cb-row .cb-s{grid-column:1/-1}}</style><h3 class="sub">Ghép chart</h3><div class="cb-head"><span>Chuỗi số liệu</span><span>Kiểu</span><span>Trục</span><span></span></div><div class="cb-rows">${rows.map(row).join('')}</div><div><button type="button" class="btn ghost sm cb-add"${rows.length>=6?' disabled':''}>+ Thêm chuỗi</button></div><div class="chart tall"><canvas id="fsCombo-${tab}"></canvas></div><div class="note">Chuỗi lấy từ các chart trong tab này, giữ nguyên số liệu gốc. Mỗi dòng chọn chuỗi, kiểu (cột/đường) và trục. Các chuỗi khớp theo kỳ chung của Chu kỳ đang chọn; kỳ chỉ một chuỗi có số thì chuỗi kia để trống, không nội suy hay cộng dồn. Chuỗi chỉ có số năm sẽ không hiện khi chọn Quý/Tháng. Hai trục khác đơn vị chỉ để so hình dạng, không suy quan hệ nhân quả. Nguồn: theo chart gốc của từng chuỗi.</div>`;
+        draw()};
+      const draw=()=>{const sel=rows.map(r=>({...r,c:cat.find(c=>c.key===r.key)})).filter(r=>r.c);const units=ax=>[...new Set(sel.filter(r=>r.axis===ax).map(r=>r.c.unit))].join(' · ');
+        const spec={def:'y',cfg:(labels,datasets)=>({type:'bar',data:{labels,datasets},options:baseOpts({interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y,2)+' '+c.dataset.unit}}},
+          scales:{x:{grid:{display:false}},y:{beginAtZero:true,display:datasets.some(x=>x.yAxisID==='y'),grid:{color:'#EEF0F6'},title:{display:true,text:units('y')}},y1:{position:'right',beginAtZero:true,display:datasets.some(x=>x.yAxisID==='y1'),grid:{drawOnChartArea:datasets.every(x=>x.yAxisID==='y1')},title:{display:true,text:units('y1')}}}})})};
+        for(const p of ['m','q','y']){const keys=[...new Set(sel.flatMap(r=>Object.keys(r.c[p]||{})))].sort((a,b)=>ord(p,a)-ord(p,b));if(!keys.length)continue;let nb=0,nl=0;
+          spec[p]={labels:keys,datasets:sel.map(r=>{const data=keys.map(k=>r.c[p]?.[k]??null),base={label:r.c.label,unit:r.c.unit,data,yAxisID:r.axis};
+            return r.type==='line'?{...base,type:'line',borderColor:LCOL[nl%4],backgroundColor:LCOL[nl++%4],pointRadius:p==='m'?1.5:3,borderWidth:2,spanGaps:false,order:0}:{...base,backgroundColor:COL[nb++%4],order:1}})}}
+        if(!spec.y){spec.def=spec.q?'q':'m';if(!spec.q&&!spec.m)spec.y={labels:[],datasets:[]}}
+        mkTS('fsCombo-'+tab,spec);try{localStorage.setItem(KEY,JSON.stringify(rows))}catch(_){}};
+      btn.addEventListener('click',()=>{const on=btn.getAttribute('aria-expanded')!=='true';btn.setAttribute('aria-expanded',String(on));btn.classList.toggle('on',on);if(on)open();else if(panel){panel.remove();panel=null}});
+      sec.addEventListener('change',e=>{if(!panel||!panel.contains(e.target))return;const r=e.target.closest('[data-i]');if(!r)return;const x=rows[+r.dataset.i];
+        if(e.target.classList.contains('cb-s'))x.key=e.target.value;else if(e.target.classList.contains('cb-t'))x.type=e.target.value;else if(e.target.classList.contains('cb-a'))x.axis=e.target.value;draw()});
+      sec.addEventListener('click',e=>{if(!panel||!panel.contains(e.target))return;
+        if(e.target.closest('.cb-add')){const used=new Set(rows.map(r=>r.key)),nx=cat.find(c=>!used.has(c.key))||cat[0];if(nx){rows.push({key:nx.key,type:'line',axis:'y1'});open()}}
+        else if(e.target.closest('.cb-x')){const r=e.target.closest('[data-i]');if(r&&rows.length>1){rows.splice(+r.dataset.i,1);open()}}});
+  }
+  // Quét tiêu đề mục (h2.sec) sau khi các chart đã dựng; quét lại khi người dùng đổi tab (không dùng MutationObserver).
+  let t=0;const scan=()=>{clearTimeout(t);t=setTimeout(()=>{try{document.querySelectorAll('h2.sec').forEach(attach)}catch(e){console.error('combo-chart',e)}},400)};
+  const start=()=>{setTimeout(scan,600);document.addEventListener('click',e=>{if(e.target.closest('#tabbar button,.subnav button,#finSubnav button,[data-gas],nav button'))scan()},true)};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+})();
+
 
 </script>
 <script>
@@ -7310,7 +7385,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='',BUILD='75e7a31eec2f',URL_JSON='./version.json';
+  const PAGE='',BUILD='f6fd9563f1d8',URL_JSON='./version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
