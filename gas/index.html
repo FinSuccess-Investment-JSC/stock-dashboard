@@ -3110,6 +3110,13 @@ document.addEventListener('DOMContentLoaded',()=>{
     save(own,withScenario){let st={};try{st=JSON.parse(localStorage.getItem(this.KEY)||'{}')||{}}catch(_){}const inputs=st.inputs||{};
       this.touched.forEach(p=>{if(own(p)){const v=getP(this.M,p);if(Number.isFinite(v))inputs[p]=v}});const out={...st,inputs};if(withScenario)out.scenario=this.si;
       try{localStorage.setItem(this.KEY,JSON.stringify(out));return true}catch(_){return false}}};
+  // Tỷ lệ HSFO/Brent thực tế theo kỳ điều hành (mazut 180 Platts Singapore ÷ Brent giao ngay cùng khoảng ngày), bình quân theo số phiên.
+  const hsfoAnchors=()=>{const H=g.hsfoMoit?.items?.filter(x=>x.ratio);if(!H?.length)return [];const last=H[H.length-1],end=new Date(last.end);
+    const avg=a=>{const w=a.reduce((s,x)=>s+(x.brentDays||1),0),m=a.reduce((s,x)=>s+x.mazut180*(x.brentDays||1),0),b=a.reduce((s,x)=>s+x.brent*(x.brentDays||1),0);return b?m/b:null};
+    const since=(mo)=>{const d=new Date(end);d.setMonth(d.getMonth()-mo);return H.filter(x=>new Date(x.end)>d)};
+    const dm=x=>x.split('-').reverse().join('/');
+    return [['last',`Kỳ gần nhất (${dm(last.start)}–${dm(last.end)})`,last.ratio],['3m','Bình quân 3 tháng gần nhất',avg(since(3))],['6m','Bình quân 6 tháng gần nhất',avg(since(6))],['12m','Bình quân 12 tháng gần nhất',avg(since(12))],
+      ['ytd',`Từ đầu năm ${last.end.slice(0,4)}`,avg(H.filter(x=>x.end.slice(0,4)===last.end.slice(0,4)))],...['2021','2022','2023','2024','2025'].map(y=>[y,'Năm '+y,avg(H.filter(x=>x.end.slice(0,4)===y))])].filter(x=>x[2]!=null)};
   // Sản lượng và cước theo nguồn từ mô hình lãi gộp theo mảng (kịch bản mặc định): 2025A + 2026E cả năm … 2030F.
   const mv2Fields=()=>{const M=MV.init();if(!M)return null;const R=gasModelV2(M,MV.si),D=M.dry,vi=R.scenario.volume-1,base=D.sources.slice(0,6).reduce((a,x)=>a+x.vol2025,0);
     const years=['2025A',...M.years.map((y,i)=>y+(i?'F':'E'))],cols=[R.base,...R.cols];
@@ -3244,6 +3251,15 @@ document.addEventListener('DOMContentLoaded',()=>{
     const dryVol=Y.map((y,i)=>V.gasSold[i]==null?null:V.gasSold[i]-(V.lngImport[i]||0));
     if(add('dry',card('Giá bán khí khô bình quân & giá dầu','gasDryPrice','Giá bán bình quân thực tế = doanh thu khí khô ÷ sản lượng khí khô (đồng/m³, cột); 2024–2025 sản lượng khí khô = khí tiêu thụ − LNG nhập khẩu (khí tiêu thụ đã gồm LNG tái hóa). Brent bình quân năm (USD/thùng, đường, trục phải). Cơ chế: phần bán thả nổi (ngoài bao tiêu) = max(46% giá dầu FO Singapore, giá miệng giếng) + cước, FO đi cùng chiều Brent; phần bao tiêu Nam Côn Sơn (~84%) và giá mua Cửu Long, NCS cố định trượt 2%/năm nên giá bình quân biến động ít hơn Brent. Không có nguồn giá HSFO Singapore công khai cập nhật được nên dùng Brent làm chỉ báo. Nguồn: BCTC hợp nhất PV GAS (doanh thu), PV GAS (sản lượng), EIA Brent qua FRED')))
       mkTS('gasDryPrice',{def:'y',y:{labels:Y,datasets:[{label:'Giá bán khí khô bình quân',order:1,data:Y.map((_,i)=>r2(dryVol[i]?S.revenue[0][i]/dryVol[i]*1000:null)),backgroundColor:NAVY,yAxisID:'y'},ln('Brent bình quân',yr(Y,B.annual),PURPLE,'y1')]},cfg:cfg2('đồng/m³','USD/thùng')});
+    // HSFO: mazut 180CST 3,5S Platts Singapore bình quân theo kỳ điều hành (Bộ Công Thương) và tỷ lệ HSFO/Brent; gộp tháng/quý/năm theo ngày cuối kỳ, bình quân theo số phiên Brent.
+    const HM=g.hsfoMoit?.items?.filter(x=>x.ratio);
+    if(HM?.length&&add('dry',card('Giá dầu mazut Singapore & tỷ lệ HSFO/Brent','gasHsfoRatio',`Giá mazut 180CST 3,5S = bình quân giá Platts Singapore giữa hai kỳ điều hành giá xăng dầu do Bộ Công Thương công bố (USD/tấn, cột, trục trái). Tỷ lệ HSFO/Brent = giá mazut ÷ Brent giao ngay bình quân các phiên cùng khoảng ngày (tấn/thùng, đường, trục phải); tháng/quý/năm gộp các kỳ có ngày cuối thuộc kỳ, bình quân theo số phiên. Đường nét đứt là giả định của mô hình: ${fmt(g.modelV2?.dry.hsfoBrentH2,2)} cho nửa cuối 2026 và ${fmt(g.modelV2?.dry.hsfoBrent,2)} từ 2027. Hợp đồng khí neo HSFO 380, Bộ Công Thương công bố mazut 180 nên chuỗi này là chỉ báo theo dõi, không thay trực tiếp giá 380. Mới nhất: kỳ ${HM[HM.length-1].start.split('-').reverse().join('/')}–${HM[HM.length-1].end.split('-').reverse().join('/')}. Nguồn: Bộ Công Thương – thông cáo điều hành giá xăng dầu; Brent: EIA qua FRED`).replace('<div class="card">','<div class="card" style="grid-column:1/-1">'))){
+      const grp=f=>{const b={};HM.forEach(x=>{const k=f(x.end),w=x.brentDays||1;(b[k]=b[k]||{m:0,b:0,w:0,n:0});b[k].m+=x.mazut180*w;b[k].b+=x.brent*w;b[k].w+=w;b[k].n++});return b};
+      const per=(f,lab,ord)=>{const b=grp(f),K=Object.keys(b).sort((a,c)=>ord(a)-ord(c));const m2=r2,ref=v=>K.map(()=>v??null);
+        return {labels:K.map(lab),datasets:[{label:'Mazut 180CST 3,5S Singapore',data:K.map(k=>m2(b[k].m/b[k].w)),backgroundColor:NAVY,yAxisID:'y',order:1},ln('Tỷ lệ HSFO/Brent',K.map(k=>Math.round(b[k].m/b[k].b*1000)/1000),PURPLE,'y1'),
+          {...ln(`Giả định nửa cuối 2026 (${fmt(g.modelV2?.dry.hsfoBrentH2,2)})`,ref(g.modelV2?.dry.hsfoBrentH2),GOLD,'y1'),borderDash:[6,4],pointRadius:0,borderWidth:1.5},{...ln(`Giả định từ 2027 (${fmt(g.modelV2?.dry.hsfoBrent,2)})`,ref(g.modelV2?.dry.hsfoBrent),GREEN,'y1'),borderDash:[6,4],pointRadius:0,borderWidth:1.5}]}};
+      mkTS('gasHsfoRatio',{def:'m',m:per(e=>e.slice(0,7),k=>k.slice(5)+'/'+k.slice(2,4),k=>+k.replace('-','')),q:per(e=>`Q${Math.floor((+e.slice(5,7)-1)/3)+1}/${e.slice(2,4)}`,k=>k,k=>+k.slice(-2)*10+ +k[1]),y:per(e=>e.slice(0,4),k=>k,k=>+k),cfg:cfg2('USD/tấn','tấn/thùng')});
+    }
     // LNG: giá nhập theo hợp đồng/spot châu Á; giá bán nội địa = giá nhập + chi phí tái hóa, vận chuyển.
     if(LA&&add('lng',card('Giá LNG châu Á & LNG nhập khẩu','gasLngPrice','Giá LNG châu Á = giá LNG nhập khẩu Nhật Bản theo IMF (USD/mmBTU, đường, trục phải): chu kỳ Tháng là giá tháng, Quý/Năm là bình quân các tháng đủ kỳ. LNG nhập khẩu của PV GAS (triệu m³ khí quy đổi, cột, chỉ có số năm). Cơ chế: LNG PV GAS nhập theo chuyến/hợp đồng neo giá spot châu Á (JKM) hoặc theo % Brent; giá bán cho nhà máy điện = giá nhập + chi phí tồn trữ, tái hóa, vận chuyển, nên doanh thu LNG đi theo giá LNG châu Á và sản lượng huy động điện khí LNG. Chuỗi IMF là giá nhập bình quân Nhật Bản (gồm hợp đồng dài hạn), không phải JKM spot. Nguồn: IMF qua FRED; PV GAS')))
       mkTS('gasLngPrice',{def:'y',y:{labels:Y,datasets:[{label:'LNG nhập khẩu',data:V.lngImport,order:1,backgroundColor:BLUE,yAxisID:'y'},ln('Giá LNG châu Á',yr(Y,LA.annual),PURPLE,'y1')]},
@@ -3441,11 +3457,12 @@ document.addEventListener('DOMContentLoaded',()=>{
     const SEG=[
       ['gasSegDry','Khí khô · giá dầu, tỷ giá và hợp đồng',[['Tỷ giá 2026','common.fx2026','đ/USD'],['VND mất giá mỗi năm từ 2027','common.fxDepr','%/năm',1],['HSFO / Brent nửa cuối 2026','dry.hsfoBrentH2','tấn/thùng'],['HSFO / Brent từ 2027','dry.hsfoBrent','tấn/thùng'],['Trượt giá mua và cước khí','dry.esc','%/năm',1],['NCS1: tỷ lệ bán giá cố định','dry.ncsFixedShare','%',1],['NCS1: giá cố định năm 2019 (gồm cước)','dry.ncsFixed2019','USD/MMBtu']]],
       ['gasSegTransport','Vận chuyển khí',[['Cước vận chuyển','transport.fee','đ/m³'],['Giá vốn vận chuyển','transport.cost','đ/m³']]],
-      ['gasSegLng','LNG · tái hóa trong nước và kinh doanh quốc tế',[['Lãi tái hóa trong nước','lng.regasMargin','đ/m³'],['LNG tái hóa đã thực hiện 6T/2026','lng.regas6m','tỷ m³'],['Quốc tế: lãi gộp nửa cuối 2026','lng.intlGpH2','tỷ'],['Quốc tế: sản lượng từ 2027','lng.intlVol','nghìn tấn'],['Quốc tế: biên','lng.intlMargin','USD/MMBtu']]],
+      ['gasSegLng','LNG · tái hóa trong nước và kinh doanh quốc tế',['① Tái hóa trong nước = sản lượng tái hóa × lãi mỗi m³',['Lãi gộp mỗi m³ LNG tái hóa (giá 2026)','lng.regasMargin','đ/m³'],['Sản lượng đã thực hiện 6T/2026 (trừ khỏi cả năm 2026)','lng.regas6m','tỷ m³'],'② Kinh doanh quốc tế = sản lượng × 52 MMBtu/tấn × biên × tỷ giá',['Lãi gộp nửa cuối 2026 (nhập thẳng)','lng.intlGpH2','tỷ VND'],['Sản lượng bán mỗi năm từ 2027','lng.intlVol','nghìn tấn'],['Biên lãi mỗi MMBtu từ 2027','lng.intlMargin','USD/MMBtu']]],
       ['gasSegLoB','Lô B – Ô Môn · cước đường ống',[['Cước năm 2027 (100% đường ống)','loB.fee2027','USD/MMBtu'],['Trượt cước mỗi năm','loB.feeEsc','%/năm',1],['Phần GAS (BCC)','loB.share','%',1],['Vốn phần GAS','loB.capital','tỷ'],['Thời gian khấu hao','loB.life','năm'],['Vận hành / vốn mỗi năm','loB.opexRate','%/năm',1],['Tỷ lệ chi phí cố định năm 2027','loB.firstYearCost','%',1]]],
       ['gasSegLpg','LPG · giá CP, premium và sản lượng',[['CP phối trộn Q3/2026','lpg.cpH2.0','USD/tấn'],['CP phối trộn Q4/2026','lpg.cpH2.1','USD/tấn'],['CP / Brent từ 2027','lpg.cpBrent','tấn/thùng'],['Premium bán so CP','lpg.premiumSell','USD/tấn'],['SL nội địa 2025','lpg.domVol2025','nghìn tấn'],['Tăng SL nội địa mỗi năm','lpg.domGrowth','%/năm',1],['SL kinh doanh quốc tế','lpg.intlVol','nghìn tấn']]],
       ['gasSegCost','Chi phí, khấu hao, tài chính và cổ tức',[['Lãi gộp CNG, condensate, xây lắp, khác','cost.otherGp','tỷ/năm'],['Chi phí bán hàng','cost.selling','tỷ/năm'],['Chi phí QLDN (không gồm dự phòng)','cost.admin','tỷ/năm'],['Dự phòng phải thu','cost.provision','tỷ/năm'],['Khấu hao trong giá vốn giảm so 2025','cost.daCut','tỷ/năm'],['Phần giảm nửa cuối 2026','cost.daCutH2','tỷ'],['Khấu hao ống thu gom STT2B từ 2027','cost.daStt2b','tỷ/năm'],['Khấu hao Thị Vải mở rộng từ 2029','cost.daThiVai','tỷ/năm'],['Lãi suất trên tiền','cost.cashRate','%',1],['Chi phí tài chính và khác (cố định)','cost.finFixed','tỷ/năm'],['Tài chính ròng nửa cuối 2026 ngoài lãi tiền','cost.finH2','tỷ'],['Lợi nhuận khác','cost.otherProfit','tỷ/năm'],['Cổ tức tiền','cost.dividend','tỷ/năm'],['Thuế hiệu dụng','cost.tax','%',1],['LNST mẹ / LNST','cost.parentShare','%',1]]]];
-    const segBlock=([id,title,items])=>`<details class="dd" id="${id}" style="margin-top:12px"><summary>${title}</summary><div class="body"><div class="grid g2" style="align-items:start"><div class="tbl-wrap"><table class="analyst-table"><tr><th>Giả định</th><th class="num">Giá trị</th><th>Đơn vị</th></tr>${items.map(([l,p,u,pc])=>`<tr><td>${l}</td><td class="num">${cell(p,!!pc)}</td><td>${u}</td></tr>`).join('')}</table></div><div class="tbl-wrap"><table class="gas-seg-calc" data-seg="${id}"></table></div></div>${id==='gasSegDry'?'<div class="tbl-wrap" style="margin-top:12px"><table class="analyst-table" id="gasSrcInputs">'+srcTable()+'</table></div><div class="tbl-wrap" style="margin-top:12px"><table id="gasSrcCalc"></table></div><div class="note">Giá mua và cước neo năm 2025, trượt theo tỷ lệ trượt giá mỗi năm. Sản lượng mỏ hiện hữu chia theo tỷ trọng 2025; PM3–CAA GAS tự mua bán từ Q4/2025. Chi phí hệ thống = lãi gộp khí khô 2025 thực tế − mô hình 2025.</div>':''}</div></details>`;
+    const ANC=hsfoAnchors(),anc=p=>/^dry\.hsfoBrent/.test(p)&&ANC.length?`<select class="gm2-anchor" data-for="${p}" style="display:block;margin-top:4px;max-width:210px;font-size:12px"><option value="">Mốc thực tế…</option>${ANC.map(([k,l,v])=>`<option value="${v}">${esc(l)}: ${fmt(v,2)}</option>`).join('')}</select>`:'';
+    const segBlock=([id,title,items])=>`<details class="dd" id="${id}" style="margin-top:12px"><summary>${title}</summary><div class="body"><div class="grid g2" style="align-items:start"><div class="tbl-wrap"><table class="analyst-table"><tr><th>Giả định</th><th class="num">Giá trị</th><th>Đơn vị</th></tr>${items.map(it=>typeof it==='string'?`<tr><td colspan="3"><b>${it}</b></td></tr>`:`<tr><td>${it[0]}</td><td class="num">${cell(it[1],!!it[3])}${anc(it[1])}</td><td>${it[2]}</td></tr>`).join('')}</table></div><div class="tbl-wrap"><table class="gas-seg-calc" data-seg="${id}"></table></div></div>${id==='gasSegLng'?'<div class="note">Đổi sản lượng tái hóa từng năm: sửa dòng “LNG tái hóa trong nước (cả năm)” ở bảng Driver chính phía trên. Đổi lãi tái hóa: sửa lãi mỗi m³ (từ 2027 tự trượt theo mức VND mất giá ở khối Khí khô). Đổi mảng quốc tế: sửa sản lượng và biên mỗi MMBtu; 1 nghìn tấn LNG ≈ 52 nghìn MMBtu. Nửa cuối 2026 mảng quốc tế nhập thẳng lãi gộp.</div>':''}${id==='gasSegDry'?'<div class="tbl-wrap" style="margin-top:12px"><table class="analyst-table" id="gasSrcInputs">'+srcTable()+'</table></div><div class="tbl-wrap" style="margin-top:12px"><table id="gasSrcCalc"></table></div><div class="note">Giá mua và cước neo năm 2025, trượt theo tỷ lệ trượt giá mỗi năm. Sản lượng mỏ hiện hữu chia theo tỷ trọng 2025; PM3–CAA GAS tự mua bán từ Q4/2025. Chi phí hệ thống = lãi gộp khí khô 2025 thực tế − mô hình 2025.</div>':''}</div></details>`;
     const th=`<tr><th>Driver</th><th>Đơn vị</th>${F.map(x=>`<th class="num">${x}</th>`).join('')}</tr>`;
     const drv=()=>{const row=(lab,unit,cells)=>`<tr><td>${lab}</td><td>${unit}</td>${cells.map(c=>`<td class="num">${c}</td>`).join('')}</tr>`,ks=[0,1,2,3,4];
       return th+row('Brent','USD/thùng',[`<span style="display:inline-flex;gap:4px;align-items:center;white-space:nowrap">Q3 ${cell(`scenarios.${si}.brentQ3`,false,52)} Q4 ${cell(`scenarios.${si}.brentQ4`,false,52)}</span>`,...ks.slice(1).map(k=>cell(`scenarios.${si}.brent.${k-1}`))])
@@ -3505,7 +3522,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       const calc=(id,rows)=>{const t=wrap.querySelector(`.gas-seg-calc[data-seg="${id}"]`);if(t)t.innerHTML=`<tr><th>Kết quả</th>${F.map(x=>`<th class="num">${x}</th>`).join('')}</tr>`+rows.map(([l,f,n,cls])=>`<tr${cls?' class="total"':''}><td>${l}</td>${C.map(o=>{const v=f(o);return `<td class="num">${v==null?'—':fmt(v,n??0)}</td>`}).join('')}</tr>`).join('')};
       calc('gasSegDry',[['Brent dùng cho kỳ · USD/thùng',o=>o.brent,2],['HSFO 380 Singapore · USD/tấn',o=>o.hsfo,2],['46% FO quy đổi · USD/MMBtu',o=>o.fo46,2],['Tỷ giá · đ/USD',o=>o.fx],['Khí nội địa (kỳ tính) · tỷ m³',o=>o.domCalc,2],['Doanh thu khí khô · tỷ',o=>o.dryRev],['Lãi gộp khí khô · tỷ',o=>o.dryGp,0,1],['Lãi gộp thêm mỗi 1 USD Brent · tỷ',o=>o.perUsd,2]]);
       calc('gasSegTransport',[['Khí nội địa (kỳ tính) · tỷ m³',o=>o.domCalc,2],['Doanh thu vận chuyển · tỷ',o=>o.transportRev],['Lãi gộp vận chuyển · tỷ',o=>o.transportGp,0,1]]);
-      calc('gasSegLng',[['LNG tái hóa (kỳ tính) · tỷ m³',o=>o.regas,2],['Lãi tái hóa trong nước · tỷ',o=>o.regasGp],['Lãi kinh doanh quốc tế · tỷ',o=>o.intlGp],['Lãi gộp LNG · tỷ',o=>o.lngGp,0,1]]);
+      calc('gasSegLng',[['① Sản lượng tái hóa cả năm · tỷ m³',o=>o.h1?M.lng.regasVol[0]:o.regas,2],['− đã thực hiện 6T · tỷ m³',o=>o.h1?M.lng.regas6m:null,2],['= sản lượng tính trong kỳ · tỷ m³',o=>o.regas,2],['× lãi mỗi m³ (đã trượt tỷ giá) · đ/m³',o=>M.lng.regasMargin*o.ff],['= Lãi tái hóa trong nước · tỷ',o=>o.regasGp],['② Sản lượng quốc tế · nghìn tấn',o=>o.h1?null:M.lng.intlVol],['× biên · USD/MMBtu',o=>o.h1?null:M.lng.intlMargin,2],['× tỷ giá · đ/USD',o=>o.h1?null:o.fx],['= Lãi kinh doanh quốc tế · tỷ',o=>o.intlGp],['Lãi gộp LNG (① + ②) · tỷ',o=>o.lngGp,0,1]]);
       calc('gasSegLoB',[['Sản lượng · tỷ m³',o=>o.h1?null:o.loBVol,2],['Cước · USD/MMBtu',o=>o.loBFee,2],['Doanh thu cước phần GAS · tỷ',o=>o.h1?null:o.loBRev],['Chi phí cố định (khấu hao + vận hành) · tỷ',o=>o.h1?null:-o.loBCost],['Lãi gộp Lô B · tỷ',o=>o.loBGp,0,1]]);
       calc('gasSegLpg',[['SL nội địa (cả năm) · nghìn tấn',o=>o.lpgDom],['CP bình quân · USD/tấn',o=>o.cp,2],['Giá bán (CP + premium) · USD/tấn',o=>o.lpgSell,2],['Doanh thu LPG · tỷ',o=>o.lpgRev],['Biên nội địa · USD/tấn',o=>o.lpgMargin,2],['Lãi gộp LPG · tỷ',o=>o.lpgGp,0,1]]);
       calc('gasSegCost',[['Khấu hao giảm so 2025 (ròng) · tỷ',o=>o.daCut],['Lãi gộp khác · tỷ',o=>o.otherGp],['Chi phí bán hàng + QLDN + dự phòng · tỷ',o=>o.selling+o.admin+o.provision],['Tài chính ròng · tỷ',o=>o.fin],['Lợi nhuận khác · tỷ',o=>o.otherProfit],['Capex · tỷ',o=>o.h1?o.capex-M.common.capex6m:o.capex],['Tiền ròng cuối kỳ · tỷ',o=>o.cash,0,1]]);
@@ -3517,6 +3534,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     MV.subs.push(src=>{if(src!=='model'){si=MV.si;render()}});
     const onEdit=e=>{const el=e.target;if(!el.classList?.contains('gm2'))return;const x=read(el);if(x==null)return;MV.set(el.dataset.path,x);if(e.type==='change')el.value=n2(el.dataset.pct?x*100:x);render()};
     wrap.addEventListener('input',onEdit);wrap.addEventListener('change',onEdit);
+    wrap.addEventListener('change',e=>{const a=e.target;if(!a.classList?.contains('gm2-anchor')||!a.value)return;const v=Math.round(Number(a.value)*100)/100,inp=wrap.querySelector(`.gm2[data-path="${a.dataset.for}"]`);if(!inp)return;inp.value=v;MV.set(a.dataset.for,v);render();a.value=''});
     wrap.querySelector('#gasSave').addEventListener('click',()=>{wrap.querySelector('#gasSaved').textContent=MV.save(p=>!FIELD_PATH.test(p),true)?'Đã lưu':'Không lưu được'});
   }
   // Thử nghiệm GAS: nút "Ghép chart" ở mỗi tab con Mảng kinh doanh. Chuỗi lấy từ các chart mkTS có sẵn trong tab (TSREG),
@@ -7331,40 +7349,10 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 
 </script>
 <script>
-// Liên kết từ ghi chú mô hình về bảng nguồn khí ở tab Mảng kinh doanh.
-(function(){
-  function wireFieldLink(){
-    const table=document.getElementById('gasDrivers');
-    const note=table?.closest('.tbl-wrap')?.nextElementSibling;
-    if(!note||note.querySelector('a[data-gas-field-jump]'))return;
-    const label='Nguồn khí từng mỏ';
-    const node=Array.from(note.childNodes).find(n=>n.nodeType===3&&n.textContent.includes(label));
-    if(!node)return;
-    const word=node.splitText(node.textContent.indexOf(label));
-    word.splitText(label.length);
-    const link=document.createElement('a');
-    link.href='#seg';link.dataset.gasFieldJump='1';link.textContent=label;
-    link.style.cssText='color:#2938A8;font-weight:700;text-decoration:underline;text-underline-offset:2px';
-    note.replaceChild(link,word);
-  }
-  document.addEventListener('click',e=>{
-    const link=e.target.closest('a[data-gas-field-jump]');if(!link)return;
-    e.preventDefault();
-    if(typeof activateTab==='function')activateTab('seg');
-    else document.querySelector('.tabs button[data-tab="seg"]')?.click();
-    document.querySelector('.gas-subnav button[data-gas="dry"]')?.click();
-    const heading=document.getElementById('gasFieldTable')?.closest('.card')?.querySelector('h3');
-    if(heading){heading.tabIndex=-1;requestAnimationFrame(()=>{heading.scrollIntoView({behavior:'smooth',block:'start'});heading.focus({preventScroll:true});});}
-  });
-  function init(){wireFieldLink();const pane=document.getElementById('val');if(pane&&typeof MutationObserver==='function')new MutationObserver(wireFieldLink).observe(pane,{childList:true,subtree:true});}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-})();
-</script>
-<script>
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='gas',BUILD='9b3da9cdd780',URL_JSON='../version.json';
+  const PAGE='gas',BUILD='fa21c8a6b59d',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
