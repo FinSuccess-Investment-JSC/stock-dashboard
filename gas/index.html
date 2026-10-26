@@ -4612,7 +4612,9 @@ window.FS_ANALYST_VAULT={"iter": 600000, "salt": "1J1KSPRXSLtd3z2nYwmUpA==", "iv
 //    (build áp lên PVS_DATA), workflow data-update build + publish. Hủy/Gửi lại cũng ghi vào
 //    request.json để giữ lịch sử. Phiếu lỗi/không đổi/chờ duyệt có ô hướng dẫn thêm (kèm ảnh/link)
 //    để analyst gửi lại cho AI trên chính phiếu đó, không phải mở phiếu mới.
-// 4. Loại "Thêm/sửa chart" (kind "chart"): routine dựng chart trong <MÃ>/enhancements.js trên nhánh
+// 5. Hoàn tác: phiếu đã áp dụng có nút ↶ Hoàn tác — số liệu trả về giá trị lưu ở request.undo; chart/số mới
+//    khôi phục từng file của commit gộp (request.merged) về bản trước. Từ chối khi đã có thay đổi mới hơn.
+// 4. Loại "Thêm/sửa chart & số liệu mới" (kind "chart"): routine dựng chart trong <MÃ>/enhancements.js trên nhánh
 //    claude/chart-…, build, chụp ảnh xem trước (inbox_preview.cjs) và ghi proposal.kind "chart"
 //    + branch + commit + preview. Áp dụng = API merges gộp commit vào main; Hủy/Gửi lại xóa nhánh.
 (function () {
@@ -4630,15 +4632,15 @@ window.FS_ANALYST_VAULT={"iter": 600000, "salt": "1J1KSPRXSLtd3z2nYwmUpA==", "iv
     return out;
   }
   var TYPES = [];
-  var STATUS = { pending: 'Đang chờ AI đọc', processing: 'AI đang đọc', proposed: 'Chờ duyệt', applied: 'Đã áp dụng', rejected: 'Đã hủy', failed: 'AI không đọc được', unchanged: 'Không có thay đổi' };
+  var STATUS = { pending: 'Đang chờ AI đọc', processing: 'AI đang đọc', proposed: 'Chờ duyệt', applied: 'Đã áp dụng', reverted: 'Đã hoàn tác', rejected: 'Đã hủy', failed: 'AI không đọc được', unchanged: 'Không có thay đổi' };
   var pasted = [];   // ảnh dán bằng Cmd/Ctrl+V vào form gửi mới
   var fuPasted = {};  // ảnh dán vào ô tiếp tục của từng phiếu (theo id)
-  var OPEN = { proposed: 1, failed: 1, unchanged: 1 };   // phiếu analyst còn tiếp tục được
+  var OPEN = { proposed: 1, failed: 1, unchanged: 1, reverted: 1 };   // phiếu analyst còn tiếp tục được
   // data: AI đề xuất số → Áp dụng ghi analyst-updates.json. chart: AI dựng chart trên nhánh riêng
   // (chỉ <MÃ>/enhancements.js), gửi ảnh xem trước → Áp dụng gộp commit đó vào main.
   var KINDS = [
-    ['data', 'Cập nhật số liệu', { hint: 'AI đọc ảnh/link, đề xuất bảng số cũ → mới để bạn duyệt.', fileLabel: 'Ảnh hoặc PDF bản tin (tối đa 8 MB/file) — hoặc dán ảnh bằng Cmd/Ctrl+V', noteLabel: 'Ghi chú cho AI (kỳ, chuỗi cần cập nhật…)', placeholder: 'vd: bản tin 9T/2026, cập nhật doanh thu tháng 9 cho BHX và ĐMX' }],
-    ['chart', 'Thêm/sửa chart', { hint: 'AI dựng chart từ số đã có trên dashboard, gửi ảnh xem trước; bấm Áp dụng thì chart lên website. Ảnh mẫu là tùy chọn. Cần số mới thì gửi phiếu Cập nhật số liệu trước.', fileLabel: 'Ảnh chart mẫu (tùy chọn, tối đa 8 MB/file) — hoặc dán ảnh bằng Cmd/Ctrl+V', noteLabel: 'Mô tả chart (chỉ tiêu, kiểu chart, kỳ, đặt ở đâu…)', placeholder: 'vd: thêm chart lũy kế sản lượng phát từ đầu năm theo nhà máy, so cùng kỳ 2024–2026, đặt dưới chart Sản lượng phát' }],
+    ['data', 'Cập nhật số liệu', { hint: 'Chỉ cần ghi yêu cầu: AI tự tìm nguồn công khai (hoặc dùng số bạn gõ trong ghi chú), đề xuất bảng số cũ → mới để bạn duyệt. Ảnh/link là tùy chọn.', fileLabel: 'Ảnh hoặc PDF bản tin (tùy chọn, tối đa 8 MB/file) — hoặc dán ảnh bằng Cmd/Ctrl+V', noteLabel: 'Ghi chú cho AI (kỳ, chuỗi cần cập nhật…)', placeholder: 'vd: bản tin 9T/2026, cập nhật doanh thu tháng 9 cho BHX và ĐMX' }],
+    ['chart', 'Thêm/sửa chart & số liệu mới', { hint: 'AI viết code cho riêng mã này: sửa/thêm chart, bảng, hoặc thêm chỉ tiêu mới chưa có (tự tìm nguồn công khai, lưu số kèm ngày + link, đặt lịch cập nhật nếu nguồn có định kỳ). AI gửi ảnh xem trước; bấm Áp dụng thì lên website, có thể Hoàn tác. Ảnh mẫu là tùy chọn.', fileLabel: 'Ảnh chart mẫu (tùy chọn, tối đa 8 MB/file) — hoặc dán ảnh bằng Cmd/Ctrl+V', noteLabel: 'Mô tả chart (chỉ tiêu, kiểu chart, kỳ, đặt ở đâu…)', placeholder: 'vd: thêm chart lũy kế sản lượng phát từ đầu năm theo nhà máy, so cùng kỳ 2024–2026, đặt dưới chart Sản lượng phát' }],
     ['model', 'Cập nhật model', { hint: 'Dán link chia sẻ OneDrive của mô hình dự phóng vào ô Link (Chia sẻ → "Bất kỳ ai có liên kết" → Có thể xem → Sao chép; link dạng https://1drv.ms/…). Hệ thống tải model, chạy lại mô hình của mã và đề xuất bảng số cũ → mới để bạn duyệt, khoảng 5–10 phút.', fileLabel: 'Không cần đính kèm file — model lấy qua link', noteLabel: 'Ghi chú (đã sửa giả định/sheet nào)', placeholder: 'vd: cập nhật giả định tăng trưởng DX 2026–2027, thêm số Q3/2026' }]
   ];
   var KIND = {}; KINDS.forEach(function (k) { KIND[k[0]] = k[2]; });
@@ -4769,7 +4771,7 @@ window.FS_ANALYST_VAULT={"iter": 600000, "salt": "1J1KSPRXSLtd3z2nYwmUpA==", "iv
     var note = document.getElementById('fsInNote').value.trim();
     if (kind === 'chart' && !note) return window.fsAnalystToast('Mô tả chart cần thêm/sửa.', false);
     if (kind === 'model' && !urls.some(function (u) { return /^https:\/\/(1drv\.ms|onedrive\.live\.com)\//.test(u); })) return window.fsAnalystToast('Dán link chia sẻ OneDrive của model (https://1drv.ms/…).', false);
-    if (kind !== 'chart' && !files.length && !urls.length) return window.fsAnalystToast('Chọn file, dán ảnh hoặc nhập link nguồn.', false);
+    if (kind === 'data' && !note && !files.length && !urls.length) return window.fsAnalystToast('Ghi yêu cầu cho AI, hoặc thêm ảnh/link nguồn.', false);
     if (files.some(function (f) { return f.size > MAX_BYTES; })) return window.fsAnalystToast('File lớn hơn 8 MB, hãy chụp/cắt nhỏ lại.', false);
     var btn = document.getElementById('fsInSend');
     btn.disabled = true; btn.textContent = 'Đang gửi…';
@@ -4816,7 +4818,7 @@ window.FS_ANALYST_VAULT={"iter": 600000, "salt": "1J1KSPRXSLtd3z2nYwmUpA==", "iv
 
   function renderReq(r) {
     var d = r.doc, p = d.proposal || {}, html = '<div class="req" id="req-' + esc(d.id) + '" data-id="' + esc(d.id) + '">'
-      + '<b>' + (d.kind === 'chart' ? 'Chart · ' : '') + esc(d.typeLabel || d.type) + '</b><span class="st ' + esc(d.status) + '">' + esc(STATUS[d.status] || d.status) + '</span>'
+      + '<b>' + (d.kind === 'chart' ? 'Chart/số mới · ' : '') + esc(d.typeLabel || d.type) + '</b><span class="st ' + esc(d.status) + '">' + esc(STATUS[d.status] || d.status) + '</span>'
       + '<div class="muted">' + esc(new Date(d.createdAt).toLocaleString('vi-VN')) + (d.note ? ' · ' + esc(d.note) : '') + '</div>';
     if ((d.urls || []).length) html += '<div class="muted">Link: ' + d.urls.map(function (u) { return '<a href="' + esc(u) + '" target="_blank" rel="noopener">' + esc(u.length > 70 ? u.slice(0, 70) + '…' : u) + '</a>'; }).join(' · ') + '</div>';
     if ((d.status === 'failed' || d.status === 'unchanged') && p.error) html += '<div class="warn">' + esc(p.error) + '</div>';
@@ -4835,6 +4837,7 @@ window.FS_ANALYST_VAULT={"iter": 600000, "salt": "1J1KSPRXSLtd3z2nYwmUpA==", "iv
     var tries = (d.history || []).filter(function (h) { return h.action === 'retry'; });
     if (tries.length) html += '<details><summary class="muted">Đã hướng dẫn thêm ' + tries.length + ' lần</summary>'
       + tries.map(function (h) { return '<div class="muted">' + esc(new Date(h.at).toLocaleString('vi-VN')) + ': ' + esc(h.feedback || '') + ((h.files || []).length ? ' (+' + h.files.length + ' file)' : '') + ((h.urls || []).length ? ' (+' + h.urls.length + ' link)' : '') + '</div>'; }).join('') + '</details>';
+    if (d.status === 'applied' && (d.undo || (p.kind === 'chart' && d.merged))) html += '<div class="row"><button class="b d" data-act="undo" type="button" title="Đưa dữ liệu/code về đúng trạng thái trước khi áp dụng phiếu này">↶ Hoàn tác</button></div>';
     if (OPEN[d.status]) {
       var id = esc(d.id);
       html += '<label for="fb-' + id + '">' + (d.status === 'proposed' ? 'Nếu sai, ghi chỗ cần sửa rồi bấm Gửi lại' : 'Hướng dẫn thêm cho AI để tiếp tục yêu cầu này') + '</label>'
@@ -4875,6 +4878,15 @@ window.FS_ANALYST_VAULT={"iter": 600000, "salt": "1J1KSPRXSLtd3z2nYwmUpA==", "iv
     var urls = action === 'retry' ? ((document.getElementById('fu-' + id) || {}).value || '').split(/\s+/).filter(function (u) { return /^https?:\/\/\S+$/.test(u); }) : [];
     feedback = feedback.trim();
     return readJson(path).then(function (r) {
+      if (action === 'undo') {
+        if (!r || r.doc.status !== 'applied') throw Object.assign(new Error('stale'), { status: 'phiếu không ở trạng thái đã áp dụng' });
+        var ud = r.doc;
+        return (ud.proposal && ud.proposal.kind === 'chart' ? revertChart(ud) : revertChanges(ud)).then(function () {
+          ud.history = ud.history || []; ud.history.push({ at: new Date().toISOString(), action: 'undo' });
+          ud.status = 'reverted'; ud.revertedAt = new Date().toISOString();
+          return writeJson(path, ud, r.sha, 'Analyst hoàn tác ' + ticker() + ' ' + id);
+        });
+      }
       if (!r || !OPEN[r.doc.status]) throw Object.assign(new Error('stale'), { status: 'phiếu đã đổi trạng thái, tải lại' });
       if (action === 'apply' && r.doc.status !== 'proposed') throw Object.assign(new Error('stale'), { status: 'phiếu không có đề xuất để áp dụng' });
       var doc = r.doc, now = new Date().toISOString();
@@ -4908,7 +4920,7 @@ window.FS_ANALYST_VAULT={"iter": 600000, "salt": "1J1KSPRXSLtd3z2nYwmUpA==", "iv
         return writeJson(path, doc, r.sha, 'Analyst áp dụng đề xuất ' + ticker() + ' ' + id);
       });
     }).then(function () {
-      window.fsAnalystToast(action === 'apply' ? 'Đã áp dụng. Website cập nhật sau khoảng 2–3 phút.' : action === 'retry' ? 'Đã gửi lại cho AI đọc, tiếp tục trên phiếu này.' : 'Đã đóng yêu cầu.');
+      window.fsAnalystToast(action === 'undo' ? 'Đã hoàn tác. Website về trạng thái trước sau khoảng 2–3 phút.' : action === 'apply' ? 'Đã áp dụng. Website cập nhật sau khoảng 2–3 phút.' : action === 'retry' ? 'Đã gửi lại cho AI đọc, tiếp tục trên phiếu này.' : 'Đã đóng yêu cầu.');
       refresh();
     }).catch(function (e) { window.fsAnalystToast('Chưa thực hiện được (' + (e.status || 'lỗi mạng') + ').', false); });
   }
@@ -4932,10 +4944,54 @@ window.FS_ANALYST_VAULT={"iter": 600000, "salt": "1J1KSPRXSLtd3z2nYwmUpA==", "iv
       .catch(function (e) {
         if (e.status === 409) throw Object.assign(e, { status: 'xung đột với bản mới trên website — bấm Gửi lại để AI làm lại' });
         throw e;
-      }).then(function () { dropBranch(p); });
+      }).then(function (m) { req.merged = { sha: m && m.sha, files: null }; dropBranch(p); });
   }
   function dropBranch(p) {
     if (p && p.kind === 'chart' && /^claude\//.test(p.branch || '')) api('DELETE', '/repos/' + gh().repo + '/git/refs/heads/' + p.branch.split('/').map(encodeURIComponent).join('/')).catch(function () {});
+  }
+
+
+  // Hoàn tác số liệu: trả từng đường dẫn về giá trị trước khi áp dụng; từ chối nếu phiếu khác đã ghi đè sau đó.
+  function revertChanges(req, attempt) {
+    var u = req.undo; if (!u) return Promise.reject(Object.assign(new Error('undo'), { status: 'phiếu cũ không lưu bước trước, không hoàn tác tự động được' }));
+    var path = ticker() + '/analyst-updates.json';
+    return readJson(path).then(function (r) {
+      if (!r) throw Object.assign(new Error('undo'), { status: 'không thấy analyst-updates.json' });
+      var doc = r.doc, bad = Object.keys(u.applied).filter(function (k) { return JSON.stringify(doc.set[k]) !== JSON.stringify(u.applied[k]); });
+      if (bad.length) throw Object.assign(new Error('undo'), { status: 'đã có cập nhật khác sau phiếu này ở ' + bad.length + ' chuỗi — hoàn tác phiếu mới hơn trước' });
+      Object.keys(u.applied).forEach(function (k) { if (u.had && u.had[k]) doc.set[k] = u.prev[k]; else delete doc.set[k]; });
+      doc.log = doc.log || []; doc.log.push({ id: req.id, at: new Date().toISOString(), action: 'undo', paths: Object.keys(u.applied) });
+      doc.updated = new Date().toISOString();
+      return writeJson(path, doc, r.sha, 'Analyst hoàn tác số liệu ' + ticker() + ' (' + req.id + ')');
+    }).catch(function (e) { if (e.status === 409 && !attempt) return revertChanges(req, 1); throw e; });
+  }
+  // Hoàn tác chart/số mới: khôi phục từng file commit đã đổi về bản trước khi gộp; từ chối nếu file đã bị sửa tiếp.
+  function revertChart(req) {
+    var m = req.merged, repo = gh().repo, br = gh().branch;
+    if (!m || !m.sha) return Promise.reject(Object.assign(new Error('undo'), { status: 'phiếu cũ không lưu commit áp dụng, không hoàn tác tự động được' }));
+    var enc = function (f) { return f.split('/').map(encodeURIComponent).join('/'); };
+    var parent;
+    return api('GET', '/repos/' + repo + '/commits/' + m.sha).then(function (c) {
+      parent = c.parents && c.parents[0] && c.parents[0].sha;
+      if (!parent) throw Object.assign(new Error('undo'), { status: 'không đọc được commit áp dụng' });
+      return api('GET', '/repos/' + repo + '/compare/' + parent + '...' + m.sha);   // file đổi so với main ngay trước khi gộp
+    }).then(function (cmp) {
+      var files = ((cmp && cmp.files) || []).map(function (f) { return f.filename; });
+      if (!files.length) throw Object.assign(new Error('undo'), { status: 'commit áp dụng không đổi file nào' });
+      return files.reduce(function (pr, f) {
+        return pr.then(function () {
+          return Promise.all([
+            api('GET', '/repos/' + repo + '/contents/' + enc(f) + '?ref=' + m.sha).catch(function () { return null; }),
+            api('GET', '/repos/' + repo + '/contents/' + enc(f) + '?ref=' + br).catch(function () { return null; }),
+            api('GET', '/repos/' + repo + '/contents/' + enc(f) + '?ref=' + parent).catch(function () { return null; })]).then(function (x) {
+            var atMerge = x[0], now = x[1], before = x[2];
+            if ((atMerge && atMerge.sha) !== (now && now.sha)) throw Object.assign(new Error('undo'), { status: f + ' đã được sửa sau khi áp dụng — cần làm qua phiếu mới' });
+            if (before) return api('PUT', '/repos/' + repo + '/contents/' + enc(f), { message: 'Analyst hoàn tác ' + ticker() + ' (' + req.id + '): ' + f, content: before.content.replace(/\s/g, ''), sha: now && now.sha, branch: br });
+            if (now) return api('DELETE', '/repos/' + repo + '/contents/' + enc(f), { message: 'Analyst hoàn tác ' + ticker() + ' (' + req.id + '): xóa ' + f, sha: now.sha, branch: br });
+          });
+        });
+      }, Promise.resolve());
+    });
   }
 
   // Ghi changes vào <MÃ>/analyst-updates.json; build áp `set` lên PVS_DATA theo đường dẫn.
@@ -4946,7 +5002,9 @@ window.FS_ANALYST_VAULT={"iter": 600000, "salt": "1J1KSPRXSLtd3z2nYwmUpA==", "iv
     return readJson(path).then(function (r) {
       var doc = r ? r.doc : { ticker: ticker(), set: {}, log: [] };
       doc.set = doc.set || {}; doc.log = doc.log || [];
-      changes.forEach(function (c) { doc.set[c.path] = c.value; });
+      // Lưu giá trị trước khi ghi (undefined = chưa có trong set) để Hoàn tác đúng bước trước.
+      req.undo = { prev: {}, applied: {} };
+      changes.forEach(function (c) { req.undo.prev[c.path] = Object.prototype.hasOwnProperty.call(doc.set, c.path) ? doc.set[c.path] : null; req.undo.had = req.undo.had || {}; req.undo.had[c.path] = Object.prototype.hasOwnProperty.call(doc.set, c.path); req.undo.applied[c.path] = c.value; doc.set[c.path] = c.value; });
       doc.log.push({ id: req.id, at: new Date().toISOString(), type: req.type, paths: changes.map(function (c) { return c.path; }), source: req.proposal.source || null });
       doc.updated = new Date().toISOString();
       return writeJson(path, doc, r && r.sha, 'Analyst cập nhật số liệu ' + ticker() + ' (' + req.id + ')');
@@ -7453,7 +7511,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='gas',BUILD='3a758e1706ea',URL_JSON='../version.json';
+  const PAGE='gas',BUILD='04da3b8111fb',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
