@@ -3519,7 +3519,50 @@ document.addEventListener('DOMContentLoaded',()=>{
     wrap.addEventListener('input',onEdit);wrap.addEventListener('change',onEdit);
     wrap.querySelector('#gasSave').addEventListener('click',()=>{wrap.querySelector('#gasSaved').textContent=MV.save(p=>!FIELD_PATH.test(p),true)?'Đã lưu':'Không lưu được'});
   }
-  document.addEventListener('DOMContentLoaded',()=>{business();try{priceDrivers()}catch(e){console.error('GAS priceDrivers',e)}try{lpgPricing()}catch(e){console.error('GAS lpgPricing',e)}finance();forecast();applyChartTips()});
+  // Thử nghiệm (chỉ tab LPG): người dùng tự chọn chuỗi vẽ cột (trục trái) và chuỗi vẽ đường (trục phải), khớp theo kỳ chung.
+  function lpgCombo(){
+    const sec=document.getElementById('gas-lpg');if(!sec)return;
+    const S=d.segments,Q=S.quarterly,V=g.volume,CP=g.lpgCp,LV=g.lpgVolume||{},KEY='fs_combo_gas_lpg_v1';
+    const yMap=(years,vals)=>Object.fromEntries(years.map((y,i)=>[y,vals[i]]).filter(([,v])=>v!=null&&Number.isFinite(v)));
+    const li=S.names.indexOf('LPG'),qi=Q?Q.names.indexOf('LPG'):-1;
+    const cpSeries=(id,label,arr)=>{const m={},q={},y={};CP.months.forEach((k,i)=>{if(arr[i]!=null)m[k]=arr[i]});
+      const grp=(f,need,out)=>{const b={};Object.entries(m).forEach(([k,v])=>{const g2=f(k);(b[g2]=b[g2]||[]).push(v)});Object.entries(b).forEach(([k,v])=>{if(v.length===need)out[k]=Math.round(v.reduce((a,x)=>a+x,0)/need*100)/100})};
+      grp(k=>`Q${Math.floor((+k.slice(5)-1)/3)+1}/${k.slice(2,4)}`,3,q);grp(k=>k.slice(0,4),12,y);
+      return {id,label,unit:'USD/tấn',m,q,y}};
+    const blend=CP?CP.months.map((_,i)=>CP.propane[i]!=null&&CP.butane[i]!=null?(CP.propane[i]+CP.butane[i])/2:null):[];
+    const ratio=(gp,rev)=>Object.fromEntries(Object.keys(gp).filter(k=>rev[k]>0).map(k=>[k,Math.round(gp[k]/rev[k]*1000)/10]));
+    const gpY=yMap(S.years,S.grossProfit[li]),revY=yMap(S.years,S.revenue[li]),gpQ=Q&&qi>=0?yMap(Q.labels,Q.grossProfit[qi]):{},revQ=Q&&qi>=0?yMap(Q.labels,Q.revenue[qi]):{};
+    const volY=yMap(S.years,V.lpg);
+    const cat=[
+      {id:'gp',label:'LN gộp LPG',unit:'tỷ VND',y:gpY,q:gpQ},
+      {id:'rev',label:'Doanh thu LPG',unit:'tỷ VND',y:revY,q:revQ},
+      {id:'margin',label:'Biên gộp LPG',unit:'%',y:ratio(gpY,revY),q:ratio(gpQ,revQ)},
+      {id:'vol',label:'Sản lượng LPG kinh doanh',unit:'nghìn tấn',y:volY},
+      ...(LV.years?[{id:'prod',label:'LPG sản xuất (Dinh Cố + Cà Mau)',unit:'nghìn tấn',y:yMap(LV.years,LV.produced)}]:[]),
+      {id:'price',label:'Giá bán LPG bình quân thực tế',unit:'triệu VND/tấn',y:Object.fromEntries(Object.keys(revY).filter(k=>volY[k]).map(k=>[k,Math.round(revY[k]/volY[k]*1e5)/100]))},
+      ...(CP?[cpSeries('cpBlend','Saudi CP phối trộn 50:50',blend),cpSeries('cpP','Saudi CP propan',CP.propane),cpSeries('cpB','Saudi CP butan',CP.butane)]:[])];
+    let st={bar:['gp'],line:['cpBlend']};try{const x=JSON.parse(localStorage.getItem(KEY)||'null');if(x&&Array.isArray(x.bar)&&Array.isArray(x.line))st=x}catch(_){}
+    const box=document.createElement('div');box.className='card';box.id='gasLpgCombo';box.style.marginTop='16px';
+    const pick=(side)=>cat.map(c=>`<label style="display:inline-flex;gap:5px;align-items:center;margin:0 12px 6px 0;white-space:nowrap;font-size:13px"><input type="checkbox" data-side="${side}" value="${c.id}"${st[side].includes(c.id)?' checked':''}>${esc(c.label)} <span class="muted">(${esc(c.unit)})</span></label>`).join('');
+    box.innerHTML=`<h3 class="sub">Tự ghép chart · LPG</h3><div class="row" style="gap:18px;align-items:flex-start;flex-wrap:wrap;margin-bottom:8px"><div style="flex:1;min-width:260px"><div style="font-weight:700;margin-bottom:6px">Cột · trục trái</div>${pick('bar')}</div><div style="flex:1;min-width:260px"><div style="font-weight:700;margin-bottom:6px">Đường · trục phải</div>${pick('line')}</div></div><div class="chart tall"><canvas id="gasLpgComboChart"></canvas></div><div class="note">Chọn chuỗi cho từng trục; hai chuỗi được khớp theo kỳ chung. Giá Saudi CP theo tháng; Quý/Năm là bình quân khi đủ tháng trong kỳ. Biên gộp tính lại từ LN gộp ÷ doanh thu cùng kỳ, không cộng dồn. Kỳ chỉ một chuỗi có số thì chuỗi kia để trống, không nội suy. Hai trục khác đơn vị chỉ để so hình dạng, không suy quan hệ nhân quả. Nguồn: BCTC hợp nhất GAS (LN gộp, doanh thu theo mảng); PV GAS (sản lượng); 3mgas.vn – Saudi Aramco CP.</div>`;
+    sec.appendChild(box);
+    const sortKey=(p,k)=>p==='q'?(+k.slice(-2))*10+(+k[1]):p==='m'?+k.replace('-',''):+k;
+    const lab=(p,k)=>p==='m'?k.slice(5)+'/'+k.slice(2,4):k;
+    const COL=[NAVY,BLUE,GREEN,'#8997D6'],LCOL=[PURPLE,GOLD,'#C2185B','#E07B39'];
+    const draw=()=>{const bars=cat.filter(c=>st.bar.includes(c.id)),lines=cat.filter(c=>st.line.includes(c.id)),sel=[...bars,...lines];
+      const spec={def:'y',cfg:(labels,datasets)=>({type:'bar',data:{labels,datasets},options:baseOpts({interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y,2)+' '+c.dataset.unit}}},
+        scales:{x:{grid:{display:false}},y:{beginAtZero:true,display:datasets.some(x=>x.yAxisID==='y'),grid:{color:'#EEF0F6'},title:{display:true,text:[...new Set(bars.map(b=>b.unit))].join(' · ')}},y1:{position:'right',beginAtZero:true,display:datasets.some(x=>x.yAxisID==='y1'),grid:{drawOnChartArea:false},title:{display:true,text:[...new Set(lines.map(b=>b.unit))].join(' · ')}}}})})};
+      for(const p of ['m','q','y']){const keys=[...new Set(sel.flatMap(c=>Object.keys(c[p]||{})))].filter(k=>p!=='m'||k>='2021').sort((a,b)=>sortKey(p,a)-sortKey(p,b));
+        if(!keys.length)continue;
+        spec[p]={labels:keys.map(k=>lab(p,k)),datasets:[...bars.map((c,i)=>({label:c.label,unit:c.unit,data:keys.map(k=>c[p]?.[k]??null),backgroundColor:COL[i%COL.length],yAxisID:'y',order:1})),
+          ...lines.map((c,i)=>({label:c.label,unit:c.unit,type:'line',data:keys.map(k=>c[p]?.[k]??null),borderColor:LCOL[i%LCOL.length],backgroundColor:LCOL[i%LCOL.length],yAxisID:'y1',pointRadius:p==='m'?1.5:3,borderWidth:2,spanGaps:false,order:0}))]}}
+      if(!spec.y&&!spec.q&&!spec.m){spec.y={labels:[],datasets:[]}}
+      if(!spec.y)spec.def=spec.q?'q':'m';
+      mkTS('gasLpgComboChart',spec);};
+    box.addEventListener('change',e=>{const el=e.target;if(!el.dataset?.side)return;st[el.dataset.side]=[...box.querySelectorAll(`input[data-side="${el.dataset.side}"]:checked`)].map(x=>x.value);try{localStorage.setItem(KEY,JSON.stringify(st))}catch(_){}draw()});
+    draw();
+  }
+  document.addEventListener('DOMContentLoaded',()=>{business();try{priceDrivers()}catch(e){console.error('GAS priceDrivers',e)}try{lpgPricing()}catch(e){console.error('GAS lpgPricing',e)}try{lpgCombo()}catch(e){console.error('GAS lpgCombo',e)}finance();forecast();applyChartTips()});
 })();
 
 </script>
@@ -7288,7 +7331,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='gas',BUILD='93fb3fa289f7',URL_JSON='../version.json';
+  const PAGE='gas',BUILD='6d0b1d396449',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
