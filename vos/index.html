@@ -1217,6 +1217,8 @@ table .fs-num{text-align:right!important}
 html,body{overflow-x:clip}
 a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid #59C5C8;outline-offset:2px}
 td.num,th.num,.num{font-variant-numeric:tabular-nums}
+/* Nút Company news trên thanh ticker: vàng ấm FinSuccess, phân biệt với Watchlist (turquoise). */
+.mkt-wl.mkt-news{background:#FFD45D;color:#0F1550}
 
 </style>
 <style>
@@ -5233,7 +5235,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
     }).join('');
     if(!items) return;
     const tape=document.createElement('div'); tape.id='mktTape'; tape.className='mkt-tape';
-    tape.innerHTML=`<a class="mkt-wl" href="${BASE}watchlist/" title="Bảng theo dõi toàn bộ mã (phím W)">▦ Watchlist</a><a class="mkt-wl" href="${BASE}news/" title="Tin cập nhật từ từng doanh nghiệp (phím N)">◉ Company news</a><div class="mkt-track"><div class="mkt-run">${items}${items}</div></div>`;
+    tape.innerHTML=`<a class="mkt-wl" href="${BASE}watchlist/" title="Bảng theo dõi toàn bộ mã (phím W)">▦ Watchlist</a><a class="mkt-wl mkt-news" href="${BASE}news/" title="Tin cập nhật từ từng doanh nghiệp (phím N)">◉ Company news</a><div class="mkt-track"><div class="mkt-run">${items}${items}</div></div>`;
     nav.before(tape);
   }
 
@@ -6879,7 +6881,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='vos',BUILD='08be9e809f0e',URL_JSON='../version.json';
+  const PAGE='vos',BUILD='c8e6a833fe74',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
