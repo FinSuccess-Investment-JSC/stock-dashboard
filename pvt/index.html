@@ -5406,7 +5406,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
     }).join('');
     if(!items) return;
     const tape=document.createElement('div'); tape.id='mktTape'; tape.className='mkt-tape';
-    tape.innerHTML=`<a class="mkt-wl" href="${BASE}watchlist/" title="Bảng theo dõi toàn bộ mã (phím W)">▦ Watchlist</a><div class="mkt-track"><div class="mkt-run">${items}${items}</div></div>`;
+    tape.innerHTML=`<a class="mkt-wl" href="${BASE}watchlist/" title="Bảng theo dõi toàn bộ mã (phím W)">▦ Watchlist</a><a class="mkt-wl" href="${BASE}news/" title="Tin cập nhật từ từng doanh nghiệp (phím N)">◉ Company news</a><div class="mkt-track"><div class="mkt-run">${items}${items}</div></div>`;
     nav.before(tape);
   }
 
@@ -5438,6 +5438,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
     });
     (market?market.stocks:[]).forEach(s=>out.push({k:'Cổ phiếu',t:s.code+' — '+s.name,run:()=>{location.href=BASE+(s.folder?s.folder+'/':'');}}));
     out.push({k:'Lệnh',t:'Mở Watchlist toàn bộ mã',hint:'W',run:()=>{location.href=BASE+'watchlist/';}});
+    out.push({k:'Lệnh',t:'Mở Company news',hint:'N',run:()=>{location.href=BASE+'news/';}});
     out.push({k:'Lệnh',t:'Đổi giao diện sáng / tối',hint:'T',run:toggleTheme});
     out.push({k:'Lệnh',t:'Tìm cổ phiếu',hint:'/',run:focusSearch});
     out.push({k:'Lệnh',t:'Xuất PDF / In trang',run:()=>{if(typeof window.exportPDF==='function')window.exportPDF();else print();}});
@@ -5482,6 +5483,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
     else if(e.key==='?'){e.preventDefault(); openPal();}
     else if(e.key==='t'||e.key==='T'){toggleTheme();}
     else if(e.key==='w'||e.key==='W'){location.href=BASE+'watchlist/';}
+    else if(e.key==='n'||e.key==='N'){location.href=BASE+'news/';}
   });
 
   /* ---------- Mục lục bám theo tab (màn hình rộng) ---------- */
@@ -7050,7 +7052,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='pvt',BUILD='d67239984306',URL_JSON='../version.json';
+  const PAGE='pvt',BUILD='dab791eaf8ec',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
