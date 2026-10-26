@@ -5696,7 +5696,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
     countUp(strip);
   }
   let stripT=0;
-  function refreshStrip(){clearTimeout(stripT);stripT=setTimeout(()=>tabStrip(document.querySelector('section.tab.active')),350);}
+  function refreshStrip(){clearTimeout(stripT);stripT=setTimeout(()=>tabStrip(document.querySelector('section.tab.active')),120);}
 
   /* ---------- Số chạy đếm lên ---------- */
   const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -5722,8 +5722,10 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
   function boot(){
     build(); countUp();
     document.querySelectorAll('section.tab').forEach(s=>new MutationObserver(refreshStrip).observe(s,{attributes:true,attributeFilter:['class']}));
-    document.addEventListener('click',e=>{if(e.target.closest('#finSubnav,.tsctl,.ctl,.seg-share-ctl,.subnav'))refreshStrip();});
-    document.addEventListener('change',e=>{if(e.target.closest('.tsctl'))refreshStrip();});
+    // Mọi thao tác trên chart (chu kỳ, số kỳ, kiểu chart, chú giải, Tỷ trọng…) đều làm ô số đầu tab tính lại ngay.
+    const onChart=e=>e.target.closest('#finSubnav,.subnav,.tsctl,.ctl,.seg-share-ctl')||(e.target.closest('.card')&&!e.target.closest('.tb'));
+    document.addEventListener('click',e=>{if(onChart(e))refreshStrip();},true);
+    document.addEventListener('change',e=>{if(onChart(e))refreshStrip();},true); // capture: bắt trước khi chart dựng lại và gỡ ô chọn khỏi DOM
     const kr=document.getElementById('kpiRow'); if(kr) new MutationObserver(()=>countUp(kr)).observe(kr,{childList:true});
     setTimeout(refreshStrip,1200);
   }
@@ -6820,7 +6822,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='frt',BUILD='5051cc6157fc',URL_JSON='../version.json';
+  const PAGE='frt',BUILD='4c2e3c18198c',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
