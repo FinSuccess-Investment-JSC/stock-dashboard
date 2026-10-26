@@ -1639,6 +1639,10 @@ function mk(id,cfg){
   if(chartTypes[id]==='area100')chartTypes[id]='area';
   const t=opts.includes(chartTypes[id])?chartTypes[id]:defaultType(cfg);
   const displayCfg=t===defaultType(cfg)?deep(cfg):applyType(cfg,t);
+  // Tooltip phải cùng đơn vị với tiêu đề chart: tiêu đề ghi (nghìn tấn…) mà callback gắn cứng "tỷ" thì đổi theo tiêu đề.
+  { const h3=$(id)?.closest('.card')?.querySelector('h3'); const tu=(([...(h3?.childNodes||[])].filter(n=>n.nodeType===3||n.matches?.('[id$="Title"]')).map(n=>n.textContent).join('').trim()).match(/\(([^()%]+)\)$/)||[])[1]?.trim();
+    const tp=displayCfg.options?.plugins?.tooltip, lb=tp?.callbacks?.label;
+    if(tu&&!/tỷ/i.test(tu)&&typeof lb==='function')tp.callbacks.label=function(x){ const r=lb.call(this,x); return typeof r==='string'?r.replace(/ tỷ( VND| đồng)?$/,' '+tu):r; }; }
   if(typeof configureChartAxes==='function')configureChartAxes(id,displayCfg);
   if(charts[id])charts[id].destroy(); charts[id]=new Chart($(id),displayCfg);
   if(typeof renderChartAxes==='function')renderChartAxes(id,displayCfg);
@@ -2946,6 +2950,7 @@ function tsWire(){
   //   Quý/Năm = xu hướng LIÊN TỤC qua các năm (1 chuỗi), "Số kỳ" cắt N kỳ gần nhất bình thường.
   const mo=D.segments&&D.segments.monthly;
   if(mo){
+    const moUnit=mo.unitLabel||'tỷ VND', moMetric=mo.metricLabel||'doanh thu', moName=moMetric.charAt(0).toUpperCase()+moMetric.slice(1);
     mo.chains.forEach((c,i)=>{
       const years=Object.keys(c.data);
       const mDs=years.map((y,k)=>({label:y,data:c.data[y],borderColor:CAT[k%CAT.length],backgroundColor:CAT[k%CAT.length],borderWidth:k===years.length-1?3:2,pointRadius:3,tension:.25,spanGaps:false}));
@@ -2954,13 +2959,13 @@ function tsWire(){
       const fq=monthsToFlatQ(c.data);
       mkTS('segM'+i,{ytd:true,
         m:{labels:mo.months,datasets:mDs},
-        q:{labels:fq.labels,datasets:[{label:'Doanh thu',data:fq.values,backgroundColor:BLUE,borderRadius:4,maxBarThickness:44}]},
-        y:{labels:yLab,datasets:[{label:'Doanh thu',data:yVal,backgroundColor:BLUE,borderRadius:4,maxBarThickness:60}]},
+        q:{labels:fq.labels,datasets:[{label:moName,data:fq.values,backgroundColor:BLUE,borderRadius:4,maxBarThickness:44}]},
+        y:{labels:yLab,datasets:[{label:moName,data:yVal,backgroundColor:BLUE,borderRadius:4,maxBarThickness:60}]},
         cfg:(labels,datasets,p)=>{
           if(p==='q'||p==='y'||p==='l')return {type:'bar',data:{labels,datasets},
-            options:baseOpts({plugins:{legend:{display:false},tooltip:{callbacks:{label:x=>x.parsed.y==null?'chưa có số':money(x.parsed.y)+' tỷ'}}}})};
+            options:baseOpts({plugins:{legend:{display:false},tooltip:{callbacks:{label:x=>x.parsed.y==null?'chưa có số':money(x.parsed.y)+' '+moUnit}}}})};
           return {type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,
-            plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{mode:'index',intersect:false,callbacks:{label:x=>x.dataset.label+': '+money(x.parsed.y)+' tỷ'}}},
+            plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{mode:'index',intersect:false,callbacks:{label:x=>x.dataset.label+': '+money(x.parsed.y)+' '+moUnit}}},
             interaction:{mode:'index',intersect:false},
             scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:'#EEF0F6'},ticks:{callback:v=>vnd(v)}}}}};
         }});
@@ -6860,7 +6865,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='hdg',BUILD='d914bad8c422',URL_JSON='../version.json';
+  const PAGE='hdg',BUILD='e9ffab224602',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
