@@ -1216,6 +1216,11 @@ table .fs-num{text-align:right!important}
 :root[data-theme=dark] .vc-bar.dn .vc-top{fill:#D77AAA}:root[data-theme=dark] .vc-bar.dn .vc-side{fill:#7A1E4E}
 :root[data-theme=dark] .vc-val.dn{fill:#F0A0C8}
 
+/* Áp design-rules FISC Market v3.2 (26/10/2026): chỉ phần hợp với palette/Inter/Navy đêm đã chốt. */
+html,body{overflow-x:clip}
+a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid #59C5C8;outline-offset:2px}
+td.num,th.num,.num{font-variant-numeric:tabular-nums}
+
 </style>
 <style>
 .stock-search{max-width:1440px;margin:16px auto 0;padding:0 24px}
@@ -8251,7 +8256,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
   if(window.FinShareImage)return;
   const H2C='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
   const NAVY='#1D2678',INK='#303540',MUTED='#596272',LINE='#dce1e9',TEAL='#59C5C8';
-  const RATIOS={wide:{w:1600,h:900,label:'Ngang 16:9',hint:'X · Telegram · Zalo'},tall:{w:1080,h:1350,label:'Dọc 4:5',hint:'Facebook · Instagram'}};
+  const RATIOS={wide:{w:1920,h:1080,label:'Ngang 16:9',hint:'X · Telegram · Zalo'},tall:{w:1080,h:1350,label:'Dọc 4:5',hint:'Facebook · Instagram'}};
   const scriptSrc=(document.currentScript&&document.currentScript.src)||'';
   let lib=null,logo=null,state=null;
 
@@ -8351,8 +8356,8 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
     }
   }
   async function shoot(card,h2c){
-    // Chụp đủ nét cho khung 1600px: tăng scale theo bề rộng card, vẽ lại Chart.js ở mật độ điểm cao rồi trả về như cũ.
-    const scale=Math.min(4,Math.max(2,1600*1.25/Math.max(1,card.offsetWidth)));
+    // Chụp đủ nét cho khung 1920px: tăng scale theo bề rộng card, vẽ lại Chart.js ở mật độ điểm cao rồi trả về như cũ.
+    const scale=Math.min(4,Math.max(2,1920*1.25/Math.max(1,card.offsetWidth)));
     const charts=window.Chart&&Chart.getChart?[...card.querySelectorAll('canvas')].map(c=>Chart.getChart(c)).filter(Boolean):[];
     const dpr=charts.map(ch=>ch.options.devicePixelRatio);
     charts.forEach(ch=>{ch.options.devicePixelRatio=scale;ch.resize();ch.update('none')});
@@ -8491,7 +8496,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='vnm',BUILD='0618d847f25c',URL_JSON='../version.json';
+  const PAGE='vnm',BUILD='979372e7975c',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
