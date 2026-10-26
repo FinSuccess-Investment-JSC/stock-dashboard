@@ -6614,7 +6614,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
   var b = document.getElementById('viewBadge'), D = window.PVS_DATA;
   if (!b || !D || !D.meta || !D.meta.ticker) return;
   var KEY = D.meta.ticker.toLowerCase() + '_view_stance';
-  var OPTS = [['TÍCH CỰC', 'var(--pos)'], ['THEO DÕI', 'var(--gold)'], ['TIÊU CỰC', 'var(--neg)']];
+  var OPTS = [['TÍCH CỰC', '#2ECC71'], ['THEO DÕI', 'var(--gold)'], ['TIÊU CỰC', 'var(--neg)']];
   var COLOR = { 'TRUNG LẬP': 'var(--gold)' };
   OPTS.forEach(function (o) { COLOR[o[0]] = o[1]; });
   function saved() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
@@ -6622,7 +6622,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
     var v = saved() || D.meta.view || '';
     b.innerHTML = v + '<small>QUAN ĐIỂM</small>';
     b.style.background = COLOR[v] || '';
-    b.style.color = v === 'THEO DÕI' || v === 'TRUNG LẬP' ? 'var(--navy)' : '';
+    b.style.color = v === 'THEO DÕI' || v === 'TRUNG LẬP' ? 'var(--navy)' : v === 'TÍCH CỰC' || v === 'TIÊU CỰC' ? '#fff' : '';
   }
   paint();
   b.style.cursor = 'pointer';
@@ -6959,7 +6959,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='hpg',BUILD='db0d8a1752cd',URL_JSON='../version.json';
+  const PAGE='hpg',BUILD='e2493b58c199',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
