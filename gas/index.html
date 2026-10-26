@@ -7344,7 +7344,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
     word.splitText(label.length);
     const link=document.createElement('a');
     link.href='#seg';link.dataset.gasFieldJump='1';link.textContent=label;
-    link.style.cssText='color:inherit;text-decoration:underline;text-underline-offset:2px';
+    link.style.cssText='color:#2938A8;font-weight:700;text-decoration:underline;text-underline-offset:2px';
     note.replaceChild(link,word);
   }
   document.addEventListener('click',e=>{
@@ -7364,7 +7364,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='gas',BUILD='ef10547ba812',URL_JSON='../version.json';
+  const PAGE='gas',BUILD='9b3da9cdd780',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
