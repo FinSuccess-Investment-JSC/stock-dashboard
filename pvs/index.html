@@ -9235,14 +9235,18 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
       if((m=L.match(/^(\d{4})-(\d{2})/)))return `${m[2]}/${m[1].slice(2)}`;if((m=L.match(/^T?(\d{1,2})\/(\d{2})$/)))return `${m[1].padStart(2,'0')}/${m[2]}`;return null};
     const ord=(p,k)=>p==='y'?+k.slice(0,4)*10+(k.length>4?5:0):p==='q'?+k.slice(-2)*10+ +k[1]:+k.slice(-2)*100+ +k.slice(0,2);
     const title=card=>{const h=card?.querySelector('h3');return h?[...h.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join('').replace(/\s+/g,' ').trim():''};
+    // Tên tab (và tiêu đề khối con nếu có) chứa chart, để nhóm chuỗi theo "tab › chart" khi ghép liên tab.
+    const tabName=cv=>{const s=cv.closest('section.tab'),b=s&&document.querySelector(`#tabbar button[data-tab="${s.id}"]`),t=(b?b.textContent:s?.id||'').replace(/\s+/g,' ').trim();
+      let n=cv.parentElement,sub='';while(n&&n!==s){const h=n.querySelector(':scope > h2.sec');if(h){sub=[...h.childNodes].filter(x=>x.nodeType===3).map(x=>x.textContent).join('').replace(/\s+/g,' ').trim();break}n=n.parentElement}
+      return sub&&sub.toLowerCase()!==t.toLowerCase()?t+' › '+sub:t};
     const harvest=sec=>{const out=new Map();
-      sec.querySelectorAll('canvas').forEach(cv=>{const sp=TSREG[cv.id];if(!sp||/^fsCombo/.test(cv.id))return;const t=title(cv.closest('.card')),ch=window.Chart&&Chart.getChart(cv);
+      document.querySelectorAll('canvas').forEach(cv=>{const sp=TSREG[cv.id];if(!sp||/^fsCombo/.test(cv.id))return;const t=title(cv.closest('.card')),ch=window.Chart&&Chart.getChart(cv),grp=tabName(cv),local=sec.contains(cv);
         const tUnit=(t.match(/\(([^)]+)\)\s*$/)||t.match(/·\s*([^·]+)$/)||[])[1]||'';
-        ['y','q','m'].forEach(p=>{const P=sp[p];if(!P||!P.labels)return;(P.datasets||[]).forEach(ds=>{if(!ds.label)return;
-          const unit=(ch?.options?.scales?.[ds.yAxisID||'y']?.title?.text)||tUnit,key=ds.label+'|'+unit;const e=out.get(key)||{key,label:ds.label,unit,src:t};
+        ['y','q','m'].forEach(p=>{const P=sp[p];if(!P||!P.labels)return;(P.datasets||[]).forEach(ds=>{if(!ds.label||ds.borderDash)return; // bỏ đường tham chiếu/giả định nét đứt
+          const unit=(ch?.options?.scales?.[ds.yAxisID||'y']?.title?.text)||tUnit,key=ds.label+'|'+unit+'|'+cv.id;const e=out.get(key)||{key,label:ds.label,unit,src:(grp?grp+' › ':'')+t,local};
           if(!e[p]){const m={};P.labels.forEach((L,i)=>{const v=ds.data?.[i],k=norm(p,L);if(k&&typeof v==='number'&&Number.isFinite(v))m[k]=v});if(Object.keys(m).length)e[p]=m}
           if(e.y||e.q||e.m)out.set(key,e)})})});
-      return [...out.values()]};
+      return [...out.values()].sort((a,b)=>(b.local-a.local))};
     const COL=[NAVY,BLUE,GREEN,'#8997D6'],LCOL=[PURPLE,GOLD,'#C2185B','#E07B39'];
   let seq=0;
   function attach(h){
@@ -9255,21 +9259,26 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
       let panel=null,cat=[],rows=null;
       const open=()=>{cat=harvest(sec);if(!panel){panel=document.createElement('div');panel.className='card fs-combo';panel.style.margin='0 0 16px';h.after(panel)}
         if(!rows){try{rows=JSON.parse(localStorage.getItem(KEY)||'null')}catch(_){}
-          if(!Array.isArray(rows)||!rows.length){const c0=cat[0],c1=cat.find(c=>c.src!==c0?.src&&c.unit!==c0?.unit)||cat.find(c=>c!==c0);rows=[{key:c0?.key,type:'bar',axis:'y'},{key:c1?.key,type:'line',axis:'y1'}];rows=rows.filter(r=>r.key)}}
-        const groups=[...new Set(cat.map(c=>c.src))];
-        const opt=sel=>groups.map(gp=>`<optgroup label="${esc(gp||'Chart')}">${cat.filter(c=>c.src===gp).map(c=>`<option value="${esc(c.key)}"${c.key===sel?' selected':''}>${esc(c.label)} (${esc(c.unit)})</option>`).join('')}</optgroup>`).join('');
+          if(Array.isArray(rows))rows=rows.map(r=>({...r,key:cat.some(c=>c.key===r.key)?r.key:(cat.find(c=>c.key.startsWith(r.key+'|'))||{}).key})).filter(r=>r.key);
+          if(!Array.isArray(rows)||!rows.length){const loc=cat.filter(c=>c.local),c0=loc[0]||cat[0],c1=loc.find(c=>c.src!==c0?.src&&c.unit!==c0?.unit)||loc.find(c=>c!==c0)||cat.find(c=>c!==c0);rows=[{key:c0?.key,type:'bar',axis:'y'},{key:c1?.key,type:'line',axis:'y1'}];rows=rows.filter(r=>r.key)}}
+        const groups=[...new Set(cat.map(c=>c.src))],here=new Set(cat.filter(c=>c.local).map(c=>c.src));
+        const opt=sel=>groups.map(gp=>`<optgroup label="${here.has(gp)?'● ':''}${esc(gp||'Chart')}">${cat.filter(c=>c.src===gp).map(c=>`<option value="${esc(c.key)}"${c.key===sel?' selected':''}>${esc(c.label)} (${esc(c.unit)})</option>`).join('')}</optgroup>`).join('');
         const row=(r,i)=>`<div class="cb-row" data-i="${i}"><select class="cb-s">${opt(r.key)}</select><select class="cb-t"><option value="bar"${r.type==='bar'?' selected':''}>Cột</option><option value="line"${r.type==='line'?' selected':''}>Đường</option></select><select class="cb-a"><option value="y"${r.axis==='y'?' selected':''}>Trục trái</option><option value="y1"${r.axis==='y1'?' selected':''}>Trục phải</option></select><button type="button" class="btn ghost sm cb-x" title="Bỏ chuỗi" aria-label="Bỏ chuỗi"${rows.length<2?' disabled':''}>✕</button></div>`;
-        panel.innerHTML=`<style>.fs-combo .cb-head,.fs-combo .cb-row{display:grid;grid-template-columns:minmax(0,1fr) 110px 120px 34px;gap:8px;align-items:center;max-width:880px}.fs-combo .cb-head{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:4px}.fs-combo .cb-row{margin-bottom:6px}.fs-combo .cb-row select{width:100%;min-width:0;height:34px;padding:4px 8px;font-size:13px;line-height:1.4}.fs-combo .cb-x{height:34px;padding:0}.fs-combo .cb-add{margin:4px 0 14px}@media(max-width:640px){.fs-combo .cb-head{display:none}.fs-combo .cb-row{grid-template-columns:1fr 1fr 34px}.fs-combo .cb-row .cb-s{grid-column:1/-1}}</style><h3 class="sub">Ghép chart</h3><div class="cb-head"><span>Chuỗi số liệu</span><span>Kiểu</span><span>Trục</span><span></span></div><div class="cb-rows">${rows.map(row).join('')}</div><div><button type="button" class="btn ghost sm cb-add"${rows.length>=6?' disabled':''}>+ Thêm chuỗi</button></div><div class="chart tall"><canvas id="fsCombo-${tab}"></canvas></div><div class="note">Chuỗi lấy từ các chart trong tab này, giữ nguyên số liệu gốc. Mỗi dòng chọn chuỗi, kiểu (cột/đường) và trục. Các chuỗi khớp theo kỳ chung của Chu kỳ đang chọn; kỳ chỉ một chuỗi có số thì chuỗi kia để trống, không nội suy hay cộng dồn. Chuỗi chỉ có số năm sẽ không hiện khi chọn Quý/Tháng. Hai trục khác đơn vị chỉ để so hình dạng, không suy quan hệ nhân quả. Nguồn: theo chart gốc của từng chuỗi.</div>`;
+        panel.innerHTML=`<style>.fs-combo .cb-head,.fs-combo .cb-row{display:grid;grid-template-columns:minmax(0,1fr) 110px 120px 34px;gap:8px;align-items:center;max-width:880px}.fs-combo .cb-head{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:4px}.fs-combo .cb-row{margin-bottom:6px}.fs-combo .cb-row select{width:100%;min-width:0;height:34px;padding:4px 8px;font-size:13px;line-height:1.4}.fs-combo .cb-x{height:34px;padding:0}.fs-combo .cb-add{margin:4px 0 14px}@media(max-width:640px){.fs-combo .cb-head{display:none}.fs-combo .cb-row{grid-template-columns:1fr 1fr 34px}.fs-combo .cb-row .cb-s{grid-column:1/-1}}</style><h3 class="sub">Ghép chart</h3><input type="search" class="cb-q" placeholder="Lọc chuỗi trong mọi tab… (vd LN gộp, Brent, CFO)" style="width:100%;max-width:880px;height:34px;padding:4px 10px;margin:0 0 10px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:13px;background:var(--card,#fff);color:inherit"><div class="cb-head"><span>Chuỗi số liệu</span><span>Kiểu</span><span>Trục</span><span></span></div><div class="cb-rows">${rows.map(row).join('')}</div><div><button type="button" class="btn ghost sm cb-add"${rows.length>=6?' disabled':''}>+ Thêm chuỗi</button></div><div class="chart tall"><canvas id="fsCombo-${tab}"></canvas></div><div class="note">Chuỗi lấy từ mọi chart theo kỳ trên trang (nhóm theo tab › chart; ● là tab đang xem), giữ nguyên số liệu gốc; tooltip ghi tab và chart gốc của từng chuỗi. Hai chuỗi khác tab có thể khác phạm vi (hợp nhất/mảng/ngành), cần đọc tên chart gốc. Mỗi dòng chọn chuỗi, kiểu (cột/đường) và trục. Các chuỗi khớp theo kỳ chung của Chu kỳ đang chọn; kỳ chỉ một chuỗi có số thì chuỗi kia để trống, không nội suy hay cộng dồn. Chuỗi chỉ có số năm sẽ không hiện khi chọn Quý/Tháng. Hai trục khác đơn vị chỉ để so hình dạng, không suy quan hệ nhân quả. Nguồn: theo chart gốc của từng chuỗi.</div>`;
+        const qi=panel.querySelector('.cb-q');if(qi&&qf){qi.value=qf;applyQ()}
         draw()};
       const draw=()=>{const sel=rows.map(r=>({...r,c:cat.find(c=>c.key===r.key)})).filter(r=>r.c);const units=ax=>[...new Set(sel.filter(r=>r.axis===ax).map(r=>r.c.unit))].join(' · ');
-        const spec={def:'y',cfg:(labels,datasets)=>({type:'bar',data:{labels,datasets},options:baseOpts({interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y,2)+' '+c.dataset.unit}}},
+        const spec={def:'y',cfg:(labels,datasets)=>({type:'bar',data:{labels,datasets},options:baseOpts({interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y,2)+' '+c.dataset.unit+(c.dataset.srcName?' · '+c.dataset.srcName:'')}}},
           scales:{x:{grid:{display:false}},y:{beginAtZero:true,display:datasets.some(x=>x.yAxisID==='y'),grid:{color:'#EEF0F6'},title:{display:true,text:units('y')}},y1:{position:'right',beginAtZero:true,display:datasets.some(x=>x.yAxisID==='y1'),grid:{drawOnChartArea:datasets.every(x=>x.yAxisID==='y1')},title:{display:true,text:units('y1')}}}})})};
         for(const p of ['m','q','y']){const keys=[...new Set(sel.flatMap(r=>Object.keys(r.c[p]||{})))].sort((a,b)=>ord(p,a)-ord(p,b));if(!keys.length)continue;let nb=0,nl=0;
-          spec[p]={labels:keys,datasets:sel.map(r=>{const data=keys.map(k=>r.c[p]?.[k]??null),base={label:r.c.label,unit:r.c.unit,data,yAxisID:r.axis};
+          spec[p]={labels:keys,datasets:sel.map(r=>{const data=keys.map(k=>r.c[p]?.[k]??null),base={label:r.c.label,unit:r.c.unit,srcName:r.c.src,data,yAxisID:r.axis};
             return r.type==='line'?{...base,type:'line',borderColor:LCOL[nl%4],backgroundColor:LCOL[nl++%4],pointRadius:p==='m'?1.5:3,borderWidth:2,spanGaps:false,order:0}:{...base,backgroundColor:COL[nb++%4],order:1}})}}
         if(!spec.y){spec.def=spec.q?'q':'m';if(!spec.q&&!spec.m)spec.y={labels:[],datasets:[]}}
         mkTS('fsCombo-'+tab,spec);try{localStorage.setItem(KEY,JSON.stringify(rows))}catch(_){}};
       btn.addEventListener('click',()=>{const on=btn.getAttribute('aria-expanded')!=='true';btn.setAttribute('aria-expanded',String(on));btn.classList.toggle('on',on);if(on)open();else if(panel){panel.remove();panel=null}});
+      // Lọc chuỗi: ẩn lựa chọn không khớp (giữ lựa chọn đang chọn), ẩn nhóm rỗng; giữ chuỗi lọc khi dựng lại khung.
+      let qf='';const applyQ=()=>{if(!panel)return;const q=qf.toLocaleLowerCase('vi');panel.querySelectorAll('.cb-s').forEach(sl=>{sl.querySelectorAll('optgroup').forEach(g=>{let any=false;g.querySelectorAll('option').forEach(o=>{const hit=!q||o.selected||(g.label+' '+o.textContent).toLocaleLowerCase('vi').includes(q);o.hidden=!hit;any=any||hit});g.hidden=!any})})};
+      sec.addEventListener('input',e=>{if(!panel||!e.target.classList?.contains('cb-q'))return;qf=e.target.value;applyQ()});
       sec.addEventListener('change',e=>{if(!panel||!panel.contains(e.target))return;const r=e.target.closest('[data-i]');if(!r)return;const x=rows[+r.dataset.i];
         if(e.target.classList.contains('cb-s'))x.key=e.target.value;else if(e.target.classList.contains('cb-t'))x.type=e.target.value;else if(e.target.classList.contains('cb-a'))x.axis=e.target.value;draw()});
       sec.addEventListener('click',e=>{if(!panel||!panel.contains(e.target))return;
@@ -9585,7 +9594,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='pvs',BUILD='7373b87b4371',URL_JSON='../version.json';
+  const PAGE='pvs',BUILD='f0c06cdf9133',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
