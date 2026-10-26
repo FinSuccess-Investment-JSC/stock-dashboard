@@ -2933,13 +2933,13 @@ function tsWire(){
       const fq=monthsToFlatQ(c.data);
       mkTS('segM'+i,{ytd:true,
         m:{labels:mo.months,datasets:mDs},
-        q:{labels:fq.labels,datasets:[{label:'Doanh thu',data:fq.values,backgroundColor:BLUE,borderRadius:4,maxBarThickness:44}]},
-        y:{labels:yLab,datasets:[{label:'Doanh thu',data:yVal,backgroundColor:BLUE,borderRadius:4,maxBarThickness:60}]},
+        q:{labels:fq.labels,datasets:[{label:mo.metricLabel||'Doanh thu',data:fq.values,backgroundColor:BLUE,borderRadius:4,maxBarThickness:44}]},
+        y:{labels:yLab,datasets:[{label:mo.metricLabel||'Doanh thu',data:yVal,backgroundColor:BLUE,borderRadius:4,maxBarThickness:60}]},
         cfg:(labels,datasets,p)=>{
           if(p==='q'||p==='y'||p==='l')return {type:'bar',data:{labels,datasets},
-            options:baseOpts({plugins:{legend:{display:false},tooltip:{callbacks:{label:x=>x.parsed.y==null?'chưa có số':money(x.parsed.y)+' tỷ'}}}})};
+            options:baseOpts({plugins:{legend:{display:false},tooltip:{callbacks:{label:x=>x.parsed.y==null?'chưa có số':money(x.parsed.y)+' '+(mo.unitLabel||'tỷ VND')}}}})};
           return {type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,
-            plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{mode:'index',intersect:false,callbacks:{label:x=>x.dataset.label+': '+money(x.parsed.y)+' tỷ'}}},
+            plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{mode:'index',intersect:false,callbacks:{label:x=>x.dataset.label+': '+money(x.parsed.y)+' '+(mo.unitLabel||'tỷ VND')}}},
             interaction:{mode:'index',intersect:false},
             scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:'#EEF0F6'},ticks:{callback:v=>vnd(v)}}}}};
         }});
@@ -6880,7 +6880,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='hpg',BUILD='62d90f86e50e',URL_JSON='../version.json';
+  const PAGE='hpg',BUILD='2c3c3ccd5b0d',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
