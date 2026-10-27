@@ -4150,9 +4150,10 @@ window.FS_ANALYST_VAULT={"iter": 600000, "salt": "1J1KSPRXSLtd3z2nYwmUpA==", "iv
   // data: AI đề xuất số → Áp dụng ghi analyst-updates.json. chart: AI dựng chart trên nhánh riêng
   // (chỉ <MÃ>/enhancements.js), gửi ảnh xem trước → Áp dụng gộp commit đó vào main.
   var KINDS = [
+    ['auto', 'Yêu cầu bất kỳ (AI tự xử lý)', { hint: 'Ghi điều bạn muốn đổi trên dashboard: cập nhật số, thêm/sửa chart hay bảng, đưa số trong model lên… AI tự chọn cách làm, gửi bảng số hoặc ảnh xem trước để bạn duyệt. Đính kèm ảnh, PDF hoặc file mô hình nếu có.', fileLabel: 'Ảnh, PDF hoặc mô hình (tùy chọn, tối đa 8 MB/file) — hoặc dán ảnh bằng Cmd/Ctrl+V', noteLabel: 'Bạn muốn AI làm gì?', placeholder: 'vd: trong sheet Financial FC có lợi nhuận ròng theo mảng, đưa lên tab Mảng kinh doanh thành chart cột chồng cạnh LN gộp' }],
     ['data', 'Cập nhật số liệu', { hint: 'Chỉ cần ghi yêu cầu: AI tự tìm nguồn công khai (hoặc dùng số bạn gõ trong ghi chú), đề xuất bảng số cũ → mới để bạn duyệt. Ảnh/link là tùy chọn.', fileLabel: 'Ảnh hoặc PDF bản tin (tùy chọn, tối đa 8 MB/file) — hoặc dán ảnh bằng Cmd/Ctrl+V', noteLabel: 'Ghi chú cho AI (kỳ, chuỗi cần cập nhật…)', placeholder: 'vd: bản tin 9T/2026, cập nhật doanh thu tháng 9 cho BHX và ĐMX' }],
     ['chart', 'Thêm/sửa chart & số liệu mới', { hint: 'AI viết code cho riêng mã này: sửa/thêm chart, bảng, hoặc thêm chỉ tiêu mới chưa có (tự tìm nguồn công khai, lưu số kèm ngày + link, đặt lịch cập nhật nếu nguồn có định kỳ). AI gửi ảnh xem trước; bấm Áp dụng thì lên website, có thể Hoàn tác. Ảnh mẫu là tùy chọn.', fileLabel: 'Ảnh chart mẫu (tùy chọn, tối đa 8 MB/file) — hoặc dán ảnh bằng Cmd/Ctrl+V', noteLabel: 'Mô tả chart (chỉ tiêu, kiểu chart, kỳ, đặt ở đâu…)', placeholder: 'vd: thêm chart lũy kế sản lượng phát từ đầu năm theo nhà máy, so cùng kỳ 2024–2026, đặt dưới chart Sản lượng phát' }],
-    ['model', 'Cập nhật model', { hint: 'Dán link chia sẻ OneDrive của mô hình dự phóng vào ô Link (Chia sẻ → "Bất kỳ ai có liên kết" → Có thể xem → Sao chép; link dạng https://1drv.ms/…). Hệ thống tải model, chạy lại mô hình của mã và đề xuất bảng số cũ → mới để bạn duyệt, khoảng 5–10 phút.', fileLabel: 'Không cần đính kèm file — model lấy qua link', noteLabel: 'Ghi chú (đã sửa giả định/sheet nào)', placeholder: 'vd: cập nhật giả định tăng trưởng DX 2026–2027, thêm số Q3/2026' }]
+    ['model', 'Cập nhật model', { hint: 'Đính kèm file mô hình của model, hoặc dán link chia sẻ OneDrive (Chia sẻ → "Bất kỳ ai có liên kết" → Có thể xem → Sao chép; link dạng https://1drv.ms/…). Hệ thống đọc model, chạy lại mô hình của mã và đề xuất bảng số cũ → mới để bạn duyệt, khoảng 5–10 phút.', fileLabel: 'File mô hình của model (hoặc dùng link bên dưới)', noteLabel: 'Ghi chú (đã sửa giả định/sheet nào)', placeholder: 'vd: cập nhật giả định tăng trưởng DX 2026–2027, thêm số Q3/2026' }]
   ];
   var KIND = {}; KINDS.forEach(function (k) { KIND[k[0]] = k[2]; });
   var MAX_BYTES = 8 * 1024 * 1024;
@@ -4217,7 +4218,7 @@ window.FS_ANALYST_VAULT={"iter": 600000, "salt": "1J1KSPRXSLtd3z2nYwmUpA==", "iv
     var b = document.createElement('button');
     b.id = 'fsInboxBtn';
     b.type = 'button';
-    b.textContent = '✎ Cập nhật số liệu';
+    b.textContent = '✎ Yêu cầu chỉnh dashboard';
     b.onclick = function () { window.fsAnalystUnlock().then(function (ok) { if (ok) openPanel(); }); };
     document.body.appendChild(b);
   }
@@ -4233,7 +4234,7 @@ window.FS_ANALYST_VAULT={"iter": 600000, "salt": "1J1KSPRXSLtd3z2nYwmUpA==", "iv
       + '<label for="fsInKind">Loại yêu cầu</label><select id="fsInKind">' + KINDS.map(function (k) { return '<option value="' + k[0] + '">' + k[1] + '</option>'; }).join('') + '</select>'
       + '<div id="fsInKindHint" class="muted"></div>'
       + '<label for="fsInType">Tab cần cập nhật</label><select id="fsInType">' + (TYPES = tabTypes()).map(function (t) { return '<option value="' + esc(t[0]) + '"' + (t[2] ? ' selected' : '') + '>' + esc(t[1]) + '</option>'; }).join('') + '</select>'
-      + '<label for="fsInFile" id="fsInFileLbl"></label><input id="fsInFile" type="file" accept="image/*,application/pdf" multiple>'
+      + '<label for="fsInFile" id="fsInFileLbl"></label><input id="fsInFile" type="file" accept="Tổng hợp FinSuccess" multiple>'
       + '<div id="fsInPasted" class="muted"></div>'
       + '<label for="fsInUrl">Hoặc link nguồn (trang IR, PDF, bài báo) — mỗi dòng một link</label><textarea id="fsInUrl" placeholder="https://..."></textarea>'
       + '<label for="fsInNote" id="fsInNoteLbl"></label><textarea id="fsInNote"></textarea>'
@@ -4281,7 +4282,8 @@ window.FS_ANALYST_VAULT={"iter": 600000, "salt": "1J1KSPRXSLtd3z2nYwmUpA==", "iv
     var kind = document.getElementById('fsInKind').value;
     var note = document.getElementById('fsInNote').value.trim();
     if (kind === 'chart' && !note) return window.fsAnalystToast('Mô tả chart cần thêm/sửa.', false);
-    if (kind === 'model' && !urls.some(function (u) { return /^https:\/\/(1drv\.ms|onedrive\.live\.com)\//.test(u); })) return window.fsAnalystToast('Dán link chia sẻ OneDrive của model (https://1drv.ms/…).', false);
+    if (kind === 'model' && !files.some(function (f) { return /\.xls[xm]$/i.test(f.name); }) && !urls.some(function (u) { return /^https:\/\/(1drv\.ms|onedrive\.live\.com)\//.test(u); })) return window.fsAnalystToast('Đính kèm file mô hình của model hoặc dán link chia sẻ OneDrive (https://1drv.ms/…).', false);
+    if (kind === 'auto' && !note) return window.fsAnalystToast('Ghi điều bạn muốn AI làm.', false);
     if (kind === 'data' && !note && !files.length && !urls.length) return window.fsAnalystToast('Ghi yêu cầu cho AI, hoặc thêm ảnh/link nguồn.', false);
     if (files.some(function (f) { return f.size > MAX_BYTES; })) return window.fsAnalystToast('File lớn hơn 8 MB, hãy chụp/cắt nhỏ lại.', false);
     var btn = document.getElementById('fsInSend');
@@ -7022,7 +7024,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='dhc',BUILD='ccef4d041b90',URL_JSON='../version.json';
+  const PAGE='dhc',BUILD='68984a05d621',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
