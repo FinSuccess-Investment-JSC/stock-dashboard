@@ -4172,12 +4172,15 @@ window.FS_ANALYST_VAULT={"iter": 600000, "salt": "1J1KSPRXSLtd3z2nYwmUpA==", "iv
     ['auto', 'Yêu cầu bất kỳ (AI tự xử lý)', { hint: 'Ghi điều bạn muốn đổi trên dashboard: cập nhật số, thêm/sửa chart hay bảng, đưa số trong model lên… AI tự chọn cách làm, gửi bảng số hoặc ảnh xem trước để bạn duyệt. Đính kèm ảnh, PDF hoặc file mô hình nếu có.', fileLabel: 'Ảnh, PDF hoặc mô hình (tùy chọn, tối đa 8 MB/file) — hoặc dán ảnh bằng Cmd/Ctrl+V', noteLabel: 'Bạn muốn AI làm gì?', placeholder: 'vd: trong sheet Financial FC có lợi nhuận ròng theo mảng, đưa lên tab Mảng kinh doanh thành chart cột chồng cạnh LN gộp' }],
     ['data', 'Cập nhật số liệu', { hint: 'Chỉ cần ghi yêu cầu: AI tự tìm nguồn công khai (hoặc dùng số bạn gõ trong ghi chú), đề xuất bảng số cũ → mới để bạn duyệt. Ảnh/link là tùy chọn.', fileLabel: 'Ảnh hoặc PDF bản tin (tùy chọn, tối đa 8 MB/file) — hoặc dán ảnh bằng Cmd/Ctrl+V', noteLabel: 'Ghi chú cho AI (kỳ, chuỗi cần cập nhật…)', placeholder: 'vd: bản tin 9T/2026, cập nhật doanh thu tháng 9 cho BHX và ĐMX' }],
     ['chart', 'Thêm/sửa chart & số liệu mới', { hint: 'AI viết code cho riêng mã này: sửa/thêm chart, bảng, hoặc thêm chỉ tiêu mới chưa có (tự tìm nguồn công khai, lưu số kèm ngày + link, đặt lịch cập nhật nếu nguồn có định kỳ). AI gửi ảnh xem trước; bấm Áp dụng thì lên website, có thể Hoàn tác. Ảnh mẫu là tùy chọn.', fileLabel: 'Ảnh chart mẫu (tùy chọn, tối đa 8 MB/file) — hoặc dán ảnh bằng Cmd/Ctrl+V', noteLabel: 'Mô tả chart (chỉ tiêu, kiểu chart, kỳ, đặt ở đâu…)', placeholder: 'vd: thêm chart lũy kế sản lượng phát từ đầu năm theo nhà máy, so cùng kỳ 2024–2026, đặt dưới chart Sản lượng phát' }],
+    ['global', 'Giao diện chung (mọi mã)', { hint: 'Đổi cách hiển thị chung cho tất cả mã (bố cục, kiểu chart, bảng, nút, tooltip…). AI sửa trên nhánh riêng, build đủ mọi mã, gửi ảnh xem trước trên ít nhất 3 mã. Bấm Áp dụng là đổi cho mọi trang; có thể Hoàn tác. Không đổi theme/màu thương hiệu, khóa analyst hay lịch cập nhật dữ liệu.', fileLabel: 'Ảnh mẫu (tùy chọn, tối đa 8 MB/file) — hoặc dán ảnh bằng Cmd/Ctrl+V', noteLabel: 'Mô tả thay đổi cho mọi mã', placeholder: 'vd: chart theo kỳ mặc định hiện 12 quý thay vì 8; bảng tài chính in đậm dòng tổng' }],
     ['model', 'Cập nhật model', { hint: 'Đính kèm file mô hình của model, hoặc dán link chia sẻ OneDrive (Chia sẻ → "Bất kỳ ai có liên kết" → Có thể xem → Sao chép; link dạng https://1drv.ms/…). Hệ thống đọc model, chạy lại mô hình của mã và đề xuất bảng số cũ → mới để bạn duyệt, khoảng 5–10 phút.', fileLabel: 'File mô hình của model (hoặc dùng link bên dưới)', noteLabel: 'Ghi chú (đã sửa giả định/sheet nào)', placeholder: 'vd: cập nhật giả định tăng trưởng DX 2026–2027, thêm số Q3/2026' }]
   ];
   var KIND = {}; KINDS.forEach(function (k) { KIND[k[0]] = k[2]; });
   var MAX_BYTES = 8 * 1024 * 1024;
   var pollTimer = null;
 
+  // Phiếu sửa code trên nhánh claude/… (riêng mã hoặc giao diện chung): Áp dụng = gộp commit, Hoàn tác = khôi phục file.
+  function isCode(k) { return k === 'chart' || k === 'global'; }
   function ticker() { return window.PVS_DATA && PVS_DATA.meta && PVS_DATA.meta.ticker; }
   function gh() { return window.fsAnalystRepo; }
   function api(m, p, b) { return window.fsAnalystApi(m, p, b); }
@@ -4300,6 +4303,7 @@ window.FS_ANALYST_VAULT={"iter": 600000, "salt": "1J1KSPRXSLtd3z2nYwmUpA==", "iv
     var type = document.getElementById('fsInType').value;
     var kind = document.getElementById('fsInKind').value;
     var note = document.getElementById('fsInNote').value.trim();
+    if (kind === 'global' && !note) return window.fsAnalystToast('Mô tả thay đổi giao diện chung.', false);
     if (kind === 'chart' && !note) return window.fsAnalystToast('Mô tả chart cần thêm/sửa.', false);
     if (kind === 'model' && !files.some(function (f) { return /\.xls[xm]$/i.test(f.name); }) && !urls.some(function (u) { return /^https:\/\/(1drv\.ms|onedrive\.live\.com)\//.test(u); })) return window.fsAnalystToast('Đính kèm file mô hình của model hoặc dán link chia sẻ OneDrive (https://1drv.ms/…).', false);
     if (kind === 'auto' && !note) return window.fsAnalystToast('Ghi điều bạn muốn AI làm.', false);
@@ -4350,11 +4354,11 @@ window.FS_ANALYST_VAULT={"iter": 600000, "salt": "1J1KSPRXSLtd3z2nYwmUpA==", "iv
 
   function renderReq(r) {
     var d = r.doc, p = d.proposal || {}, html = '<div class="req" id="req-' + esc(d.id) + '" data-id="' + esc(d.id) + '">'
-      + '<b>' + (d.kind === 'chart' ? 'Chart/số mới · ' : '') + esc(d.typeLabel || d.type) + '</b><span class="st ' + esc(d.status) + '">' + esc(STATUS[d.status] || d.status) + '</span>'
+      + '<b>' + (d.kind === 'chart' ? 'Chart/số mới · ' : d.kind === 'global' ? 'Giao diện chung · ' : '') + esc(d.typeLabel || d.type) + '</b><span class="st ' + esc(d.status) + '">' + esc(STATUS[d.status] || d.status) + '</span>'
       + '<div class="muted">' + esc(new Date(d.createdAt).toLocaleString('vi-VN')) + (d.note ? ' · ' + esc(d.note) : '') + '</div>';
     if ((d.urls || []).length) html += '<div class="muted">Link: ' + d.urls.map(function (u) { return '<a href="' + esc(u) + '" target="_blank" rel="noopener">' + esc(u.length > 70 ? u.slice(0, 70) + '…' : u) + '</a>'; }).join(' · ') + '</div>';
     if ((d.status === 'failed' || d.status === 'unchanged') && p.error) html += '<div class="warn">' + esc(p.error) + '</div>';
-    if ((d.status === 'proposed' || d.status === 'applied') && p.kind === 'chart') {
+    if ((d.status === 'proposed' || d.status === 'applied') && isCode(p.kind)) {
       if (p.summary) html += '<p>' + esc(p.summary) + '</p>';
       (p.preview || []).forEach(function (f) { html += '<img class="pv" alt="Xem trước chart" data-src="' + esc('inbox/' + d.ticker + '/' + d.id + '/' + f) + '">'; });
       (p.warnings || []).forEach(function (w) { html += '<div class="warn">⚠ ' + esc(w) + '</div>'; });
@@ -4369,11 +4373,11 @@ window.FS_ANALYST_VAULT={"iter": 600000, "salt": "1J1KSPRXSLtd3z2nYwmUpA==", "iv
     var tries = (d.history || []).filter(function (h) { return h.action === 'retry'; });
     if (tries.length) html += '<details><summary class="muted">Đã hướng dẫn thêm ' + tries.length + ' lần</summary>'
       + tries.map(function (h) { return '<div class="muted">' + esc(new Date(h.at).toLocaleString('vi-VN')) + ': ' + esc(h.feedback || '') + ((h.files || []).length ? ' (+' + h.files.length + ' file)' : '') + ((h.urls || []).length ? ' (+' + h.urls.length + ' link)' : '') + '</div>'; }).join('') + '</details>';
-    if (d.status === 'applied' && (d.undo || (p.kind === 'chart' && d.merged))) html += '<div class="row"><button class="b d" data-act="undo" type="button" title="Đưa dữ liệu/code về đúng trạng thái trước khi áp dụng phiếu này">↶ Hoàn tác</button></div>';
+    if (d.status === 'applied' && (d.undo || (isCode(p.kind) && d.merged))) html += '<div class="row"><button class="b d" data-act="undo" type="button" title="Đưa dữ liệu/code về đúng trạng thái trước khi áp dụng phiếu này">↶ Hoàn tác</button></div>';
     if (OPEN[d.status]) {
       var id = esc(d.id);
       html += '<label for="fb-' + id + '">' + (d.status === 'proposed' ? 'Nếu sai, ghi chỗ cần sửa rồi bấm Gửi lại' : 'Hướng dẫn thêm cho AI để tiếp tục yêu cầu này') + '</label>'
-        + '<textarea id="fb-' + id + '" placeholder="' + (d.kind === 'chart' ? 'vd: đổi sang đường, thêm năm 2024, đặt cạnh chart …' : 'vd: số tháng nằm ở chuỗi … ; lấy kỳ … ; bỏ qua doanh thu…') + '"></textarea>'
+        + '<textarea id="fb-' + id + '" placeholder="' + (isCode(d.kind) ? 'vd: đổi sang đường, thêm năm 2024, đặt cạnh chart …' : 'vd: số tháng nằm ở chuỗi … ; lấy kỳ … ; bỏ qua doanh thu…') + '"></textarea>'
         + '<details><summary class="muted">Thêm ảnh/PDF hoặc link (tùy chọn) — có thể dán ảnh khi đang ở ô trên</summary>'
         + '<input id="ff-' + id + '" type="file" accept="image/*,application/pdf" multiple><div id="fp-' + id + '" class="muted"></div>'
         + '<textarea id="fu-' + id + '" placeholder="https://... (mỗi dòng một link)"></textarea></details>'
@@ -4413,7 +4417,7 @@ window.FS_ANALYST_VAULT={"iter": 600000, "salt": "1J1KSPRXSLtd3z2nYwmUpA==", "iv
       if (action === 'undo') {
         if (!r || r.doc.status !== 'applied') throw Object.assign(new Error('stale'), { status: 'phiếu không ở trạng thái đã áp dụng' });
         var ud = r.doc;
-        return (ud.proposal && ud.proposal.kind === 'chart' ? revertChart(ud) : revertChanges(ud)).then(function () {
+        return (ud.proposal && isCode(ud.proposal.kind) ? revertChart(ud) : revertChanges(ud)).then(function () {
           ud.history = ud.history || []; ud.history.push({ at: new Date().toISOString(), action: 'undo' });
           ud.status = 'reverted'; ud.revertedAt = new Date().toISOString();
           return writeJson(path, ud, r.sha, 'Analyst hoàn tác ' + ticker() + ' ' + id);
@@ -4446,7 +4450,7 @@ window.FS_ANALYST_VAULT={"iter": 600000, "salt": "1J1KSPRXSLtd3z2nYwmUpA==", "iv
         dropBranch(doc.proposal);
         return writeJson(path, doc, r.sha, 'Analyst đóng yêu cầu ' + ticker() + ' ' + id);
       }
-      return (doc.proposal && doc.proposal.kind === 'chart' ? mergeChart(doc) : applyChanges(doc)).then(function () {
+      return (doc.proposal && isCode(doc.proposal.kind) ? mergeChart(doc) : applyChanges(doc)).then(function () {
         doc.history.push({ at: now, action: 'apply' });
         doc.status = 'applied'; doc.appliedAt = now;
         return writeJson(path, doc, r.sha, 'Analyst áp dụng đề xuất ' + ticker() + ' ' + id);
@@ -4479,7 +4483,7 @@ window.FS_ANALYST_VAULT={"iter": 600000, "salt": "1J1KSPRXSLtd3z2nYwmUpA==", "iv
       }).then(function (m) { req.merged = { sha: m && m.sha, files: null }; dropBranch(p); });
   }
   function dropBranch(p) {
-    if (p && p.kind === 'chart' && /^claude\//.test(p.branch || '')) api('DELETE', '/repos/' + gh().repo + '/git/refs/heads/' + p.branch.split('/').map(encodeURIComponent).join('/')).catch(function () {});
+    if (p && isCode(p.kind) && /^claude\//.test(p.branch || '')) api('DELETE', '/repos/' + gh().repo + '/git/refs/heads/' + p.branch.split('/').map(encodeURIComponent).join('/')).catch(function () {});
   }
 
 
@@ -7043,7 +7047,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='tng',BUILD='e7bdcd5fc87f',URL_JSON='../version.json';
+  const PAGE='tng',BUILD='2accbe18c02a',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
