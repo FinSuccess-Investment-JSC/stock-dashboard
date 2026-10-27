@@ -2264,6 +2264,11 @@ window.PVS_DATA = {
   // ---------- CATALYST & SỰ KIỆN ----------
   // type: contract | insider | resolution | law | result | corporate | risk
   events: [
+    { d:"2026-10-22", type:"resolution", impact:"0", status:"confirmed", t:"HNX chấp thuận thay đổi đăng ký niêm yết cổ phiếu PVS", detail:"Quyết định 1273/QĐ-SGDHN ngày 20/10/2026; PTSC công bố theo văn bản 1735/PTSC-BTK ngày 22/10/2026.", src:"https://www.ptsc.com.vn/co-dong/tin-co-dong/cong-bo-thong-tin-quyet-dinh-ve-viec-chap-thuan-thay-doi-dang-ky-niem-yet-co-phieu-cua-ptsc-disclosure-on-decision-approving-the-change-to-the-share-listing-registration-of-ptsc" },
+    { d:"2026-10-06", type:"resolution", impact:"0", status:"confirmed", t:"HĐQT thông qua tăng vốn điều lệ, sửa đổi Điều lệ; đăng ký và niêm yết bổ sung chứng khoán", detail:"Nghị quyết 712/NQ-PTSC-HĐQT ngày 05/10/2026; công bố theo văn bản 1637/PTSC-BTK.", src:"https://www.ptsc.com.vn/co-dong/tin-co-dong/cong-bo-thong-tin-nghi-quyet-ve-thong-qua-tang-von-dieu-le-sua-doi-dieu-le-tong-cong-ty-disclosure-on-the-resolution-approving-the-charter-capital-increase-amendment-to-the-charter" },
+    { d:"2026-09-26", type:"resolution", impact:"0", status:"confirmed", t:"HĐQT chấp thuận giao dịch với người liên quan của PTSC", detail:"Công bố theo văn bản 1565/PTSC-BTK ngày 26/09/2026; nội dung chi tiết trong tài liệu đính kèm.", src:"https://www.ptsc.com.vn/co-dong/tin-co-dong/cong-bo-thong-tin-nghi-quyet-ve-viec-chap-thuan-giao-dich-voi-nguoi-lien-quan-cua-tong-cong-ty-disclosure-of-the-resolution-approving-a-transaction-with-a-related-party-of-ptsc" },
+    { d:"2026-09-24", type:"corporate", impact:"0", status:"confirmed", t:"PTSC báo cáo kết quả đợt phát hành cổ phiếu trả cổ tức", detail:"Báo cáo 1543/BC-PTSC và thông báo 1544/TB-PTSC về thay đổi số lượng cổ phiếu có quyền biểu quyết (văn bản 1548/PTSC-BTK ngày 24/09/2026).", src:"https://www.ptsc.com.vn/co-dong/tin-co-dong/cong-bo-thong-tin-bao-cao-ket-qua-dot-phat-hanh-co-phieu-de-tra-co-tuc-disclosure-of-the-report-on-the-results-of-the-share-issuance-for-dividend-payment-1" },
+    { d:"2026-09-23", type:"resolution", impact:"0", status:"confirmed", t:"HĐQT phê duyệt tái cấu trúc Chi nhánh PTSC Marine; chấm dứt hoạt động Chi nhánh Dịch vụ Khảo sát và Công trình ngầm PTSC", detail:"Nghị quyết 675/NQ-PTSC-HĐQT và Quyết định 676/QĐ-PTSC-HĐQT ngày 23/09/2026; công bố ngày 24/09/2026.", src:"https://www.ptsc.com.vn/co-dong/tin-co-dong/cong-bo-thong-tin-nghi-quyet-quyet-dinh-cua-hdqt-lien-quan-tai-cau-truc-cac-chi-nhanh-cua-tong-cong-ty-resolution-decision-of-ptscs-bod-regarding-the-restructuring-of-ptscs-branches" },
     { d:"2026-09-15", type:"contract",  impact:"+", status:"confirmed", t:"CBTT Thư trao thầu EPIC-1 – Maydan Mahzam Redevelopment (QatarEnergy)", detail:"PTSC M&C nhận LOA 13/09; giá trị ước ~3 tỷ USD; ký chính thức T10/2026; PVS đánh giá 'tác động trọng yếu'.", src:"https://www.ptsc.com.vn/co-dong/tin-co-dong" },
     { d:"2026-09-13", type:"corporate", impact:"+", status:"confirmed", t:"PTSC M&C xuất khẩu 4 trạm biến áp điện gió ngoài khơi sang châu Âu (Baltica 2)", src:"https://www.ptsc.com.vn/" },
     { d:"2026-08-27", type:"corporate", impact:"0", status:"confirmed", t:"VSDC thông báo 1631/TB-CNVSDC — hoàn tất đăng ký cổ phiếu cổ tức 20%", detail:"Số cp lưu hành 511,4 → 613,7 triệu. Giá & TP lịch sử cần chia 1,2.", src:"https://www.ptsc.com.vn/co-dong/tin-co-dong" },
@@ -9654,7 +9659,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='pvs',BUILD='9940cc248fe4',URL_JSON='../version.json';
+  const PAGE='pvs',BUILD='ece449bd07ef',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
