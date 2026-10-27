@@ -3182,6 +3182,8 @@ document.addEventListener('DOMContentLoaded',()=>{
       <div class="card" style="margin-top:16px"><h3 class="sub">Giá bán & biên</h3><div class="tbl-wrap"><table><tr><th>Năm</th><th>Giá bán tham chiếu · triệu VND/tấn</th><th>Biên gộp LPG</th></tr>${['2024','2025'].map((y,i)=>`<tr><td>${y}</td><td>${fmt(g.price.lpg[i],2)}</td><td>${fmt(d.segments.marginSeries[i+3].values.LPG,1)}%</td></tr>`).join('')}</table></div><div class="note">Giá tham chiếu và biên gộp có phạm vi tính khác nhau. Doanh thu tăng nhờ giá/khối lượng không đồng nghĩa lợi nhuận tăng tương ứng.</div></div>`);
     const oth=section('other',`<h2 class="sec">CNG · condensate · vận chuyển</h2><div class="grid g2">${card('Doanh thu các mảng phụ · tỷ VND','gasOtherRev','Số thực tế 2021–2025. Các mảng này giữ riêng để tránh cộng cước hai lần.')}${card('Lợi nhuận gộp các mảng phụ · tỷ VND','gasOtherGp','Số thực tế 2021–2025.')}</div><div class="callout" style="margin-top:16px"><b>Vận chuyển khí & condensate</b> là doanh thu mảng riêng. Cước nằm trong công thức giá bán khí khô chỉ là một cấu phần của doanh thu khí khô; không cộng lại vào mảng này. <b>CNG</b> thêm công đoạn nén/phân phối; <b>condensate</b> là sản phẩm lỏng đi theo khí.</div>`);
     seg.append(nav,original,dry,lng,lpg,oth);
+    // Sản lượng tổng (khí tiêu thụ) ở Tổng quan mảng; sản lượng từng mảng giữ ở tab tương ứng
+    {const vc=dry.querySelector('#gasVolumes')?.closest('.card'),grid=vc?.parentElement;if(vc){const h=original.querySelector('h2.sec');vc.style.margin='16px 0';h?h.after(vc):original.prepend(vc);if(grid&&grid.children.length===1)grid.classList.remove('g2');}}
     nav.addEventListener('click',e=>{const b=e.target.closest('[data-gas]');if(!b)return;nav.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));original.hidden=b.dataset.gas!=='overview';for(const el of [dry,lng,lpg,oth])el.hidden=el.id!=='gas-'+b.dataset.gas;Object.values(charts).forEach(c=>{try{c.resize()}catch(_){}})});
     const Y=d.segments.years,segData=d.segments;
     const N=g.nsoGasOutput;if(N&&document.getElementById('gasNsoOutput')){
@@ -7511,7 +7513,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='gas',BUILD='092e72cb0328',URL_JSON='../version.json';
+  const PAGE='gas',BUILD='f85ae225c732',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
