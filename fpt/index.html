@@ -1770,7 +1770,7 @@ function renderSeg(){
   const stackCfg=(labels,datasets)=>({type:'bar',shareEligible:true,data:{labels,datasets},options:baseOpts({scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,grid:{color:'#EEF0F6'},ticks:{callback:v=>vnd(v)}}}})});
   // Kỳ quý có thể công bố theo bộ mảng khác năm (vd GAS gộp Khí khô & LNG): dùng quarterly.names, không ép về tên năm.
   const qNames=s.quarterly?.names||null;
-  const qDs=(arr,labels)=>qNames?qNames.map((nm,k)=>({label:nm,data:arr[k],backgroundColor:stackColor(k,qNames.length),stack:'s',borderRadius:2,maxBarThickness:60})):mkDs(arr,{labels});
+  const qDs=(arr,labels)=>qNames?qNames.map((nm,k)=>({label:nm,data:arr[k],backgroundColor:(s.quarterly.colors&&s.quarterly.colors[k])||stackColor(k,qNames.length),stack:'s',borderRadius:2,maxBarThickness:60})):mkDs(arr,{labels});
   const annual={labels:s.years,datasets:mkDs(s.revenue,{labels:s.years})};
   const quarterly=s.quarterly?.labels?.length&&s.quarterly?.revenue?{labels:s.quarterly.labels,datasets:qDs(s.quarterly.revenue,s.quarterly.labels)}:null;
   if(s.revTitle)$('segRevTitle').textContent=s.revTitle;
@@ -7120,7 +7120,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='fpt',BUILD='68f696df839c',URL_JSON='../version.json';
+  const PAGE='fpt',BUILD='f3513dd09fb0',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
