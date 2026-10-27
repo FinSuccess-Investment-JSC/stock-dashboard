@@ -3068,6 +3068,12 @@ const line=(label,data,color,extra={})=>({label,data,type:'line',borderColor:col
 function renderBusiness(){const seg=document.getElementById('seg');if(!seg)return;const host=document.createElement('div');host.className='grid g2';host.style.marginBottom='16px';seg.insertBefore(host,seg.querySelector('.grid'));
  const w=X.water;card(host,'Sản lượng nước & doanh thu/m³','bweWater',w.note);
  plot('bweWater',w.years,[{label:'Sản lượng (triệu m³)',data:w.volume,backgroundColor:C[0]},line('Doanh thu nước/m³ (đồng)',w.price,C[2],{yAxisID:'y1',unit:' đ'})],' đ');
+ const np=X.segmentNP;if(np?.values?.some(r=>r.some(v=>v!=null))){
+  card(host,'Lợi nhuận ròng theo mảng (tỷ VND)','bweSegNP','Phân bổ của model analyst (sheet Financial FC), không có trong thuyết minh bộ phận công khai. Tổng = LNST hợp nhất gồm cổ đông không kiểm soát. Chỉ số năm; số quý của sheet chưa nhất quán nên không đưa lên.');
+  const tot=np.years.map((_,j)=>{const xs=np.values.map(r=>r[j]);return xs.some(v=>v==null)?null:r2(xs.reduce((a,v)=>a+v,0));});
+  mk('bweSegNP',{type:'bar',data:{labels:np.years,datasets:[...np.names.map((n,i)=>({label:n,data:np.values[i],backgroundColor:C[i%C.length],stack:'np',unit:' tỷ'})),line('Tổng',tot,C[4],{unit:' tỷ'})]},
+   options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y,1)+' tỷ'}}},scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,ticks:{callback:v=>fmt(v)}}}}});
+ }
  const m=X.monthly,months=['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12'];
  const lines=(src,f,unit)=>{const n=src.years.length;return src.years.map((y,i)=>line(y,f(src,i),C[(n-1-i)%C.length],{borderWidth:i===n-1?3:2,unit}));};
  const per=(s,k,i)=>s[k][i].map((v,j)=>v==null||!s.volume[i][j]?null:r2(v/s.volume[i][j]));
@@ -7075,7 +7081,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='bwe',BUILD='f4bf7a6795ab',URL_JSON='../version.json';
+  const PAGE='bwe',BUILD='c49cd72743d7',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
