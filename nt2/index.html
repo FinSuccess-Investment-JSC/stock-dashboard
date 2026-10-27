@@ -1758,13 +1758,15 @@ function renderSeg(){
   const annual={labels:s.years,datasets:mkDs(s.revenue,{labels:s.years})};
   const quarterly=s.quarterly?.labels?.length&&s.quarterly?.revenue?{labels:s.quarterly.labels,datasets:qDs(s.quarterly.revenue,s.quarterly.labels)}:null;
   if(s.revTitle)$('segRevTitle').textContent=s.revTitle;
-  if(quarterly)mkTS('segRev',{def:'q',ytd:true,y:annual,q:quarterly,cfg:stackCfg}); else mk('segRev',stackCfg(annual.labels,annual.datasets));
+  // Lũy kế DN công bố riêng theo mảng (s.ytdFixed[n] = {labels, revenue, profit|grossProfit}, vd thuyết minh bộ phận bán niên khi BCTC quý không tách mảng).
+  const segFx=key=>s.ytdFixed?Object.fromEntries(Object.entries(s.ytdFixed).filter(([,v])=>v[key]).map(([k,v])=>[k,{labels:v.labels,datasets:qDs(v[key],v.labels)}])):undefined;
+  if(quarterly)mkTS('segRev',{def:'q',ytd:true,ytdFixed:segFx('revenue'),y:annual,q:quarterly,cfg:stackCfg}); else mk('segRev',stackCfg(annual.labels,annual.datasets));
   const prof=s.profit||s.grossProfit, profLabel=s.profitLabel||(s.profit?'LNST':'LN gộp');
   if(prof){
     $('segProfitTitle').textContent=s.profitTitle||profLabel+' theo mảng (tỷ VND)';
     const py={labels:s.years,datasets:mkDs(prof,{labels:s.years})};
     const pq=s.quarterly?.labels?.length&&(s.quarterly.profit||s.quarterly.grossProfit)?{labels:s.quarterly.labels,datasets:qDs(s.quarterly.profit||s.quarterly.grossProfit,s.quarterly.labels)}:null;
-    if(pq)mkTS('segGP',{def:'q',ytd:true,y:py,q:pq,cfg:stackCfg}); else mk('segGP',stackCfg(py.labels,py.datasets));
+    if(pq)mkTS('segGP',{def:'q',ytd:true,ytdFixed:segFx(s.profit?'profit':'grossProfit'),y:py,q:pq,cfg:stackCfg}); else mk('segGP',stackCfg(py.labels,py.datasets));
   } else { $('segProfitCard').style.display='none'; $('segRev').closest('.card').style.gridColumn='1/-1'; }
   // --- margins ---
   const ms=s.marginSeries||[];
@@ -7048,7 +7050,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='nt2',BUILD='c3edcab1b88a',URL_JSON='../version.json';
+  const PAGE='nt2',BUILD='96c9030ebf74',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
