@@ -896,6 +896,15 @@ h2.sec{margin:8px 0 16px!important}
 .card select,.tsctl select{height:36px;border-radius:10px;padding:0 32px 0 12px;border:1px solid var(--line)}
 @media(max-width:600px){:root{--fs-gap:16px;--fs-pad:16px;--fs-radius:16px}h3.sub{font-size:15px!important}}
 @media print{.card{box-shadow:none!important}}
+/* Box nổi rõ hơn (người dùng chốt 28/10/2026): bóng hai lớp sâu hơn, nền trang tối hơn một bậc, hover nâng bóng (không dùng transform để popup/tooltip fixed không lệch) */
+:root:not([data-theme=dark]){--bg:#EDF0F7}
+:root:not([data-theme=dark]) body{background:#EDF0F7}
+:root:not([data-theme=dark]) .card:not(.card .card),:root:not([data-theme=dark]) .kpi{background:#fff;border:1px solid rgba(255,255,255,.9)!important;box-shadow:0 1px 2px rgba(16,24,64,.06),0 6px 16px rgba(16,24,64,.07),0 22px 48px -12px rgba(16,24,64,.16)!important;transition:box-shadow .25s cubic-bezier(.2,.8,.2,1)}
+:root:not([data-theme=dark]) .card:not(.card .card):hover,:root:not([data-theme=dark]) .kpi:hover{box-shadow:0 2px 4px rgba(16,24,64,.07),0 10px 24px rgba(16,24,64,.09),0 32px 64px -16px rgba(29,38,120,.24)!important}
+:root:not([data-theme=dark]) .card .card{background:#F7F8FC;border:1px solid #E7EAF3!important}
+:root[data-theme=dark] .card:not(.card .card),:root[data-theme=dark] .kpi{box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 18px 40px -14px rgba(0,0,0,.6)!important}
+@media(prefers-reduced-motion:reduce){.card,.kpi{transition:none!important}}
+@media print{.card,.kpi{box-shadow:none!important}}
 </style>
 <style>
 body{margin:0;background:var(--bg);color:var(--ink)}
