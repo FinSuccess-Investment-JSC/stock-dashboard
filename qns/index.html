@@ -694,7 +694,7 @@ section.tab.active{animation:mktFade .2s ease-out}
 @media print{.mkt-tape,.mkt-btn,.mkt-toc,.mkt-pal{display:none!important}}
 
 /* Giao diện tối (nút ◐ hoặc phím T; lưu fs_theme_v1). Chỉ đổi màu nền/chữ, giữ màu chuỗi dữ liệu. */
-:root[data-theme=dark]{--bg:#0B1033;--card:#131A3D;--ink:#F3F5FF;--muted:#A2AACD;--line:#26306A;--grey:#7F87B5;color-scheme:dark}
+:root[data-theme=dark]{--bg:#0A0A0A;--card:#161616;--ink:#F5F5F5;--muted:#A3A3A3;--line:#2A2A2A;--grey:#8A8A8A;color-scheme:dark}
 :root[data-theme=dark] body{background:var(--bg);color:var(--ink)}
 :root[data-theme=dark] .brandbar,:root[data-theme=dark] .stock-search{background:#18204A!important}
 :root[data-theme=dark] .brandbar .logo{filter:brightness(0) invert(1);opacity:.92}
@@ -1220,7 +1220,7 @@ table.fintbl thead th{color:#fff!important}
 :root[data-theme=dark] .vc-mode{background:#18204A}:root[data-theme=dark] .vc-mode button{color:#A9B1D6}:root[data-theme=dark] .vc-mode button.on{background:#2938A8;color:#fff}
 :root[data-theme=dark] .vc-base{stroke:rgba(137,151,214,.16)}
 :root[data-theme=dark] .vc-f1{stop-color:#4A57B8}:root[data-theme=dark] .vc-f2{stop-color:#232C7A}
-:root[data-theme=dark] .vc-top{fill:#7E8AD6}:root[data-theme=dark] .vc-side{fill:#1A2250}
+:root[data-theme=dark] .vc-top{fill:#7E8AD6}:root[data-theme=dark] .vc-side{fill:#222222}
 :root[data-theme=dark] .vc-shadow{fill:rgba(0,0,0,.45)}
 :root[data-theme=dark] .vc-fl{fill:#A9B1D6}:root[data-theme=dark] .vc-val{fill:#FFFFFF}:root[data-theme=dark] .vc-bar.last .vc-val{fill:#7FE0E2}
 :root[data-theme=dark] .vc-steps{border-top-color:var(--line)}:root[data-theme=dark] .vc-sv{color:#FFFFFF}
@@ -1365,21 +1365,21 @@ table .fs-num{text-align:right!important}
 
 /* ===== Navy đêm (người dùng chọn 23/10/2026) — bộ nền tối DUY NHẤT; các bản thử đen/than chì đã gỡ =====
    Nền xanh đen cùng họ màu FinSuccess, card sáng hơn một bậc, viền xanh mờ; chữ 3 bậc; turquoise là màu nhấn. */
-:root[data-theme=dark]{--bg:#0B1026!important;--card:#131A3A!important;--line:#232B52!important;--ink:#F3F5FF!important;--muted:#98A0C8!important;--navy:#F3F5FF;--blue:#8FB0FF;color-scheme:dark}
-:root[data-theme=dark] body{background-color:#0B1026!important;background-image:radial-gradient(rgba(140,160,255,.06) 1px,transparent 1.2px)!important;color:#F3F5FF}
-:root[data-theme=dark] :is(.brandbar,.stock-search,.titleband){background:#0B1026!important;border-color:#1C2348!important}
-:root[data-theme=dark] .mkt-tape{background:#080C1F!important;border-bottom:1px solid #1C2348!important}
-:root[data-theme=dark] nav.tabs{background:rgba(11,16,38,.9)!important;backdrop-filter:blur(12px);border-bottom:1px solid #1C2348!important}
+:root[data-theme=dark]{--bg:#0A0A0A!important;--card:#161616!important;--line:#2A2A2A!important;--ink:#F3F5FF!important;--muted:#A3A3A3!important;--navy:#F3F5FF;--blue:#8FB0FF;color-scheme:dark}
+:root[data-theme=dark] body{background-color:#0A0A0A!important;background-image:radial-gradient(rgba(255,255,255,.04) 1px,transparent 1.2px)!important;color:#F3F5FF}
+:root[data-theme=dark] :is(.brandbar,.stock-search,.titleband){background:#0A0A0A!important;border-color:#1F1F1F!important}
+:root[data-theme=dark] .mkt-tape{background:#080C1F!important;border-bottom:1px solid #1F1F1F!important}
+:root[data-theme=dark] nav.tabs{background:rgba(11,16,38,.9)!important;backdrop-filter:blur(12px);border-bottom:1px solid #1F1F1F!important}
 :root[data-theme=dark] .tabs button{color:#A9B1D6!important}:root[data-theme=dark] .tabs button.active,:root[data-theme=dark] .tabs button:hover{color:#FFFFFF!important}
-:root[data-theme=dark] :is(.card,details.dd,.db-l,.db-c,.fs-next,.callout){background:#131A3A!important;border-color:#232B52!important}
+:root[data-theme=dark] :is(.card,details.dd,.db-l,.db-c,.fs-next,.callout){background:#161616!important;border-color:#2A2A2A!important}
 :root[data-theme=dark] .card{box-shadow:0 1px 0 rgba(255,255,255,.03) inset,0 10px 28px rgba(3,6,20,.45)!important}
 :root[data-theme=dark] .card:hover{border-color:rgba(89,197,200,.4)!important}
-:root[data-theme=dark] .db.card{background:linear-gradient(#131A3A,#131A3A) padding-box,conic-gradient(from var(--fx-a),rgba(41,56,168,.35),#59C5C8,rgba(41,56,168,.35) 28%,rgba(41,56,168,.35)) border-box!important}
+:root[data-theme=dark] .db.card{background:linear-gradient(#161616,#161616) padding-box,conic-gradient(from var(--fx-a),rgba(41,56,168,.35),#59C5C8,rgba(41,56,168,.35) 28%,rgba(41,56,168,.35)) border-box!important}
 :root[data-theme=dark] :is(input,select,textarea,.tsctl select,.ctl,.seg-share-ctl,.fin-subnav,.fs-mode,.fs-view,.fs-play,.db-ask,.tick,.icon-note-pop,[role=tooltip],.chart .axis-mode,.vc-mode){background:#18204A!important;border-color:#2A3360!important;color:#F3F5FF!important}
 :root[data-theme=dark] :is(.ctl,.bandctl,.card) button:not(.on):not(.active):not([aria-pressed=true]){background:transparent!important;color:#B4BBDD!important;border-color:#2A3360!important}
 :root[data-theme=dark] :is(.ctl,.bandctl,.seg-share-ctl,.fin-subnav,.subnav,.fs-mode,.vc-mode,.chart .axis-mode) :is(button.on,button.active,button[aria-pressed=true]),:root[data-theme=dark] .fs-view span.on{background:#2938A8!important;border-color:#2938A8!important;color:#fff!important}
 :root[data-theme=dark] .tabs button.active{border-bottom-color:#59C5C8!important}
-:root[data-theme=dark] table:not(.fintbl) th{color:#98A0C8!important;border-color:#232B52!important}
+:root[data-theme=dark] table:not(.fintbl) th{color:#A3A3A3!important;border-color:#2A2A2A!important}
 :root[data-theme=dark] table:not(.fintbl) td{border-color:#1F2750!important}
 :root[data-theme=dark] :is(h2.sec,h3.sub,.kpi .v,.db-v,.vc-sv,.db-lead b):not(.shotcard *){color:#FFFFFF!important}
 :root[data-theme=dark] :is(.kpi .s,.note,.db-s span.mut,.tb-s span,.vc-sm,.vc-per,.db-q,.tb-p,.fs-crumb){color:#A9B1D6!important}
@@ -1390,7 +1390,7 @@ table .fs-num{text-align:right!important}
 :root[data-theme=dark] .vc-bar.dn .vc-top{fill:#D77AAA}:root[data-theme=dark] .vc-bar.dn .vc-side{fill:#7A1E4E}
 :root[data-theme=dark] .vc-val.dn{fill:#F0A0C8}
 
-/* Áp design-rules FISC Market v3.2 (26/10/2026): chỉ phần hợp với palette/Inter/Navy đêm đã chốt. */
+/* Áp design-rules FISC Market v3.2 (26/10/2026): chỉ phần hợp với palette/Inter/Đen đã chốt. */
 html,body{overflow-x:clip}
 a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid #59C5C8;outline-offset:2px}
 td.num,th.num,.num{font-variant-numeric:tabular-nums}
@@ -1410,7 +1410,7 @@ section.tab>.card,section.tab>.grid,section.tab>details.dd,section.tab>div>.card
 :root:not([data-theme=dark]) .card:not(.card .card){background:#fff;border:1px solid rgba(29,38,120,.06)!important;box-shadow:0 1px 2px rgba(16,24,64,.04),0 8px 24px rgba(16,24,64,.06)!important}
 :root:not([data-theme=dark]) .card:not(.card .card):hover{box-shadow:0 1px 2px rgba(16,24,64,.05),0 12px 32px rgba(16,24,64,.09)!important}
 .card .card{border-radius:14px!important;padding:16px!important;box-shadow:none!important}
-:root[data-theme=dark] .card:not(.card .card){border:1px solid #232B52!important}
+:root[data-theme=dark] .card:not(.card .card){border:1px solid #2A2A2A!important}
 /* Tiêu đề card: một hàng, chữ 17px đậm vừa; nút điều khiển canh phải */
 h3.sub{font:600 17px/1.35 Inter,Arial,sans-serif!important;letter-spacing:-.01em;margin:0 0 16px!important;min-height:28px}
 h2.sec{margin:8px 0 16px!important}
@@ -1430,6 +1430,12 @@ h2.sec{margin:8px 0 16px!important}
 :root[data-theme=dark] .card:not(.card .card),:root[data-theme=dark] .kpi{box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 18px 40px -14px rgba(0,0,0,.6)!important}
 @media(prefers-reduced-motion:reduce){.card,.kpi{transition:none!important}}
 @media print{.card,.kpi{box-shadow:none!important}}
+/* Giao diện tối = nền đen (người dùng chốt 28/10/2026, thay Navy đêm); tiêu đề vàng ấm #FFD45D theo palette FinSuccess */
+:root[data-theme=dark] .mkt-tape{background:#000!important;border-bottom-color:#1F1F1F!important}
+:root[data-theme=dark] nav.tabs{background:#0A0A0A!important;border-color:#1F1F1F!important}
+html:root[data-theme=dark] body:not(#fs-x1):not(#fs-x2) :is(#coName,.titleband h1,h2.sec,h3.sub,.card>h3,.card h3.sub,.fsa-drawer h3,.fs-share-head span,.multiple-card h3):not(.shotcard *){color:#FFD45D!important}
+:root[data-theme=dark] .fs-mega h4{color:#FFD45D}
+:root[data-theme=dark] .stock-search :is(input,form,.box,div){background-color:#161616!important;border-color:#2A2A2A!important}
 
 </style>
 <style>#checklist td.num{white-space:nowrap}#qnsModel>.card+ .card,#backlog>.card{margin-top:16px}</style>
@@ -8046,7 +8052,7 @@ td.fsa-focus,th.fsa-focus{outline:2px solid ${TURQ};outline-offset:-2px}
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='qns',BUILD='a4e76af41846',URL_JSON='../version.json';
+  const PAGE='qns',BUILD='4bec20ffcb52',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
