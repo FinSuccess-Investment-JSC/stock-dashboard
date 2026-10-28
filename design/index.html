@@ -871,6 +871,31 @@ a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,
 td.num,th.num,.num{font-variant-numeric:tabular-nums}
 /* Nút Company news trên thanh ticker: vàng ấm FinSuccess, phân biệt với Watchlist (turquoise). */
 .mkt-wl.mkt-news{background:#FFD45D;color:#0F1550}
+
+/* ===== Hệ thống box đồng đều (người dùng chốt 28/10/2026, theo ảnh mẫu) =====
+   Một họ chữ Inter; nền trang nhạt để card trắng nổi; card bo 20px, bóng mềm, padding và khoảng cách đều 24px.
+   Chỉ đổi hình thức — không ẩn/khóa nút chart, bộ chọn kỳ hay ô nhập. */
+:root{--fx-mono:Inter,Arial,system-ui,sans-serif;--fs-gap:24px;--fs-pad:24px;--fs-radius:20px}
+html body,html body :is(button,select,input,textarea,table){font-family:Inter,Arial,system-ui,sans-serif}
+:root:not([data-theme=dark]){--bg:#F4F6FB}
+:root:not([data-theme=dark]) body{background:#F4F6FB}
+.grid{gap:var(--fs-gap)!important}
+section.tab>.card,section.tab>.grid,section.tab>details.dd,section.tab>div>.card{margin-bottom:var(--fs-gap)}
+.card{border-radius:var(--fs-radius)!important;padding:var(--fs-pad)!important}
+:root:not([data-theme=dark]) .card:not(.card .card){background:#fff;border:1px solid rgba(29,38,120,.06)!important;box-shadow:0 1px 2px rgba(16,24,64,.04),0 8px 24px rgba(16,24,64,.06)!important}
+:root:not([data-theme=dark]) .card:not(.card .card):hover{box-shadow:0 1px 2px rgba(16,24,64,.05),0 12px 32px rgba(16,24,64,.09)!important}
+.card .card{border-radius:14px!important;padding:16px!important;box-shadow:none!important}
+:root[data-theme=dark] .card:not(.card .card){border:1px solid #232B52!important}
+/* Tiêu đề card: một hàng, chữ 17px đậm vừa; nút điều khiển canh phải */
+h3.sub{font:600 17px/1.35 Inter,Arial,sans-serif!important;letter-spacing:-.01em;margin:0 0 16px!important;min-height:28px}
+h2.sec{margin:8px 0 16px!important}
+/* Ô KPI thành box nhỏ đều nhau */
+.kpi{border-radius:16px}
+.kpi .v{letter-spacing:-.02em}
+/* Bộ chọn kỳ / select gọn, bo đều như mẫu */
+.card select,.tsctl select{height:36px;border-radius:10px;padding:0 32px 0 12px;border:1px solid var(--line)}
+@media(max-width:600px){:root{--fs-gap:16px;--fs-pad:16px;--fs-radius:16px}h3.sub{font-size:15px!important}}
+@media print{.card{box-shadow:none!important}}
 </style>
 <style>
 body{margin:0;background:var(--bg);color:var(--ink)}
