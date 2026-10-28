@@ -4952,7 +4952,9 @@ function bindAxisDrag(canvas){
   const end=()=>{drag=null;};
   canvas.addEventListener('pointerup',end);canvas.addEventListener('pointercancel',end);
   canvas.addEventListener('dblclick',e=>{
-    const chart=Chart.getChart(canvas);if(!chart)return;const p=pos(e),hit=axisAt(chart,p.x,p.y);if(!hit)return;
+    const chart=Chart.getChart(canvas);if(!chart)return;const p=pos(e),hit=axisAt(chart,p.x,p.y);
+    // Nhấp đúp trong vùng vẽ: bật/tắt Số liệu (cùng trạng thái nút Số liệu, nhấp đúp lần nữa để tắt)
+    if(!hit){const ca=chart.chartArea;if(ca&&p.x>=ca.left&&p.x<=ca.right&&p.y>=ca.top&&p.y<=ca.bottom){const box=canvas.closest('.chart'),ctl=box&&box.querySelector(':scope > .axis-mode');if(ctl){e.preventDefault();window.getSelection&&getSelection().removeAllRanges();toggleValues(canvas.id,ctl);}}return;}
     const id=canvas.id,d=direct.get(id);
     if(d){restore(chart.options.scales[hit.key],d.base[hit.key]);if(modes[id]==='fit')fit(chart.options.scales[hit.key]);chart.update('none');}
     else if(typeof mk==='function'&&typeof chartBase!=='undefined'&&chartBase[id])mk(id,chartBase[id]);
@@ -6832,10 +6834,10 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
   const scriptSrc=(document.currentScript&&document.currentScript.src)||'';
   let lib=null,logo=null,state=null;
 
-  const css=`.fs-share-btn{position:absolute;top:10px;right:10px;z-index:3;display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border:1px solid ${LINE};border-radius:999px;background:#fff;color:${NAVY};font:600 12px/1.3 Arial,system-ui,sans-serif;cursor:pointer;opacity:.78}
-.fs-share-btn:hover,.fs-share-btn:focus-visible{opacity:1;border-color:${NAVY}}
+  const css=`.fs-share-btn{position:absolute;top:18px;right:18px;z-index:3;display:inline-grid;place-items:center;width:32px;height:32px;padding:0;border:1px solid transparent;border-radius:10px;background:transparent;color:#7A819A;font:500 17px/1 Inter,Arial,system-ui,sans-serif;cursor:pointer};border-radius:999px;background:#fff;color:${NAVY};font:600 12px/1.3 Arial,system-ui,sans-serif;cursor:pointer;opacity:.78}
+.fs-share-btn:hover,.fs-share-btn:focus-visible{color:${NAVY};background:#F0F2FA;border-color:${LINE}}
 .fs-share-host{position:relative}
-.fs-share-host>h3:first-of-type,.fs-share-host>.chart-title:first-of-type{padding-right:118px}
+.fs-share-host>h3:first-of-type,.fs-share-host>.chart-title:first-of-type{padding-right:44px}
 .fs-share-modal{position:fixed;inset:0;z-index:9999;background:rgba(16,22,48,.55);display:flex;align-items:center;justify-content:center;padding:16px;font-family:Arial,system-ui,sans-serif}
 .fs-share-box{background:#fff;color:${INK};border-radius:14px;width:min(1120px,100%);max-height:calc(100vh - 32px);overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
 .fs-share-head{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid ${LINE};font-weight:700;color:${NAVY}}
@@ -7012,7 +7014,9 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
     }else{download();flash('Máy này chưa hỗ trợ chia sẻ trực tiếp: đã tải ảnh và chép caption.')}
   }
   function close(){if(!state)return;state.ui.modal.remove();if(state.objUrl)URL.revokeObjectURL(state.objUrl);document.removeEventListener('keydown',onKey);const f=state.focus;state=null;if(f)f.focus()}
-  function onKey(e){if(e.key==='Escape')close()}
+  function onKey(e){if(e.key==='Escape')close();
+    // Ctrl/⌘+C trong khung phóng to: chép ảnh (trừ khi đang chọn chữ hoặc sửa caption)
+    else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='c'&&state&&state.blob&&document.activeElement.tagName!=='TEXTAREA'&&!String(getSelection()||'')){e.preventDefault();copyImage()}}
 
   function buildModal(){
     const modal=el('div','fs-share-modal'),box=el('div','fs-share-box');modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-label','Chia sẻ ảnh');
@@ -7024,7 +7028,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
     const acts=el('div','fs-share-acts'),bShare=el('button','primary','⇪ Chia sẻ…'),bDl=el('button','', 'Tải ảnh'),bImg=el('button','', 'Chép ảnh'),bCap=el('button','', 'Chép caption');
     acts.append(bShare,bDl,bImg,bCap);
     const msg=el('div','fs-share-msg');msg.setAttribute('aria-live','polite');
-    side.append(rr,lab,text,acts,msg,el('p','fs-share-tip','Trên điện thoại, nút Chia sẻ mở thẳng Zalo, Telegram, Facebook, X… Caption được chép sẵn — dán vào bài đăng.'));
+    side.append(rr,lab,text,acts,msg,el('p','fs-share-tip','Bấm Ctrl/⌘+C để chép ảnh, rồi dán vào Zalo/Telegram. Trên điện thoại, nút Chia sẻ mở thẳng Zalo, Telegram, Facebook, X… Caption được chép sẵn — dán vào bài đăng.'));
     body.append(prev,side);box.append(head,body);modal.append(box);document.body.append(modal);
     const busy=v=>[bShare,bDl,bImg,...ratio].forEach(b=>b.disabled=v);busy(true);
     x.onclick=close;modal.addEventListener('click',e=>{if(e.target===modal)close()});document.addEventListener('keydown',onKey);
@@ -7050,8 +7054,8 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
       // Card lồng nhau: gắn nút ở card trong cùng chứa chart.
       if([...card.querySelectorAll('.card,.viz-block')].some(hasChart))return;
       card.dataset.fsShare='1';card.classList.add('fs-share-host');
-      const b=el('button','fs-share-btn');b.type='button';b.title='Chia sẻ ảnh chart này';b.setAttribute('aria-label','Chia sẻ ảnh chart');
-      b.append('⇪ ',el('span','', 'Chia sẻ ảnh'));b.onclick=e=>{e.stopPropagation();open(card,b)};
+      const b=el('button','fs-share-btn');b.type='button';b.title='Phóng to · Chia sẻ ảnh (trong khung: Ctrl/⌘+C để chép ảnh)';b.setAttribute('aria-label','Chia sẻ ảnh chart');
+      b.textContent='⛶';b.onclick=e=>{e.stopPropagation();open(card,b)};
       card.prepend(b);
     });
   }
@@ -7068,7 +7072,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='bsr',BUILD='844eebd77ff1',URL_JSON='../version.json';
+  const PAGE='bsr',BUILD='bc6efd8f6c75',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
