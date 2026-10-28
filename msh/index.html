@@ -6470,7 +6470,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
     new MutationObserver(()=>{fixLater();Object.values((window.Chart&&Chart.instances)||{}).forEach(c=>{try{c.update('none');}catch(e){}});}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
     document.querySelectorAll('section.tab').forEach(sec=>new MutationObserver(fixLater).observe(sec,{attributes:true,attributeFilter:['class']}));
     document.addEventListener('click',e=>{if(e.target.closest('#finSubnav,.subnav,.tsctl,.ctl,details>summary'))fixLater();});
-    if(window.Chart&&!Chart.__fsDepth){Chart.__fsDepth=1;Chart.register(depth,darkCol);Object.values(Chart.instances||{}).forEach(c=>{try{c.update('none');}catch(e){}});}
+    if(window.Chart&&!Chart.__fsDepth){Chart.__fsDepth=1;Chart.register(darkCol) /* bỏ bóng đổ đường (fsDepth) theo góp ý 28/10/2026 */;Object.values(Chart.instances||{}).forEach(c=>{try{c.update('none');}catch(e){}});}
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,80));
   else setTimeout(boot,80);
@@ -6557,7 +6557,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
       const from=run; run+=v; return {n,t:'delta',from,to:run};
     });
   }
-  const on3d=()=>{try{return localStorage.getItem(KEY)!=='0';}catch(e){return true;}};
+  const on3d=()=>{try{return localStorage.getItem(KEY)==='1';}catch(e){return false;}}; // mặc định Waterfall phẳng (28/10/2026); 3D là lựa chọn
   function bridge(){
     const box=document.getElementById('isBridgeCard'), mode=document.getElementById('brkMode');
     if(!box||!mode||typeof brkCalc!=='function'||!D().isBridge||!(D().isBridge.periods||[]).length) return;
@@ -6901,6 +6901,11 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
             return r.type==='line'?{...base,type:'line',borderColor:LCOL[nl%4],backgroundColor:LCOL[nl++%4],pointRadius:p==='m'?1.5:3,borderWidth:2,spanGaps:false,order:0}:{...base,backgroundColor:COL[nb++%4],order:1}})}}
         if(!spec.y){spec.def=spec.q?'q':'m';if(!spec.q&&!spec.m)spec.y={labels:[],datasets:[]}}
         mkTS('fsCombo-'+tab,spec);try{localStorage.setItem(KEY,JSON.stringify(rows))}catch(_){}};
+      // "So sánh với…" ngay tại chart: mở khung ghép ngay dưới card đó, dòng 1 = chuỗi của chart, dòng 2 để chọn chỉ tiêu thứ hai.
+      h._fsCompare=(cvId,anchor)=>{cat=harvest(sec);const mine=cat.filter(c=>c.key.endsWith('|'+cvId));if(!mine.length)return false;const other=cat.find(c=>!c.key.endsWith('|'+cvId)&&c.unit!==mine[0].unit)||cat.find(c=>!c.key.endsWith('|'+cvId));
+        rows=[{key:mine[0].key,type:'bar',axis:'y'},...(other?[{key:other.key,type:'line',axis:'y1'}]:[])];
+        if(panel)panel.remove();panel=document.createElement('div');panel.className='card fs-combo';panel.style.margin='16px 0';(anchor||h).after(panel);
+        btn.setAttribute('aria-expanded','true');btn.classList.add('on');open();panel.scrollIntoView({behavior:'smooth',block:'nearest'});const s2=panel.querySelectorAll('.cb-s')[1];if(s2)s2.focus({preventScroll:true});return true};
       btn.addEventListener('click',()=>{const on=btn.getAttribute('aria-expanded')!=='true';btn.setAttribute('aria-expanded',String(on));btn.classList.toggle('on',on);if(on)open();else if(panel){panel.remove();panel=null}});
       // Lọc chuỗi: ẩn lựa chọn không khớp (giữ lựa chọn đang chọn), ẩn nhóm rỗng; giữ chuỗi lọc khi dựng lại khung.
       let qf='';const applyQ=()=>{if(!panel)return;const q=qf.toLocaleLowerCase('vi');panel.querySelectorAll('.cb-s').forEach(sl=>{sl.querySelectorAll('optgroup').forEach(g=>{let any=false;g.querySelectorAll('option').forEach(o=>{const hit=!q||o.selected||(g.label+' '+o.textContent).toLocaleLowerCase('vi').includes(q);o.hidden=!hit;any=any||hit});g.hidden=!any})})};
@@ -7361,6 +7366,76 @@ td.fsa-focus,th.fsa-focus{outline:2px solid ${TURQ};outline-offset:-2px}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 
+/* Thanh công cụ chart gọn (người dùng chốt 28/10/2026):
+   - Hiện trực tiếp: Chu kỳ · Số kỳ · Chart/Bảng. Loại chart, trục Từ 0/Vừa dữ liệu, độ rộng cột −/+ gom vào nút "Tùy chỉnh".
+   - Bỏ nút "Số liệu" trên từng chart: nhấp đúp vào chart để bật/tắt số (chart-explore.js).
+   - "So sánh với…" ngay tại chart (mở khung Ghép chart dưới card, chọn chỉ tiêu thứ hai).
+   - Bố cục Rộng / 2 cột cho toàn trang; chart mặc định thấp hơn; nhãn rõ cho các icon.
+   Chỉ đổi DOM hiển thị bằng class, không di chuyển nút gốc nên handler của mk()/renderChartAxes giữ nguyên. */
+(function(){
+  const LKEY='fs_layout_v1';
+  const get=k=>{try{return localStorage.getItem(k)}catch(e){return null}},set=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+  const css=`
+.chart .axis-mode .axis-values{display:none!important}
+.card:not(.fs-cust-on) h3.sub>.ctl,.card:not(.fs-cust-on) .chart>.axis-mode{display:none!important}
+.fs-tb{display:inline-flex;gap:6px;margin-left:auto;align-items:center}
+h3.sub .fs-tb{order:50}
+.fs-tb button{height:30px;padding:0 11px;border:1px solid var(--line);border-radius:9px;background:var(--card,#fff);color:var(--navy);font:600 12.5px Inter,Arial,sans-serif;cursor:pointer;white-space:nowrap}
+.fs-tb button:hover,.fs-tb button:focus-visible{border-color:#2938A8}
+.fs-tb button[aria-pressed=true]{background:#2938A8;border-color:#2938A8;color:#fff}
+.card.fs-cust-on h3.sub>.ctl{order:60;flex-basis:100%;margin:6px 0 0}
+.chart.xl{height:400px!important}
+.multiple-chart-card .chart{height:340px!important}
+.fs-layout{display:inline-flex;align-self:center;margin-left:8px;padding:2px;border:1px solid var(--line);border-radius:10px;background:var(--card,#fff)}
+.fs-layout button{height:28px;padding:0 10px;border:0;border-radius:8px;background:none;color:var(--muted);font:600 12.5px Inter,Arial,sans-serif;cursor:pointer}
+.fs-layout button[aria-pressed=true]{background:#2938A8;color:#fff}
+@media(min-width:1100px){
+ html.fs-2col .card.fs-half{display:inline-block;vertical-align:top;width:calc(50% - 13px);margin-right:20px}
+ html.fs-2col .card.fs-half.fs-half-r{margin-right:0}
+}
+html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canvas){grid-template-columns:minmax(0,1fr)!important}
+@media(max-width:1099px){.fs-layout{display:none}}
+@media print{.fs-tb,.fs-layout{display:none!important}}`;
+
+  function compareFn(cv){for(let n=cv.parentElement;n;n=n.parentElement){const h=n.querySelector&&n.querySelector(':scope > h2.sec');if(h&&h._fsCompare)return h._fsCompare}return null}
+  function decorate(){
+    document.querySelectorAll('.card').forEach(card=>{
+      const h=card.querySelector('h3.sub'),cv=card.querySelector('canvas');if(!h||!cv||card.querySelector('.card'))return;
+      let tb=h.querySelector(':scope > .fs-tb');
+      const ctl=h.querySelector(':scope > .ctl'),hasCtl=ctl&&ctl.style.display!=='none'&&ctl.children.length>1,hasAxis=!!card.querySelector('.chart>.axis-mode');
+      const canCmp=typeof TSREG!=='undefined'&&cv.id&&TSREG[cv.id]&&!/^fsCombo/.test(cv.id)&&compareFn(cv);
+      if(!tb){if(!hasCtl&&!hasAxis&&!canCmp)return;tb=document.createElement('span');tb.className='fs-tb';h.append(tb)}
+      if(canCmp&&!tb.querySelector('[data-cmp]')){const b=document.createElement('button');b.type='button';b.dataset.cmp='1';b.textContent='So sánh với…';b.title='Ghép chỉ tiêu khác vào cùng chart, ngay bên dưới';
+        b.onclick=e=>{e.stopPropagation();const f=compareFn(cv);if(!f||!f(cv.id,card))b.disabled=true};tb.prepend(b)}
+      if((hasCtl||hasAxis)&&!tb.querySelector('[data-cust]')){const b=document.createElement('button');b.type='button';b.dataset.cust='1';b.textContent='Tùy chỉnh';b.title='Loại chart, trục giá trị (Từ 0 / Vừa dữ liệu), độ rộng cột. Nhấp đúp vào chart để hiện số.';b.setAttribute('aria-pressed','false');
+        b.onclick=e=>{e.stopPropagation();const on=card.classList.toggle('fs-cust-on');b.setAttribute('aria-pressed',String(on))};tb.append(b)}
+      if(ctl&&tb.nextSibling!==null&&ctl.parentElement===h)h.append(ctl); // giữ .ctl sau cụm nút để xuống hàng khi mở Tùy chỉnh
+    });
+    // Bố cục 2 cột: ghép đôi các card chart đứng liền nhau (không nằm trong lưới sẵn có), không đổi display của tab/pane
+    document.querySelectorAll('.card.fs-half').forEach(c=>c.classList.remove('fs-half','fs-half-r'));
+    if(document.documentElement.classList.contains('fs-2col')){let prev=null;
+      document.querySelectorAll('.card').forEach(c=>{const ok=c.offsetParent&&c.querySelector('canvas')&&!c.querySelector('.card,table tr:nth-child(13)')&&!c.closest('.grid,.card .card,.fs-combo')&&!c.classList.contains('db')&&c.parentElement&&!/overview/.test(c.closest('section.tab')?.id||'');
+        if(!ok){prev=null;return}
+        if(prev&&prev.parentElement===c.parentElement&&prev.nextElementSibling===c){prev.classList.add('fs-half');c.classList.add('fs-half','fs-half-r');prev=null}else prev=c})}
+    // Nhãn rõ cho icon
+    document.querySelectorAll('button').forEach(b=>{const t=b.textContent.trim();if(t==='◐'&&!b.title)b.title='Đổi giao diện sáng / tối';if(t==='⌘K'&&!b.title)b.title='Tìm nhanh (⌘K)'});
+  }
+  function layoutToggle(){
+    const bar=document.querySelector('nav.tabs .tabs-inner')||document.querySelector('nav.tabs');if(!bar||bar.querySelector('.fs-layout'))return;
+    const g=document.createElement('span');g.className='fs-layout';g.setAttribute('role','group');g.setAttribute('aria-label','Bố cục');
+    const mode=get(LKEY)==='wide'?'wide':'2col';document.documentElement.classList.toggle('fs-2col',mode==='2col');document.documentElement.classList.toggle('fs-wide',mode==='wide');
+    [['wide','Rộng','Mỗi chart một hàng'],['2col','2 cột','Hai chart một hàng để xem nhiều bức tranh cùng lúc']].forEach(([m,t,tip])=>{const b=document.createElement('button');b.type='button';b.textContent=t;b.title=tip;b.setAttribute('aria-pressed',String(m===mode));
+      b.onclick=()=>{set(LKEY,m);document.documentElement.classList.toggle('fs-2col',m==='2col');document.documentElement.classList.toggle('fs-wide',m==='wide');decorate();g.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));setTimeout(()=>{window.Chart&&Object.values(Chart.instances||{}).forEach(c=>{try{c.resize()}catch(e){}})},50)};g.append(b)});
+    const mega=bar.querySelector('.fs-mega-btn');mega?bar.insertBefore(g,mega):bar.append(g);
+  }
+  let t=0;const scan=()=>{clearTimeout(t);t=setTimeout(()=>{try{decorate();layoutToggle()}catch(e){console.error('chart-toolbar',e)}},300)};
+  function init(){const st=document.createElement('style');st.textContent=css;document.head.append(st);
+    document.documentElement.classList.add(get(LKEY)==='wide'?'fs-wide':'fs-2col');
+    scan();setTimeout(scan,1500);setTimeout(scan,4000);
+    document.addEventListener('click',e=>{if(e.target.closest('button,summary,select'))scan()});document.addEventListener('change',scan)}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+
 
 </script>
 <script>
@@ -7424,7 +7499,7 @@ td.fsa-focus,th.fsa-focus{outline:2px solid ${TURQ};outline-offset:-2px}
   if(window.FinShareImage)return;
   const H2C='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
   const NAVY='#1D2678',INK='#303540',MUTED='#596272',LINE='#dce1e9',TEAL='#59C5C8';
-  const RATIOS={wide:{w:1920,h:1080,label:'Ngang 16:9',hint:'X · Telegram · Zalo'},tall:{w:1080,h:1350,label:'Dọc 4:5',hint:'Facebook · Instagram'}};
+  const RATIOS={fit:{w:0,h:0,label:'Vừa chart',hint:'Ảnh sát chart, không viền trắng'},wide:{w:1920,h:1080,label:'Ngang 16:9',hint:'X · Telegram · Zalo'},tall:{w:1080,h:1350,label:'Dọc 4:5',hint:'Facebook · Instagram'}};
   const scriptSrc=(document.currentScript&&document.currentScript.src)||'';
   let lib=null,logo=null,state=null;
 
@@ -7559,22 +7634,23 @@ td.fsa-focus,th.fsa-focus{outline:2px solid ${TURQ};outline-offset:-2px}
     return out;
   }
   async function compose(shot,ratio,p,c,url){
-    const R=RATIOS[ratio],W=R.w,Hh=R.h,cv=document.createElement('canvas');cv.width=W;cv.height=Hh;
-    const ctx=cv.getContext('2d'),pad=Math.round(W*0.04),font='Arial, "Helvetica Neue", sans-serif';
+    // "Vừa chart": khung = đúng kích thước bản chụp + lề mỏng, không dải trắng hai bên (chép/ dán giữ trọn hình).
+    const R=RATIOS[ratio],fit=ratio==='fit',pad0=Math.round(Math.min(shot.width,shot.height)*0.02);
+    const W=fit?shot.width+pad0*2:R.w,Hh=fit?shot.height+pad0*2:R.h,cv=document.createElement('canvas');cv.width=W;cv.height=Hh;
+    const ctx=cv.getContext('2d'),font='Inter, Arial, "Helvetica Neue", sans-serif';
     ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,Hh);
-    // Chart chiếm gần trọn khung; logo FinSuccess thành watermark mờ ở dải dưới cùng (người dùng chốt 28/10/2026).
-    const m=Math.round(Math.min(W,Hh)*0.025),wmH=Math.round(Math.min(W,Hh)*0.045),lg=await loadLogo();
-    const bw=W-m*2,bh=Hh-m*2-wmH;
-    const s=Math.min(bw/shot.width,bh/shot.height),dw=shot.width*s,dh=shot.height*s;
-    const dx=(W-dw)/2,dy=(Hh-wmH-dh)/2,wy=dy+dh+(Hh-dy-dh-wmH)/2;
-    ctx.save();ctx.globalAlpha=.28;
-    const lw=lg?lg.width*wmH/lg.height:0,label=(p.ticker?p.ticker+' · ':'')+'fisc.vn';
-    ctx.font=`600 ${Math.round(wmH*0.42)}px ${font}`;const tw=ctx.measureText(label).width,gapW=Math.round(wmH*0.4),total=lw+(lw?gapW:0)+tw,x0=(W-total)/2;
-    if(lg)ctx.drawImage(lg,x0,wy,lw,wmH);
-    ctx.fillStyle=NAVY;ctx.textBaseline='middle';ctx.textAlign='left';ctx.fillText(label,x0+lw+(lw?gapW:0),wy+wmH/2);
-    ctx.restore();
+    const m=fit?pad0:Math.round(Math.min(W,Hh)*0.025),bw=W-m*2,bh=Hh-m*2;
+    const s=Math.min(bw/shot.width,bh/shot.height),dw=shot.width*s,dh=shot.height*s,dx=(W-dw)/2,dy=(Hh-dh)/2;
     ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
     ctx.drawImage(shot,dx,dy,dw,dh);
+    // Watermark FinSuccess lớn, mờ, nằm giữa vùng chart (người dùng chốt 28/10/2026, theo mẫu CanvasJS)
+    const lg=await loadLogo();ctx.save();ctx.globalAlpha=.09;
+    const ww=dw*0.42;
+    if(lg){const wh=ww*lg.height/lg.width;ctx.drawImage(lg,dx+(dw-ww)/2,dy+dh*0.52-wh/2,ww,wh)}
+    else{ctx.fillStyle=NAVY;ctx.font=`800 ${Math.round(ww/5.2)}px ${font}`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('FinSuccess',dx+dw/2,dy+dh*0.52)}
+    ctx.restore();
+    ctx.save();ctx.globalAlpha=.35;ctx.fillStyle=NAVY;ctx.font=`600 ${Math.max(12,Math.round(dh*0.022))}px ${font}`;ctx.textAlign='right';ctx.textBaseline='bottom';
+    ctx.fillText((p.ticker?p.ticker+' · ':'')+'fisc.vn',dx+dw-Math.round(dw*0.01),dy+dh-Math.round(dh*0.008));ctx.restore();
     return cv;
   }
   const toBlob=cv=>new Promise(ok=>cv.toBlob(ok,'image/png'));
@@ -7636,7 +7712,7 @@ td.fsa-focus,th.fsa-focus{outline:2px solid ${TURQ};outline-offset:-2px}
   async function open(card,btn){
     if(state)close();
     const p=pageInfo(),c=cardInfo(card),url=pageUrl(),ui=buildModal();
-    state={card,p,c,url,ui,ratio:'wide',shots:{},file:fileName(p,c),focus:btn};
+    state={card,p,c,url,ui,ratio:'fit',shots:{},file:fileName(p,c),focus:btn};
     ui.text.value=caption(p,c,url);
     try{
       await render();if(!state||state.ui!==ui)return;ui.prev.replaceChildren(ui.img);ui.busy(false);
@@ -7650,8 +7726,8 @@ td.fsa-focus,th.fsa-focus{outline:2px solid ${TURQ};outline-offset:-2px}
       // Card lồng nhau: gắn nút ở card trong cùng chứa chart.
       if([...card.querySelectorAll('.card,.viz-block')].some(hasChart))return;
       card.dataset.fsShare='1';card.classList.add('fs-share-host');
-      const b=el('button','fs-share-btn');b.type='button';b.title='Phóng to · Chia sẻ ảnh (trong khung: Ctrl/⌘+C để chép ảnh)';b.setAttribute('aria-label','Chia sẻ ảnh chart');
-      b.textContent='⛶';b.onclick=e=>{e.stopPropagation();open(card,b)};
+      const b=el('button','fs-share-btn');b.type='button';b.title='Chia sẻ ảnh chart — xem lớn, chép (Ctrl/⌘+C) hoặc tải PNG';b.setAttribute('aria-label','Chia sẻ ảnh chart');
+      b.innerHTML='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg>';b.onclick=e=>{e.stopPropagation();open(card,b)};
       card.prepend(b);
     });
   }
@@ -7668,7 +7744,7 @@ td.fsa-focus,th.fsa-focus{outline:2px solid ${TURQ};outline-offset:-2px}
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='msh',BUILD='6d51c6ef32ee',URL_JSON='../version.json';
+  const PAGE='msh',BUILD='68c120442cb8',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
