@@ -1468,6 +1468,9 @@ h2.sec .fs-key{color:#861C52}
 @media(max-width:700px){.fs-tile-box{grid-template-columns:1fr}.fs-tile .L{border-right:0;border-bottom:1px solid #E1E6EE}.fs-tile .V{font-size:36px}}
 /* Đoạn tóm tắt Bản tin dữ liệu căn đều hai bên (người dùng chốt 29/10/2026) */
 .db-lead{text-align:justify;text-justify:inter-word}
+/* Bản tin dữ liệu: chừa khoảng đệm trên đủ rộng ở mọi khổ màn hình (người dùng báo chữ sát mép trên, 29/10/2026). */
+.db.card .db-l{padding-top:28px!important}
+.db.card .db-c{padding-top:22px!important;padding-left:22px!important}
 
 </style>
 <style>
@@ -8195,7 +8198,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='php',BUILD='3fb2ddce2300',URL_JSON='../version.json';
+  const PAGE='php',BUILD='c1e1346717ed',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
