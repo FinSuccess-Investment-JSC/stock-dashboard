@@ -1698,6 +1698,7 @@ table:not(.fintbl) th{font-weight:600!important;letter-spacing:.3px!important}
 /* Focus ring rõ 3px trên mọi control */
 :is(button,input,select,textarea,a):focus-visible{outline:3px solid rgba(43,81,182,.35)!important;outline-offset:2px}
 html:root body h2.sec,html:root:not([data-theme=dark]) body h2.sec{font-family:Newsreader,Georgia,serif!important;font-weight:600!important;font-size:24px!important;letter-spacing:-.4px!important}
+.sg-t{font:600 13px Inter,sans-serif;color:var(--muted);text-align:center;margin-bottom:4px}
 
 </style>
 <style>#checklist td.num{white-space:nowrap}#qnsModel>.card+ .card,#backlog>.card{margin-top:16px}</style>
@@ -8316,6 +8317,48 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
   setTimeout(run,2500);
 })();
 
+/* Chart "theo mảng, mỗi cột một quý" (người dùng chốt 29/10/2026, mẫu Excel của analyst REE):
+   trục ngang là các mảng, trong mỗi mảng là các cột theo quý — để so cùng một mảng qua nhiều quý và so quy mô giữa các mảng.
+   Bật bằng segments.quarterly.groupChart = true; dùng đúng số segments.quarterly (doanh thu, LNST bộ phận), không tính thêm.
+   Màu: mỗi năm một màu, quý trong năm đậm dần; quý mới nhất nổi bằng màu vàng nhấn. */
+(function(){
+  const D=()=>window.PVS_DATA||{};
+  const YC={2021:'#CBD5E1',2022:'#94A3B8',2023:'#8997D6',2024:'#59C5C8',2025:'#2938A8',2026:'#861C52',2027:'#1D2678'};
+  const KEY='fs_seggroup_n_v1';
+  const fmt=v=>v==null?'—':Number(v).toLocaleString('vi-VN',{maximumFractionDigits:0});
+  function color(l,last){ if(last) return '#D4A72C'; const m=/Q(\d)\/(\d{2,4})/.exec(l); if(!m) return '#2938A8';
+    const y=+m[2]<100?2000+ +m[2]:+m[2], q=+m[1], c=YC[y]||'#2938A8', a=[.5,.65,.82,1][q-1];
+    const n=parseInt(c.slice(1),16); return `rgba(${n>>16},${n>>8&255},${n&255},${a})`; }
+  function build(){
+    const q=(D().segments||{}).quarterly; if(!q||!q.groupChart||!Array.isArray(q.revenue)||!Array.isArray(q.revenue[0])||document.getElementById('fsSegGroup')) return;
+    const host=document.getElementById('seg'); if(!host||!window.Chart) return;
+    const names=(D().segments||{}).names||[];
+    const card=document.createElement('div'); card.className='card'; card.id='fsSegGroup';
+    const N=[4,8,0], saved=(()=>{try{return +localStorage.getItem(KEY)}catch(e){return NaN}})(); let n=N.includes(saved)?saved:0;
+    card.innerHTML=`<h3 class="sub">So sánh theo mảng qua các quý (tỷ VND)</h3>
+      <div class="tsctl"><span class="lb">SỐ QUÝ</span><select aria-label="Số quý">${N.map(k=>`<option value="${k}"${k===n?' selected':''}>${k?k+' quý gần nhất':'Tất cả ('+q.labels.length+' quý)'}</option>`).join('')}</select></div>
+      <div class="grid g2" style="margin-top:8px"><div><div class="sg-t">Doanh thu</div><div class="chart" style="height:340px"><canvas id="fsSegGroupRev"></canvas></div></div>
+      <div><div class="sg-t">${q.profit?'Lợi nhuận sau thuế':''}</div><div class="chart" style="height:340px"><canvas id="fsSegGroupNp"></canvas></div></div></div>
+      <p class="note">Mỗi nhóm cột là một mảng; mỗi cột là một quý (màu theo năm, quý sau đậm hơn; cột vàng là quý mới nhất). Doanh thu: ${(q.note||'doanh thu thuần bộ phận sau loại trừ giữa các bộ phận')}. LNST: ${q.profitLabel||'LNST bộ phận thuộc cổ đông công ty mẹ'}. Nguồn: thuyết minh Báo cáo bộ phận trong BCTC hợp nhất quý${q.src?' · '+q.src:''}.</p>`;
+    const anchor=[...host.querySelectorAll(':scope > .card, :scope > .grid')].pop(); (anchor||host.lastElementChild).after(card);
+    const charts={};
+    const draw=()=>{
+      const L=q.labels, from=n?Math.max(0,L.length-n):0, idx=L.map((_,i)=>i).slice(from);
+      [['fsSegGroupRev',q.revenue],['fsSegGroupNp',q.profit]].forEach(([id,M])=>{ if(!M) return;
+        const ds=idx.map((i,k)=>({label:L[i],data:names.map((_,s)=>M[s]?M[s][i]:null),backgroundColor:color(L[i],k===idx.length-1),borderRadius:2,maxBarThickness:18,categoryPercentage:.86,barPercentage:.92}));
+        if(charts[id]){charts[id].data.datasets=ds; charts[id].update(); return;}
+        charts[id]=new Chart(document.getElementById(id),{type:'bar',data:{labels:names,datasets:ds},options:{responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{position:'bottom',labels:{boxWidth:10,boxHeight:10,usePointStyle:true,font:{size:11}}},tooltip:{mode:'index',intersect:false,callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y)+' tỷ'}}},
+          scales:{x:{grid:{display:false},ticks:{font:{size:12,weight:'600'}}},y:{grid:{color:'#EEF0F6'},ticks:{callback:v=>fmt(v)}}}}});
+      });
+    };
+    card.querySelector('select').onchange=e=>{n=+e.target.value; try{localStorage.setItem(KEY,String(n))}catch(x){} draw();};
+    draw();
+  }
+  const go=()=>setTimeout(build,700);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',go); else go();
+})();
+
 
 </script>
 <script>
@@ -8754,7 +8797,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='qns',BUILD='ea33ffe0670f',URL_JSON='../version.json';
+  const PAGE='qns',BUILD='6611d9721a50',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
