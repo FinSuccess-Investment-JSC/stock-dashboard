@@ -1407,6 +1407,12 @@ html.fs-tape-off .mkt-tape{display:none!important}
 :root[data-theme=dark] .db-pg-t{background:#2A2A2A}:root[data-theme=dark] .db-pg-t i{background:#59C5C8}:root[data-theme=dark] .db-pg-h b{color:#FFD45D}
 .db-pg-h span{white-space:nowrap}
 .db.card.db>.db-plan.db-plan{position:static!important;top:auto;right:auto}
+/* Box rõ hơn (người dùng chốt 29/10/2026: "box nhìn không thấy rõ, bố cục chưa clear"): nền đậm hơn một bậc, viền rõ, bóng hai lớp nhẹ */
+:root:not([data-theme=dark]){--bg:#EEF2F7}
+:root:not([data-theme=dark]) body{background:#EEF2F7}
+:root:not([data-theme=dark]) :is(.card:not(.card .card),.kpi){background:#fff;border:1px solid #D6DDE8!important;box-shadow:0 1px 2px rgba(15,23,42,.06),0 4px 14px rgba(15,23,42,.06)!important}
+:root:not([data-theme=dark]) :is(.card:not(.card .card),.kpi):hover{border-color:#C3CCDB!important;box-shadow:0 1px 2px rgba(15,23,42,.07),0 8px 22px rgba(15,23,42,.09)!important}
+:root:not([data-theme=dark]) .card .card{background:#F8FAFC!important;border:1px solid #E1E6EE!important}
 
 </style>
 <style>
@@ -7547,8 +7553,8 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
     if(tape&&!document.querySelector('.fs-tape-tg')){
       const b=document.createElement('button'); b.type='button'; b.className='fs-tape-tg';
       const apply=h=>{document.documentElement.classList.toggle('fs-tape-off',h); b.textContent=h?'▾ Hiện bảng giá':'▴ Ẩn'; b.title=h?'Hiện thanh giá các mã':'Ẩn thanh giá các mã để dành chỗ';};
-      b.onclick=()=>{const h=!document.documentElement.classList.contains('fs-tape-off'); set('fs_tape_off_v1',h?'1':'0'); apply(h);};
-      apply(get('fs_tape_off_v1')==='1'); document.body.append(b);
+      b.onclick=()=>{const h=!document.documentElement.classList.contains('fs-tape-off'); set('fs_tape_off_v2',h?'1':'0'); apply(h);};
+      apply(get('fs_tape_off_v2')==='1'); document.body.append(b);
     }
     let raf=0; addEventListener('scroll',()=>{if(raf)return; raf=requestAnimationFrame(()=>{raf=0; document.documentElement.classList.toggle('fs-scrolled',scrollY>160);});},{passive:true});
   }
@@ -8061,7 +8067,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='hah',BUILD='90f412d06246',URL_JSON='../version.json';
+  const PAGE='hah',BUILD='bf87780819e8',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
