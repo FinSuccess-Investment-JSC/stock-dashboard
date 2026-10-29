@@ -1337,6 +1337,74 @@ h3.sub{font-size:15.5px!important}
 .card p,.card li,.callout,.db-qs li{font-size:14px}
 /* Ticker: nền trung tính, chữ tối; xanh/đỏ chỉ cho biến động */
 /* Badge quan điểm: nền nhạt, viền màu — bớt tranh điểm nhấn với nội dung */
+/* ===== Quy chuẩn màu · chữ · khoảng cách (người dùng chốt 29/10/2026, bản đề xuất mục 3) =====
+   Nền #F5F7FB · box trắng viền #E3E8F0 bo 12 bóng nhẹ, padding 20–24 · tiêu đề navy #243878 18–20 semibold ·
+   nội dung #334155 14/1.5 · chữ phụ #64748B 12–13 · điểm nhấn vàng #D4A72C (kỳ chọn, sự kiện, điểm cần chú ý) · nhịp 8–16–24–32. */
+:root:not([data-theme=dark]){--bg:#F5F7FB;--ink:#334155;--muted:#64748B;--line:#E3E8F0;--fs-accent:#D4A72C;--fs-title:#243878}
+:root:not([data-theme=dark]) body{background:#F5F7FB;color:#334155;font-size:14px;line-height:1.5}
+:root:not([data-theme=dark]) .card:not(.card .card),:root:not([data-theme=dark]) .kpi{border:1px solid #E3E8F0!important;border-radius:12px!important;box-shadow:0 1px 2px rgba(15,23,42,.04),0 2px 8px rgba(15,23,42,.04)!important}
+.card:not(.card .card){padding:20px 24px!important}
+.kpi{padding:16px 20px!important}
+.wrap .grid{gap:16px!important}
+section.tab>.card,section.tab>.grid{margin-bottom:24px}
+:root:not([data-theme=dark]) h2.sec{font:600 20px/1.3 Inter,Arial,sans-serif!important;color:#243878!important;text-transform:none!important;letter-spacing:-.01em!important;margin:32px 0 16px!important;padding-left:12px;border-left:3px solid #D4A72C}
+:root:not([data-theme=dark]) h3.sub{font-size:16px!important;font-weight:600!important;color:#243878!important}
+:root:not([data-theme=dark]) :is(.card p,.card li){color:#334155;font-size:14px;line-height:1.5}
+/* Nhãn KPI không cắt chữ: tối đa 2 dòng, giữ chỗ 2 dòng để số chính vẫn cùng đường ngang */
+.kpi>.l{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;min-height:2.6em;line-height:1.3}
+/* Header: ô giá chỉ còn Giá; cuộn xuống thì header thu một hàng dính; ẩn/hiện ticker */
+#pxBox>.fs-dup{display:none!important}
+html.fs-scrolled .brandbar{display:none}
+html.fs-scrolled .titleband{position:sticky;top:0;z-index:60;box-shadow:0 1px 0 #E3E8F0,0 4px 12px rgba(15,23,42,.06)}
+html.fs-scrolled .titleband .in{padding-top:6px!important;padding-bottom:6px!important}
+html.fs-scrolled .titleband :is(.logo-co,img){max-height:26px}
+html.fs-scrolled nav.tabs{position:sticky;top:52px;z-index:59}
+html.fs-tape-off .mkt-tape{display:none!important}
+.fs-tape-tg{position:fixed;right:12px;bottom:12px;z-index:70;height:30px;padding:0 12px;border:1px solid #E3E8F0;border-radius:999px;background:#fff;color:#243878;font:600 12px Inter,Arial,sans-serif;box-shadow:0 2px 8px rgba(15,23,42,.08);cursor:pointer}
+/* KPI bấm được → mở chart liên quan */
+.fs-golink{cursor:pointer}
+.fs-golink:hover{border-color:#D4A72C!important}
+.card.fs-flash{animation:fsFlash 1.6s ease}
+@keyframes fsFlash{0%,60%{box-shadow:0 0 0 3px rgba(212,167,44,.55)}100%{box-shadow:0 0 0 0 rgba(212,167,44,0)}}
+@media(prefers-reduced-motion:reduce){.card.fs-flash{animation:none;outline:3px solid #D4A72C}}
+/* Timeline ghi nhận dự án */
+.fs-gantt .fs-gnote{font-size:12.5px!important;color:#64748B!important;margin:0 0 12px}
+.fs-gwrap{overflow-x:auto}
+.fs-gantt{overflow-x:auto}.fs-gwrap{min-width:560px}
+.fs-gantt .r{display:grid;align-items:center;gap:0 2px;padding:2px 0;border-bottom:1px solid #F1F5F9}
+.fs-gantt .r.h{font-size:12px;color:#64748B;font-weight:600;border-bottom:1px solid #E3E8F0}
+.fs-gantt .r.h .c{text-align:center}
+.fs-gantt .n{display:flex;align-items:center;gap:8px;min-width:0;padding-right:12px;font-size:13px}
+.fs-gantt .n .st-badge{font-size:11px;padding:1px 7px}
+.fs-gantt .c{position:relative;height:28px;display:flex;align-items:center;justify-content:center;font-size:12px;font-variant-numeric:tabular-nums}
+.fs-gantt .c.cur{background:rgba(212,167,44,.12)}
+.fs-gantt .c i{position:absolute;inset:4px 2px;border-radius:4px}
+.fs-gantt .c span{position:relative;font-weight:600;color:#fff;text-shadow:0 0 2px rgba(0,0,0,.35)}
+.fs-gantt i.signed{background:#243878}.fs-gantt i.pipeline{background:#59C5C8}.fs-gantt i.loa{background:#D4A72C}.fs-gantt i.cancel{background:#94A3B8}
+.fs-pj{border:0;background:none;padding:0;font:inherit;color:#243878;font-weight:600;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
+#projTable.fs-pj-link td:first-child{cursor:pointer}
+/* Panel dự án bên phải */
+.fs-panel{position:fixed;top:0;right:0;bottom:0;width:min(400px,100vw);z-index:90;background:#fff;border-left:1px solid #E3E8F0;box-shadow:-12px 0 32px rgba(15,23,42,.12);padding:24px;overflow:auto;transform:translateX(105%);transition:transform .25s;color:#334155}
+.fs-panel.on{transform:none}
+.fs-panel .x{position:absolute;top:12px;right:12px;width:32px;height:32px;border:0;border-radius:8px;background:#F1F5F9;font-size:20px;cursor:pointer}
+.fs-panel h3{font:600 18px/1.3 Inter,Arial,sans-serif;color:#243878;margin:4px 0 8px}
+.fs-panel .k{font:600 11.5px Inter,Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#64748B;margin:16px 0 8px}
+.fs-panel dl{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin:16px 0 0;font-size:14px}
+.fs-panel dt{color:#64748B}.fs-panel dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums}
+.fs-panel .fs-pbar{display:grid;grid-template-columns:44px 1fr 56px;align-items:center;gap:8px;margin:6px 0;font-size:13px;font-variant-numeric:tabular-nums}
+.fs-panel .fs-pbar i{height:10px;border-radius:5px;background:#243878;min-width:2px}.fs-panel .fs-pbar b{text-align:right}
+.fs-panel .src{font-size:12px;color:#64748B}
+/* Nút A–B và CAGR */
+.fs-tb .fs-ab[aria-pressed=true]{background:#D4A72C!important;border-color:#D4A72C!important;color:#1F2937!important}
+.fs-cagr b{color:#243878}
+:root[data-theme=dark] :is(.fs-panel,.fs-tape-tg){background:#161616;color:#F5F5F5;border-color:#2A2A2A}
+:root[data-theme=dark] .fs-panel h3,:root[data-theme=dark] .fs-pj{color:#FFD45D}
+@media(max-width:700px){.card:not(.card .card){padding:16px!important}.fs-tape-tg{bottom:72px}}
+@media print{.fs-tape-tg,.fs-panel{display:none!important}}
+.fs-gantt .c:has(i.pipeline) span,.fs-gantt .c:has(i.loa) span,.fs-gantt .c:has(i.cancel) span{color:#1F2937;text-shadow:none}
+.fs-gantt .n{text-align:left}.fs-gantt .fs-pj{text-align:left}
+:root:not([data-theme=dark]) html.fs-scrolled .titleband,:root:not([data-theme=dark]).fs-scrolled .titleband{background:#fff!important}
+:root[data-theme=dark].fs-scrolled .titleband{background:#0A0A0A!important}
 
 </style>
 <style>
@@ -7484,6 +7552,127 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 
+/* Bố cục & tương tác "smart" (người dùng chốt 29/10/2026, làm theo bản đề xuất 6 mục) — chỉ đổi cách xem, không đổi số:
+   1 Header gọn: ô giá ở header chỉ giữ Giá (vốn hóa, P/E, P/B đã có ở ô Tổng quan); cuộn xuống thì thu thành một hàng dính;
+     nút ẩn/hiện ticker (nhớ theo trình duyệt).
+   2 Bấm ô KPI → chuyển đúng tab, cuộn tới chart liên quan và nhấn khung chart.
+   3 Bấm tên dự án trong bảng backlog → panel bên phải: giá trị, trạng thái, tiến độ, lịch ghi nhận theo năm, ghi chú.
+   4 Timeline ghi nhận dự án (Gantt theo năm) từ backlog.projects[].annualPlanUsd, chèn trước bảng dự án.
+   5 So sánh A–B (ux-analytics): thêm CAGR khi hai mốc là năm/quý; nút "A–B" để chọn hai kỳ không cần giữ Shift. */
+(function(){
+  if(window.__fsSmart) return; window.__fsSmart=1;
+  const D=()=>window.PVS_DATA||{};
+  const get=k=>{try{return localStorage.getItem(k)}catch(e){return null}}, set=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+  const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const f0=v=>Number(v).toLocaleString('vi-VN',{maximumFractionDigits:0}), f1=v=>Number(v).toLocaleString('vi-VN',{maximumFractionDigits:1});
+  const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/g,'d');
+
+  /* 1 Header */
+  function header(){
+    const px=document.getElementById('pxBox');
+    if(px) [...px.children].forEach(c=>{const l=norm((c.querySelector('.l')||{}).textContent); if(/von hoa|p\/e|p\/b/.test(l)) c.classList.add('fs-dup');});
+    const tape=document.querySelector('.mkt-tape');
+    if(tape&&!document.querySelector('.fs-tape-tg')){
+      const b=document.createElement('button'); b.type='button'; b.className='fs-tape-tg';
+      const apply=h=>{document.documentElement.classList.toggle('fs-tape-off',h); b.textContent=h?'▾ Hiện bảng giá':'▴ Ẩn'; b.title=h?'Hiện thanh giá các mã':'Ẩn thanh giá các mã để dành chỗ';};
+      b.onclick=()=>{const h=!document.documentElement.classList.contains('fs-tape-off'); set('fs_tape_off_v1',h?'1':'0'); apply(h);};
+      apply(get('fs_tape_off_v1')==='1'); document.body.append(b);
+    }
+    let raf=0; addEventListener('scroll',()=>{if(raf)return; raf=requestAnimationFrame(()=>{raf=0; document.documentElement.classList.toggle('fs-scrolled',scrollY>160);});},{passive:true});
+  }
+
+  /* 2 KPI → chart */
+  const RULES=[[/p\/e|p\/b|ev\/ebitda|dinh gia|upside/,/boi so|dinh gia|p\/e/],[/gia hien tai|^gia/,/gia co phieu|bien dong gia|gia dieu chinh|gia /],
+    [/lnst|loi nhuan/,/lnst|loi nhuan/],[/doanh thu/,/doanh thu/],[/bien/,/bien/],[/backlog/,/backlog/],[/no |tien|cash/,/tien|no vay|dong tien/]];
+  function goChart(kpi){
+    const l=norm((kpi.querySelector('.l,.db-ch')||kpi).textContent); const r=RULES.find(x=>x[0].test(l)); if(!r) return false;
+    const cards=[...document.querySelectorAll('section.tab .card')].filter(c=>c!==kpi&&!c.classList.contains('kpi')&&c.querySelector('canvas,svg.vc-svg')&&r[1].test(norm((c.querySelector('h3')||{}).textContent)));
+    const cur=kpi.closest('section.tab'); const pick=cards.find(c=>c.closest('section.tab')!==cur)||cards[0]; if(!pick) return false;
+    const tab=pick.closest('section.tab'); if(tab&&!tab.classList.contains('active')){const b=document.querySelector(`#tabbar [data-tab="${tab.id}"]`); b&&b.click();}
+    const pane=pick.closest('.fin-pane'); if(pane&&pane.hidden){const b=document.querySelector(`button[data-pane="${pane.dataset.pane}"]`); b&&b.click();}
+    setTimeout(()=>{pick.scrollIntoView({behavior:'smooth',block:'center'}); pick.classList.remove('fs-flash'); void pick.offsetWidth; pick.classList.add('fs-flash');},120);
+    return true;
+  }
+  function kpiLinks(){
+    document.querySelectorAll('.kpi,.db-c').forEach(k=>{ if(k.__fsGo) return; k.__fsGo=1;
+      const l=norm((k.querySelector('.l,.db-ch')||k).textContent); if(!RULES.some(x=>x[0].test(l))) return;
+      k.classList.add('fs-golink'); k.title=(k.title?k.title+' · ':'')+'Bấm để mở chart liên quan';
+      k.addEventListener('click',e=>{ if(e.target.closest('button,a,.info,.icon-note,input,select,[role=button]')) return; if(getSelection().toString()) return; goChart(k);});
+    });
+  }
+
+  /* 3–4 Dự án */
+  function projects(){
+    const d=D(), bl=d.backlog||{}, P=(bl.projects||[]).filter(p=>p&&p.annualPlanUsd&&Object.keys(p.annualPlanUsd).length);
+    return {bl,P};
+  }
+  const ST={confirmed:'signed',signed:'signed',loa:'loa',pipeline:'pipeline',cancelled:'cancel',canceled:'cancel'};
+  function gantt(){
+    const {P}=projects(), tbl=document.getElementById('projTable'); if(!P.length||!tbl||document.getElementById('fsGantt')) return;
+    const yrs=[...new Set(P.flatMap(p=>Object.keys(p.annualPlanUsd)))].map(Number).sort((a,b)=>a-b), mx=Math.max(...P.flatMap(p=>Object.values(p.annualPlanUsd).map(Number)));
+    const now=new Date().getFullYear();
+    const cols=`grid-template-columns:minmax(220px,1.6fr) repeat(${yrs.length},minmax(48px,1fr))`;
+    const rows=P.map(p=>{const st=ST[p.statusGroup]||'pipeline';
+      return `<div class="r" data-pid="${esc(p.id)}" style="${cols}"><div class="n"><button type="button" class="fs-pj">${esc(p.name)}</button><span class="st-badge ${st}">${esc(p.statusLabel||p.statusGroup||'')}</span></div>`+
+        yrs.map(y=>{const v=+p.annualPlanUsd[y]||0; return `<div class="c${y===now?' cur':''}">${v?`<i class="${st}" style="opacity:${(.35+.65*v/mx).toFixed(2)}" title="${esc(p.name)} · ${y}: ${f1(v)} triệu USD"></i><span>${f0(v)}</span>`:''}</div>`;}).join('')+'</div>';}).join('');
+    const box=document.createElement('div'); box.id='fsGantt'; box.className='card fs-gantt';
+    box.innerHTML=`<h3 class="sub">Lịch ghi nhận theo dự án (triệu USD/năm)</h3>
+      <p class="fs-gnote">Mỗi ô là giá trị thực hiện dự kiến trong năm theo bảng backlog; ô đậm hơn = giá trị lớn hơn; cột năm hiện tại tô nền vàng nhạt. Bấm tên dự án để xem chi tiết.</p>
+      <div class="fs-gwrap"><div class="r h" style="${cols}"><div class="n">Dự án</div>${yrs.map(y=>`<div class="c${y===now?' cur':''}">${y}</div>`).join('')}</div>${rows}</div>`;
+    const host=tbl.closest('.card')||tbl; host.before(box);
+    box.addEventListener('click',e=>{const b=e.target.closest('.fs-pj'); if(b) panel(b.closest('.r').dataset.pid);});
+  }
+  function panel(id){
+    const {bl}=projects(), p=(bl.projects||[]).find(x=>x.id===id); if(!p) return;
+    let pn=document.getElementById('fsPanel');
+    if(!pn){pn=document.createElement('aside'); pn.id='fsPanel'; pn.className='fs-panel'; pn.setAttribute('role','dialog'); pn.setAttribute('aria-label','Chi tiết dự án'); document.body.append(pn);
+      addEventListener('keydown',e=>{if(e.key==='Escape') pn.classList.remove('on');});}
+    const plan=Object.entries(p.annualPlanUsd||{}), tot=plan.reduce((s,[,v])=>s+(+v||0),0), st=ST[p.statusGroup]||'pipeline';
+    pn.innerHTML=`<button type="button" class="x" aria-label="Đóng">×</button>
+      <div class="k">${esc(p.category||'Dự án')}</div><h3>${esc(p.name)}</h3><span class="st-badge ${st}">${esc(p.statusLabel||'')}</span>
+      <dl><dt>Giá trị hợp đồng</dt><dd>${p.valueUsdM!=null?f0(p.valueUsdM)+' triệu USD':'—'}${p.valueType&&p.valueType!=='official'?' <small>(ước tính)</small>':''}</dd>
+      <dt>Tiến độ</dt><dd>${esc(p.timeline||'—')}</dd><dt>Tổng kế hoạch thực hiện</dt><dd>${f0(tot)} triệu USD</dd></dl>
+      <div class="k">Lịch ghi nhận theo năm</div>
+      ${plan.map(([y,v])=>`<div class="fs-pbar"><span>${y}</span><i style="width:${tot?(v/tot*100).toFixed(1):0}%"></i><b>${f1(v)}</b></div>`).join('')}
+      ${p.updateNote?`<div class="k">Ghi chú / giả định</div><p>${esc(p.updateNote)}</p>`:''}
+      ${p.src||bl.src?`<p class="src">Nguồn: ${esc(p.src||bl.src)}</p>`:''}`;
+    pn.querySelector('.x').onclick=()=>pn.classList.remove('on'); pn.classList.add('on'); pn.querySelector('.x').focus();
+  }
+  function projTableLinks(){
+    const {P}=projects(), tbl=document.getElementById('projTable'); if(!tbl||!P.length||tbl.__fs) return; tbl.__fs=1;
+    tbl.addEventListener('click',e=>{const td=e.target.closest('td:first-child'); if(!td||e.target.closest('a,button')) return;
+      const t=norm(td.textContent), p=P.find(x=>t.startsWith(norm(x.name))||t.includes(norm(x.name))); if(p) panel(p.id);});
+    tbl.classList.add('fs-pj-link');
+  }
+
+  /* 5 A–B: CAGR + nút chọn không cần Shift */
+  function cagrPatch(){
+    const yr=s=>{const m=String(s).match(/(?:Q([1-4])[\/\s-]*)?((?:19|20)\d\d)/i); return m?(+m[2]+(m[1]?(+m[1]-1)/4:0)):null;};
+    new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{
+      if(!(n.classList&&n.classList.contains('fsa-cmp'))||n.querySelector('.fs-cagr')) return;
+      const sp=[...n.querySelectorAll('span')], a=sp[1]&&sp[1].textContent.split(':'), b=sp[2]&&sp[2].textContent.replace('→','').split(':');
+      if(!a||!b) return; const ya=yr(a[0]), yb=yr(b[0]), va=parseFloat((a[1]||'').replace(/\./g,'').replace(',','.')), vb=parseFloat((b[1]||'').replace(/\./g,'').replace(',','.'));
+      const n1=yb-ya; if(!(n1>=1)||!(va>0)||!(vb>0)) return;
+      const c=(Math.pow(vb/va,1/n1)-1)*100, s=document.createElement('span'); s.className='fs-cagr'; s.innerHTML=`CAGR <b>${c>0?'+':''}${f1(c)}%</b>/năm`; sp[3]?sp[3].after(s):n.prepend(s);
+    }))).observe(document.body,{childList:true,subtree:true});
+    // Nút A–B trên thanh công cụ chart: bật chế độ chọn; hai lần bấm vào chart = Shift+bấm
+    let armed=null;
+    document.addEventListener('click',e=>{const b=e.target.closest('.fs-ab'); if(!b) return; armed=armed===b?null:b; document.querySelectorAll('.fs-ab').forEach(x=>x.setAttribute('aria-pressed',String(x===armed)));},true);
+    document.addEventListener('click',e=>{ if(!armed||e.shiftKey||e.target.tagName!=='CANVAS'||!armed.closest('.card').contains(e.target)) return;
+      e.stopImmediatePropagation(); const ev=new MouseEvent('click',{bubbles:true,cancelable:true,clientX:e.clientX,clientY:e.clientY,shiftKey:true}); e.target.dispatchEvent(ev);
+      armed.__n=(armed.__n||0)+1; if(armed.__n>=2){armed.__n=0; armed.setAttribute('aria-pressed','false'); armed=null;}},true);
+    const add=()=>document.querySelectorAll('.fs-tb').forEach(tb=>{ if(tb.querySelector('.fs-ab')) return; const card=tb.closest('.card'); if(!card||!card.querySelector('canvas')) return;
+      const b=document.createElement('button'); b.type='button'; b.className='fs-ab'; b.textContent='A–B'; b.title='So sánh hai kỳ: bấm nút rồi bấm hai điểm trên chart (thay đổi, %, CAGR)'; b.setAttribute('aria-pressed','false'); tb.prepend(b);});
+    add(); setTimeout(add,1500); setTimeout(add,4000);
+  }
+
+  function boot(){ header(); kpiLinks(); gantt(); projTableLinks(); cagrPatch();
+    setTimeout(()=>{kpiLinks(); gantt(); projTableLinks();},1500);
+    new MutationObserver(()=>{clearTimeout(boot.t); boot.t=setTimeout(()=>{kpiLinks(); gantt(); projTableLinks();},200);}).observe(document.querySelector('.wrap')||document.body,{childList:true,subtree:true});
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,300)); else setTimeout(boot,300);
+})();
+
 
 </script>
 <script>
@@ -7893,7 +8082,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='php',BUILD='ccdeddf56800',URL_JSON='../version.json';
+  const PAGE='php',BUILD='d39126c01718',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;

@@ -977,6 +977,74 @@ h3.sub{font-size:15.5px!important}
 .card p,.card li,.callout,.db-qs li{font-size:14px}
 /* Ticker: nền trung tính, chữ tối; xanh/đỏ chỉ cho biến động */
 /* Badge quan điểm: nền nhạt, viền màu — bớt tranh điểm nhấn với nội dung */
+/* ===== Quy chuẩn màu · chữ · khoảng cách (người dùng chốt 29/10/2026, bản đề xuất mục 3) =====
+   Nền #F5F7FB · box trắng viền #E3E8F0 bo 12 bóng nhẹ, padding 20–24 · tiêu đề navy #243878 18–20 semibold ·
+   nội dung #334155 14/1.5 · chữ phụ #64748B 12–13 · điểm nhấn vàng #D4A72C (kỳ chọn, sự kiện, điểm cần chú ý) · nhịp 8–16–24–32. */
+:root:not([data-theme=dark]){--bg:#F5F7FB;--ink:#334155;--muted:#64748B;--line:#E3E8F0;--fs-accent:#D4A72C;--fs-title:#243878}
+:root:not([data-theme=dark]) body{background:#F5F7FB;color:#334155;font-size:14px;line-height:1.5}
+:root:not([data-theme=dark]) .card:not(.card .card),:root:not([data-theme=dark]) .kpi{border:1px solid #E3E8F0!important;border-radius:12px!important;box-shadow:0 1px 2px rgba(15,23,42,.04),0 2px 8px rgba(15,23,42,.04)!important}
+.card:not(.card .card){padding:20px 24px!important}
+.kpi{padding:16px 20px!important}
+.wrap .grid{gap:16px!important}
+section.tab>.card,section.tab>.grid{margin-bottom:24px}
+:root:not([data-theme=dark]) h2.sec{font:600 20px/1.3 Inter,Arial,sans-serif!important;color:#243878!important;text-transform:none!important;letter-spacing:-.01em!important;margin:32px 0 16px!important;padding-left:12px;border-left:3px solid #D4A72C}
+:root:not([data-theme=dark]) h3.sub{font-size:16px!important;font-weight:600!important;color:#243878!important}
+:root:not([data-theme=dark]) :is(.card p,.card li){color:#334155;font-size:14px;line-height:1.5}
+/* Nhãn KPI không cắt chữ: tối đa 2 dòng, giữ chỗ 2 dòng để số chính vẫn cùng đường ngang */
+.kpi>.l{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;min-height:2.6em;line-height:1.3}
+/* Header: ô giá chỉ còn Giá; cuộn xuống thì header thu một hàng dính; ẩn/hiện ticker */
+#pxBox>.fs-dup{display:none!important}
+html.fs-scrolled .brandbar{display:none}
+html.fs-scrolled .titleband{position:sticky;top:0;z-index:60;box-shadow:0 1px 0 #E3E8F0,0 4px 12px rgba(15,23,42,.06)}
+html.fs-scrolled .titleband .in{padding-top:6px!important;padding-bottom:6px!important}
+html.fs-scrolled .titleband :is(.logo-co,img){max-height:26px}
+html.fs-scrolled nav.tabs{position:sticky;top:52px;z-index:59}
+html.fs-tape-off .mkt-tape{display:none!important}
+.fs-tape-tg{position:fixed;right:12px;bottom:12px;z-index:70;height:30px;padding:0 12px;border:1px solid #E3E8F0;border-radius:999px;background:#fff;color:#243878;font:600 12px Inter,Arial,sans-serif;box-shadow:0 2px 8px rgba(15,23,42,.08);cursor:pointer}
+/* KPI bấm được → mở chart liên quan */
+.fs-golink{cursor:pointer}
+.fs-golink:hover{border-color:#D4A72C!important}
+.card.fs-flash{animation:fsFlash 1.6s ease}
+@keyframes fsFlash{0%,60%{box-shadow:0 0 0 3px rgba(212,167,44,.55)}100%{box-shadow:0 0 0 0 rgba(212,167,44,0)}}
+@media(prefers-reduced-motion:reduce){.card.fs-flash{animation:none;outline:3px solid #D4A72C}}
+/* Timeline ghi nhận dự án */
+.fs-gantt .fs-gnote{font-size:12.5px!important;color:#64748B!important;margin:0 0 12px}
+.fs-gwrap{overflow-x:auto}
+.fs-gantt{overflow-x:auto}.fs-gwrap{min-width:560px}
+.fs-gantt .r{display:grid;align-items:center;gap:0 2px;padding:2px 0;border-bottom:1px solid #F1F5F9}
+.fs-gantt .r.h{font-size:12px;color:#64748B;font-weight:600;border-bottom:1px solid #E3E8F0}
+.fs-gantt .r.h .c{text-align:center}
+.fs-gantt .n{display:flex;align-items:center;gap:8px;min-width:0;padding-right:12px;font-size:13px}
+.fs-gantt .n .st-badge{font-size:11px;padding:1px 7px}
+.fs-gantt .c{position:relative;height:28px;display:flex;align-items:center;justify-content:center;font-size:12px;font-variant-numeric:tabular-nums}
+.fs-gantt .c.cur{background:rgba(212,167,44,.12)}
+.fs-gantt .c i{position:absolute;inset:4px 2px;border-radius:4px}
+.fs-gantt .c span{position:relative;font-weight:600;color:#fff;text-shadow:0 0 2px rgba(0,0,0,.35)}
+.fs-gantt i.signed{background:#243878}.fs-gantt i.pipeline{background:#59C5C8}.fs-gantt i.loa{background:#D4A72C}.fs-gantt i.cancel{background:#94A3B8}
+.fs-pj{border:0;background:none;padding:0;font:inherit;color:#243878;font-weight:600;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
+#projTable.fs-pj-link td:first-child{cursor:pointer}
+/* Panel dự án bên phải */
+.fs-panel{position:fixed;top:0;right:0;bottom:0;width:min(400px,100vw);z-index:90;background:#fff;border-left:1px solid #E3E8F0;box-shadow:-12px 0 32px rgba(15,23,42,.12);padding:24px;overflow:auto;transform:translateX(105%);transition:transform .25s;color:#334155}
+.fs-panel.on{transform:none}
+.fs-panel .x{position:absolute;top:12px;right:12px;width:32px;height:32px;border:0;border-radius:8px;background:#F1F5F9;font-size:20px;cursor:pointer}
+.fs-panel h3{font:600 18px/1.3 Inter,Arial,sans-serif;color:#243878;margin:4px 0 8px}
+.fs-panel .k{font:600 11.5px Inter,Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#64748B;margin:16px 0 8px}
+.fs-panel dl{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin:16px 0 0;font-size:14px}
+.fs-panel dt{color:#64748B}.fs-panel dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums}
+.fs-panel .fs-pbar{display:grid;grid-template-columns:44px 1fr 56px;align-items:center;gap:8px;margin:6px 0;font-size:13px;font-variant-numeric:tabular-nums}
+.fs-panel .fs-pbar i{height:10px;border-radius:5px;background:#243878;min-width:2px}.fs-panel .fs-pbar b{text-align:right}
+.fs-panel .src{font-size:12px;color:#64748B}
+/* Nút A–B và CAGR */
+.fs-tb .fs-ab[aria-pressed=true]{background:#D4A72C!important;border-color:#D4A72C!important;color:#1F2937!important}
+.fs-cagr b{color:#243878}
+:root[data-theme=dark] :is(.fs-panel,.fs-tape-tg){background:#161616;color:#F5F5F5;border-color:#2A2A2A}
+:root[data-theme=dark] .fs-panel h3,:root[data-theme=dark] .fs-pj{color:#FFD45D}
+@media(max-width:700px){.card:not(.card .card){padding:16px!important}.fs-tape-tg{bottom:72px}}
+@media print{.fs-tape-tg,.fs-panel{display:none!important}}
+.fs-gantt .c:has(i.pipeline) span,.fs-gantt .c:has(i.loa) span,.fs-gantt .c:has(i.cancel) span{color:#1F2937;text-shadow:none}
+.fs-gantt .n{text-align:left}.fs-gantt .fs-pj{text-align:left}
+:root:not([data-theme=dark]) html.fs-scrolled .titleband,:root:not([data-theme=dark]).fs-scrolled .titleband{background:#fff!important}
+:root[data-theme=dark].fs-scrolled .titleband{background:#0A0A0A!important}
 </style>
 <style>
 body{margin:0;background:var(--bg);color:var(--ink)}
