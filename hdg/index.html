@@ -7845,8 +7845,8 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
     card.innerHTML=`<h3 class="sub">So sánh theo mảng qua các quý (tỷ VND)</h3>
       <div class="tsctl"><span class="lb">SỐ QUÝ</span><select aria-label="Số quý">${N.map(k=>`<option value="${k}"${k===n?' selected':''}>${k?k+' quý gần nhất':'Tất cả ('+q.labels.length+' quý)'}</option>`).join('')}</select></div>
       <div class="grid g2" style="margin-top:8px"><div><div class="sg-t">Doanh thu</div><div class="chart" style="height:340px"><canvas id="fsSegGroupRev"></canvas></div></div>
-      <div><div class="sg-t">${q.profit?'Lợi nhuận sau thuế':''}</div><div class="chart" style="height:340px"><canvas id="fsSegGroupNp"></canvas></div></div></div>
-      <p class="note">Mỗi nhóm cột là một mảng; mỗi cột là một quý (màu theo năm, quý sau đậm hơn; cột vàng là quý mới nhất). Doanh thu: ${(q.note||'doanh thu thuần bộ phận sau loại trừ giữa các bộ phận')}. LNST: ${q.profitLabel||'LNST bộ phận thuộc cổ đông công ty mẹ'}. Nguồn: thuyết minh Báo cáo bộ phận trong BCTC hợp nhất quý${q.src?' · '+q.src:''}.</p>`;
+      <div><div class="sg-t">${q.profit?'LNST thuộc cổ đông mẹ (phần của REE)':''}</div><div class="chart" style="height:340px"><canvas id="fsSegGroupNp"></canvas></div></div></div>
+      <p class="note">Mỗi nhóm cột là một mảng; mỗi cột là một quý (màu theo năm, quý sau đậm hơn; cột vàng là quý mới nhất). Doanh thu: ${(q.note||'doanh thu thuần bộ phận sau loại trừ giữa các bộ phận')}. LNST: phần thuộc cổ đông công ty mẹ của từng bộ phận (không gồm phần cổ đông không kiểm soát, nên mảng điện thấp hơn LNST toàn bộ phận). Nguồn: thuyết minh Báo cáo bộ phận trong BCTC hợp nhất quý${q.src?' · '+q.src:''}.</p>`;
     const anchor=[...host.querySelectorAll(':scope > .card, :scope > .grid')].pop(); (anchor||host.lastElementChild).after(card);
     const charts={};
     const draw=()=>{
@@ -8304,7 +8304,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='hdg',BUILD='bf5aa891f402',URL_JSON='../version.json';
+  const PAGE='hdg',BUILD='6f43bf521849',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
