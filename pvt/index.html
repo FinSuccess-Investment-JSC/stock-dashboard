@@ -1850,6 +1850,7 @@ function applyType(cfg,t){
   const st=t==='stacked'; ['x','y'].forEach(ax=>{ c.options.scales[ax]=c.options.scales[ax]||{}; c.options.scales[ax].stacked=st; });
   c.options.indexAxis=t==='barh'?'y':'x';
   if(t==='barh'){ const sx=c.options.scales.x, sy=c.options.scales.y; c.options.scales.x={...sy,grid:{color:'#EEF0F6'}}; c.options.scales.y={...sx,grid:{display:false}}; }
+  else if(cfg.options?.indexAxis==='y'){ const sx=c.options.scales.x||{}, sy=c.options.scales.y||{}; c.options.scales.x={...sy,stacked:sx.stacked,grid:{display:false}}; c.options.scales.y={...sx,stacked:sy.stacked,grid:{color:'#EEF0F6'}}; c.data.datasets.forEach(d=>{delete d.indexAxis;}); } // chart gốc là thanh ngang: đổi sang cột/đường thì đổi chỗ trục để trục ngang giữ nhãn danh mục, không vẽ lưới dọc
   return c;
 }
 function defaultType(cfg){ if(cfg.type==='pie')return 'pie'; if(cfg.type==='doughnut')return 'doughnut'; if(cfg.options?.indexAxis==='y')return 'barh'; const ds=cfg.data.datasets; if(ds.some(d=>d.stack)||cfg.options?.scales?.x?.stacked)return 'stacked'; if(cfg.type==='line'||ds.every(d=>d.type==='line'))return 'line'; return 'column'; }
@@ -7997,7 +7998,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
     charts.forEach(ch=>{ch.options.devicePixelRatio=scale;ch.resize();ch.update('none')});
     const selects=[...card.querySelectorAll('select')].map(el=>({text:el.selectedOptions[0]?el.selectedOptions[0].textContent:'',cs:getComputedStyle(el),w:el.offsetWidth,h:el.offsetHeight}));
     try{
-      return await h2c(card,{backgroundColor:'#ffffff',scale,useCORS:true,logging:false,onclone:(doc,node)=>{node.style.border='0';node.style.boxShadow='none';node.style.padding='4px';
+      return await h2c(card,{backgroundColor:'#ffffff',scale,useCORS:true,logging:false,onclone:(doc,node)=>{node.style.border='0';node.style.boxShadow='none';node.style.padding='4px';node.style.background='#fff';node.classList.add('fs-shot-clean');const st=doc.createElement('style');st.textContent='.fs-shot-clean,.fs-shot-clean *{background-image:none!important}.fs-shot-clean::before,.fs-shot-clean::after{display:none!important}';doc.head.append(st);
         // Giữ thanh Chu kỳ / Số kỳ; bỏ cụm nút Trục.
         node.querySelectorAll('span').forEach(x=>{if(!x.children.length&&x.textContent.trim()==='Trục'&&x.parentElement)x.parentElement.remove()});
         // html2canvas vẽ <select> lệch chữ: thay bằng ô tĩnh cùng kích thước, chữ căn giữa dọc.
@@ -8045,15 +8046,22 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
     cells.forEach((c,i)=>{const r=Math.floor(i/cols),k=i%cols,x=pad+k*(cw+gap),yy=y+rowH.slice(0,r).reduce((a,b)=>a+b,0)+r*gap;
       let cy=yy;if(c.note.length){ctx.fillStyle=MUTED;ctx.font=`italic 500 ${noteF}px ${FONT}`;ctx.textBaseline='top';c.note.forEach(l=>{ctx.fillText(l,x,cy);cy+=noteF*1.35});cy+=noteF*0.5}
       ctx.drawImage(c.s,x,cy,cw,c.h);
-      ctx.save();ctx.globalAlpha=.09;const ww=cw*0.42;
-      if(lg){const wh=ww*lg.height/lg.width;ctx.drawImage(lg,x+(cw-ww)/2,cy+c.h*0.52-wh/2,ww,wh)}
-      else{ctx.fillStyle=NAVY;ctx.font=`800 ${Math.round(ww/5.2)}px ${FONT}`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('FinSuccess',x+cw/2,cy+c.h*0.52)}
-      ctx.restore()});
+      // Watermark vẽ đè lên chart, hai lớp (29/10/2026): bản navy hiện trên nền trắng, bản trắng hiện trên cột/vùng màu đậm —
+      // chart cao hay cột dày cũng không che mất logo.
+      const ww=cw*0.42, wm=watermark(lg,ww,NAVY), ww2=watermark(lg,ww,'#fff'), wx=x+(cw-ww)/2, wy=cy+c.h*0.52-wm.height/2;
+      ctx.save();ctx.globalAlpha=.16;ctx.drawImage(wm,wx,wy);ctx.globalAlpha=.30;ctx.drawImage(ww2,wx,wy);ctx.restore()});
     ctx.save();ctx.globalAlpha=.35;ctx.fillStyle=NAVY;ctx.font=`600 ${Math.max(12,Math.round(cw*0.016))}px ${FONT}`;ctx.textAlign='right';ctx.textBaseline='bottom';
     ctx.fillText((p.ticker?p.ticker+' · ':'')+'fisc.vn',CW-pad,CH-pad*0.35);ctx.restore();
     if(ratio==='fit')return content;
     const R=RATIOS[ratio],cv=document.createElement('canvas');cv.width=R.w;cv.height=R.h;const c2=cv.getContext('2d');c2.fillStyle='#fff';c2.fillRect(0,0,R.w,R.h);
     const s=Math.min(R.w/CW,R.h/CH);c2.imageSmoothingEnabled=true;c2.imageSmoothingQuality='high';c2.drawImage(content,(R.w-CW*s)/2,(R.h-CH*s)/2,CW*s,CH*s);return cv;
+  }
+  // Logo một màu (navy hoặc trắng) cùng kích thước, để đặt chồng hai lớp watermark.
+  function watermark(lg,ww,color){
+    const cv=document.createElement('canvas'),c=cv.getContext('2d');
+    if(lg){cv.width=Math.round(ww);cv.height=Math.round(ww*lg.height/lg.width);c.drawImage(lg,0,0,cv.width,cv.height);c.globalCompositeOperation='source-in';c.fillStyle=color;c.fillRect(0,0,cv.width,cv.height);}
+    else{const f=Math.round(ww/5.2);cv.width=Math.round(ww);cv.height=Math.round(f*1.4);c.fillStyle=color;c.font=`800 ${f}px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.fillText('FinSuccess',cv.width/2,cv.height/2);}
+    return cv;
   }
   const toBlob=cv=>new Promise(ok=>cv.toBlob(ok,'image/png'));
   function fileName(p,c){const base=((p.ticker||p.name)+'-'+c.title).normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').replace(/[^\w]+/g,'-').replace(/^-|-$/g,'').slice(0,80);return 'FinSuccess-'+base+'.png'}
@@ -8211,7 +8219,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='pvt',BUILD='381f4c995838',URL_JSON='../version.json';
+  const PAGE='pvt',BUILD='b1f35b375a3f',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
