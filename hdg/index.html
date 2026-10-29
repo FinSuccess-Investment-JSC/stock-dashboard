@@ -7885,7 +7885,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
     const head=opts.message?wrapLines(tmp,opts.message,totalW,2):[];const headH=head.length?head.length*headF*1.3+gap*0.6:0;
     const cells=shots.map((s,i)=>{const sc=cw/s.width;tmp.font=`500 ${noteF}px ${FONT}`;const note=opts.notes[i]?wrapLines(tmp,opts.notes[i],cw,2):[];return {s,sc,h:s.height*sc,note,nh:note.length?note.length*noteF*1.35+noteF*0.5:0}});
     const rowH=[...Array(rows)].map((_,r)=>Math.max(...cells.slice(r*cols,r*cols+cols).map(c=>c.h+c.nh)));
-    const CW=totalW+pad*2,CH=pad*2+headH+rowH.reduce((a,b)=>a+b,0)+(rows-1)*gap;
+    const CW=totalW+pad*2,CH=pad*2+Math.round(cw*0.014)+headH+rowH.reduce((a,b)=>a+b,0)+(rows-1)*gap;
     const content=document.createElement('canvas');content.width=CW;content.height=CH;const ctx=content.getContext('2d');
     ctx.fillStyle='#fff';ctx.fillRect(0,0,CW,CH);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
     let y=pad;if(head.length){ctx.fillStyle=NAVY;ctx.font=`700 ${headF}px ${FONT}`;ctx.textBaseline='top';head.forEach(l=>{ctx.fillText(l,pad,y);y+=headF*1.3});y+=gap*0.6}
@@ -7895,11 +7895,11 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
       ctx.drawImage(c.s,x,cy,cw,c.h);
       // Watermark vẽ đè lên chart, hai lớp (29/10/2026): bản navy hiện trên nền trắng, bản trắng hiện trên cột/vùng màu đậm —
       // chart cao hay cột dày cũng không che mất logo.
-      // Chỉ chữ "FinSuccess" (không slogan), nhỏ và mờ để không che số liệu (người dùng chốt 29/10/2026).
-      const ww=cw*0.30, wm=watermark(null,ww,NAVY), ww2=watermark(null,ww,'#fff'), wx=x+(cw-wm.width)/2, wy=cy+c.h*0.5-wm.height/2;
-      ctx.save();ctx.globalAlpha=.07;ctx.drawImage(wm,wx,wy);ctx.globalAlpha=.10;ctx.drawImage(ww2,wx,wy);ctx.restore()});
-    ctx.save();ctx.globalAlpha=.35;ctx.fillStyle=NAVY;ctx.font=`600 ${Math.max(12,Math.round(cw*0.016))}px ${FONT}`;ctx.textAlign='right';ctx.textBaseline='bottom';
-    ctx.fillText((p.ticker?p.ticker+' · ':'')+'fisc.vn',CW-pad,CH-pad*0.35);ctx.restore();
+    });
+    // Nhận diện ở chân ảnh, chỗ trống (người dùng chốt 29/10/2026): chữ "FinSuccess" đậm, rõ + "MÃ · fisc.vn"; không watermark giữa chart vì chart dày cột làm chữ chìm.
+    {const fs=Math.max(14,Math.round(cw*0.022)),tail='  ·  '+(p.ticker?p.ticker+'  ·  ':'')+'fisc.vn';ctx.save();ctx.textBaseline='bottom';ctx.textAlign='left';
+     ctx.font=`500 ${fs}px ${FONT}`;const tw=ctx.measureText(tail).width;ctx.font=`800 ${fs}px ${FONT}`;const bw=ctx.measureText('FinSuccess').width,x0=CW-pad-tw-bw,yb=CH-pad*0.3;
+     ctx.fillStyle=NAVY;ctx.fillText('FinSuccess',x0,yb);ctx.font=`500 ${fs}px ${FONT}`;ctx.fillStyle=MUTED;ctx.fillText(tail,x0+bw,yb);ctx.restore();}
     if(ratio==='fit')return content;
     const R=RATIOS[ratio],cv=document.createElement('canvas');cv.width=R.w;cv.height=R.h;const c2=cv.getContext('2d');c2.fillStyle='#fff';c2.fillRect(0,0,R.w,R.h);
     const s=Math.min(R.w/CW,R.h/CH);c2.imageSmoothingEnabled=true;c2.imageSmoothingQuality='high';c2.drawImage(content,(R.w-CW*s)/2,(R.h-CH*s)/2,CW*s,CH*s);return cv;
@@ -8067,7 +8067,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='hdg',BUILD='dcba38743c8c',URL_JSON='../version.json';
+  const PAGE='hdg',BUILD='9f4b29208d5d',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
