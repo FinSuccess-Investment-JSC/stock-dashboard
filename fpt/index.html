@@ -1499,6 +1499,25 @@ h2.sec .fs-key{position:relative;padding:0 4px;border-radius:3px;background:line
 html:root[data-theme=dark] body:not(#fs-x1):not(#fs-x2):not(#fs-x3) h2.sec .fs-key{background:linear-gradient(100deg,rgba(255,212,93,.16) 0%,rgba(255,212,93,.16) 40%,rgba(255,212,93,.42) 50%,rgba(255,212,93,.16) 60%,rgba(255,212,93,.16) 100%)!important;background-size:250% 100%!important}
 @media(prefers-reduced-motion:reduce){.db .db-dot,h2.sec .fs-key{animation:none}}
 @media print{h2.sec .fs-key{animation:none;background:rgba(255,212,93,.38)}}
+/* Lối tắt Watchlist / Company news trên thanh đầu trang, cạnh ô tìm kiếm (người dùng chốt 29/10/2026). */
+.fs-quick{display:flex;gap:8px;flex:none;margin-left:12px}
+.fs-q{display:inline-flex;align-items:center;height:40px;padding:0 14px;border-radius:11px;font:700 13px Inter,Arial,sans-serif;text-decoration:none;white-space:nowrap;color:#0F1550}
+.fs-q-wl{background:#59C5C8}.fs-q-news{background:#FFD45D}
+.fs-q:hover{filter:brightness(.95)}
+:root[data-theme=dark] .fs-q{color:#0F1550!important}
+@media (max-width:700px){.fs-quick{margin-left:0;flex-basis:100%}.fs-q{flex:1;justify-content:center;height:36px}}
+@media print{.fs-quick{display:none}}
+/* Chấm tỏa sóng "có mới / đang cập nhật" dùng chung (người dùng chốt 29/10/2026) */
+.fs-pulse{position:relative;display:inline-block;flex:none;width:8px;height:8px;margin-right:6px;border-radius:50%;background:#2BB673;vertical-align:1px}
+.fs-pulse::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:1.5px solid #2BB673;animation:fsRipple 2.2s ease-out infinite}
+.fs-pulse.off{background:#A3ABB9}.fs-pulse.off::after{display:none}
+@keyframes fsRipple{0%{transform:scale(.6);opacity:.9}100%{transform:scale(1.7);opacity:0}}
+#tabbar .fs-new{position:relative;width:7px!important;height:7px!important;background:#2BB673!important;box-shadow:none!important;animation:none!important;margin-left:7px}
+#tabbar .fs-new::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:1.5px solid #2BB673;animation:fsRipple 2.2s ease-out infinite}
+#milestones li.fs-next-ms,#stMilestones li.fs-next-ms{background:rgba(43,182,115,.07);border-radius:6px;align-items:center}
+#milestones li.fs-next-ms .fs-pulse,#stMilestones li.fs-next-ms .fs-pulse{margin:0 8px 0 4px}
+@media(prefers-reduced-motion:reduce){.fs-pulse::after,#tabbar .fs-new::after{animation:none;display:none}}
+@media print{.fs-pulse::after{display:none}}
 
 </style>
 <style>
@@ -5680,7 +5699,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
     }).join('');
     if(!items) return;
     const tape=document.createElement('div'); tape.id='mktTape'; tape.className='mkt-tape';
-    tape.innerHTML=`<a class="mkt-wl" href="${BASE}watchlist/" title="Bảng theo dõi toàn bộ mã (phím W)">▦ Watchlist</a><a class="mkt-wl mkt-news" href="${BASE}news/" title="Tin cập nhật từ từng doanh nghiệp (phím N)">◉ Company news</a><div class="mkt-track"><div class="mkt-run">${items}${items}</div></div>`;
+    tape.innerHTML=`<div class="mkt-track"><div class="mkt-run">${items}${items}</div></div>`;
     nav.before(tape);
   }
 
@@ -5918,6 +5937,12 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
   function compactHeader(){
     const host=document.querySelector('.brandbar .in'), ss=document.querySelector('section.stock-search');
     if(host&&ss&&ss.parentElement!==host){ host.appendChild(ss); }
+    // Watchlist và Company news đặt cạnh ô tìm kiếm ở đầu trang (trước nằm trong thanh giá, bị ẩn theo mặc định).
+    if(host&&!document.querySelector('.fs-quick')){
+      const q=document.createElement('nav'); q.className='fs-quick'; q.setAttribute('aria-label','Lối tắt');
+      q.innerHTML=`<a class="fs-q fs-q-wl" href="${BASE}watchlist/" title="Bảng theo dõi toàn bộ mã (phím W)">▦ Watchlist</a><a class="fs-q fs-q-news" href="${BASE}news/" title="Tin cập nhật từ từng doanh nghiệp (phím N)">◉ Company news</a>`;
+      host.appendChild(q);
+    }
   }
 
   /* ---------- Khởi động ---------- */
@@ -7795,6 +7820,37 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,300)); else setTimeout(boot,300);
 })();
 
+/* Chấm tỏa sóng "có cái mới / đang cập nhật" (người dùng chốt 29/10/2026) — chỉ ở chỗ có nghĩa:
+   1 Giá đầu trang: nháy khi giá là phiên giao dịch gần nhất; giá cũ thì chấm xám đứng yên.
+   2 Tab có nội dung mới: dùng chấm .fs-new sẵn có (ux-flow.js), đổi sang kiểu tỏa sóng.
+   3 Milestone: mốc ⏳ gần nhất (chưa xong đầu tiên) nháy; mốc ✅ không. */
+(function(){
+  if(window.__fsPulse) return; window.__fsPulse=1;
+  const D=()=>window.PVS_DATA||{};
+  function lastSession(){ // ngày giao dịch gần nhất theo giờ VN: trước 15:00 hoặc cuối tuần thì lùi về ngày làm việc trước
+    const vn=new Date(Date.now()+7*36e5); let d=new Date(Date.UTC(vn.getUTCFullYear(),vn.getUTCMonth(),vn.getUTCDate()));
+    if(vn.getUTCHours()<15) d=new Date(d-864e5);
+    while(d.getUTCDay()===0||d.getUTCDay()===6) d=new Date(d-864e5);
+    return d.toISOString().slice(0,10);
+  }
+  function price(){
+    const px=document.getElementById('pxBox'); if(!px||px.querySelector('.fs-pulse')) return;
+    const l=[...px.querySelectorAll('.l')].find(x=>/^GI[ÁA]$/i.test(x.textContent.trim())); if(!l) return;
+    const pd=(D().meta||{}).priceDate||''; const live=pd&&pd>=lastSession();
+    const s=document.createElement('span'); s.className='fs-pulse'+(live?'':' off');
+    s.title=pd?(live?'Giá phiên gần nhất · ':'Giá chưa cập nhật phiên gần nhất · ')+pd.split('-').reverse().join('/'):'Chưa rõ ngày giá';
+    l.prepend(s);
+  }
+  function milestones(){
+    ['milestones','stMilestones'].forEach(id=>{const ul=document.getElementById(id); if(!ul||ul.querySelector('.fs-next-ms')) return;
+      const li=[...ul.children].find(x=>x.textContent.includes('⏳')); if(!li) return;
+      li.classList.add('fs-next-ms'); const s=document.createElement('span'); s.className='fs-pulse'; s.title='Mốc sắp tới gần nhất'; li.prepend(s);});
+  }
+  const run=()=>{price(); milestones();};
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(run,600)); else setTimeout(run,600);
+  setTimeout(run,2500);
+})();
+
 
 </script>
 <script>
@@ -8233,7 +8289,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='fpt',BUILD='680b741dcc2f',URL_JSON='../version.json';
+  const PAGE='fpt',BUILD='eaa55491dea1',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
