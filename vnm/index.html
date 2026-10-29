@@ -1339,6 +1339,42 @@ table td,table th,.kpi .v,.vc-val,.vc-sv{font-variant-numeric:tabular-nums}
 .fs-xall:hover{border-color:#59C5C8}
 :root[data-theme=dark] .fs-xall{background:#161616;border-color:#2A2A2A;color:#59C5C8}
 @media print{.fs-xall{display:none}}
+/* ===== Cân thị giác (người dùng chốt 29/10/2026 sau khi xem PVT) =====
+   1 Card KPI cùng thứ tự: tên chỉ tiêu (1 dòng) → số chính (cùng đường ngang) → biến động/mô tả (tối đa 2 dòng, đủ chữ ở tooltip) → chart nhỏ.
+   2 Thang chữ: khu vực 20 · card 15 · KPI 28 · nội dung 14 · kỳ/đơn vị/nguồn 12,5 đậm 500–600.
+   3 Màu: nền trung tính; vàng chỉ còn badge nền nhạt; ticker không còn nền navy đậm.
+   4 Khối tóm tắt: đoạn tóm tắt toàn chiều ngang, 4 KPI cùng một hàng bên dưới. */
+.kpi{display:grid!important;grid-template-rows:auto auto auto 1fr;align-content:start;gap:4px}
+.kpi>.l{order:0!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:18px;font-size:12.5px!important;font-weight:600;letter-spacing:.02em}
+.kpi>.v{order:1!important}
+.kpi>.s{order:2!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:12.5px!important;font-weight:500;color:var(--muted);line-height:1.4;min-height:2.8em}
+.kpi>:is(.mkt-pct,.mkt-sparkwrap,.mkt-spark,svg,canvas){order:3!important;align-self:end}
+h2.sec{font-size:20px!important}
+h3.sub{font-size:15.5px!important}
+.card p,.card li,.callout,.db-qs li{font-size:14px}
+:root:not([data-theme=dark]) body{font-size:14px}
+/* Ticker: nền trung tính, chữ tối; xanh/đỏ chỉ cho biến động */
+:root:not([data-theme=dark]) .mkt-tape{background:#fff!important;color:#303540!important;border-bottom:1px solid #E4E7EE!important}
+:root:not([data-theme=dark]) .mkt-tape :is(a,b,span):not(.up):not(.dn):not([class*=up]):not([class*=dn]){color:inherit}
+:root:not([data-theme=dark]) .mkt-wl{background:#F1F3F7!important;color:#1D2678!important}
+.mkt-news{background:#F1F3F7!important;color:#1D2678!important}
+/* Badge quan điểm: nền nhạt, viền màu — bớt tranh điểm nhấn với nội dung */
+:root:not([data-theme=dark]) .titleband .badge{box-shadow:none!important;border:1px solid #59C5C8;background:#E6F6F6!important;color:#1E6F72!important}
+:root:not([data-theme=dark]) .titleband .badge[style*="--gold"]{background:#FFF6DA!important;border-color:#F0D58A;color:#7A5A00!important}
+/* Khối tóm tắt đầu trang */
+section.db{grid-template-columns:1fr!important;gap:16px!important}
+.db-l{display:flex;flex-wrap:wrap;align-items:center;column-gap:14px;row-gap:6px}
+.db-l>.db-k{flex-basis:100%}
+.db-tk{font-size:40px!important;margin:0!important}
+.db-lead{flex:1 1 520px;max-width:none!important;font-size:15.5px!important;font-weight:500!important;margin:0!important;color:#303540!important}
+.db-l>:is(.db-qd,.db-ask){flex:0 0 auto}
+.db-r{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important}
+.db-c .db-ch{font-size:13px!important;font-weight:600!important;color:#454B5C!important}
+.db-c small{font-size:12.5px!important;font-weight:600}
+.db-c :is(span.up,span.dn,span.mut){font-size:12.5px!important;display:block;margin-top:2px}
+.db-c span.mut{color:var(--muted)!important;font-weight:500}
+@media(max-width:900px){.db-r{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+:root:not([data-theme=dark]) body{background-image:none!important}
 
 </style>
 <style>
@@ -8737,6 +8773,12 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',go); else go();
 })();
 
+/* Mô tả card KPI bị cắt 2 dòng: đủ chữ ở tooltip (title). */
+(function(){
+  const go=()=>document.querySelectorAll('.kpi>.s,.kpi>.l').forEach(s=>{const t=s.textContent.trim(); if(t&&!s.title) s.title=t;});
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(go,1200)); else setTimeout(go,1200);
+})();
+
 /* Tương tác phân tích dùng chung (người dùng chốt 28/10/2026) — chỉ đổi cách xem, không ghi đè số nguồn.
    Chart: kéo chọn vùng để phóng to (Shift+kéo để dời khung, ↺ để về toàn bộ) · đường gióng đồng bộ giữa các chart
    cùng tab · Giá trị / %Δ kỳ trước / %Δ cùng kỳ (YoY) / Rebase 100 · Shift+bấm hai điểm để so sánh · Alt+bấm để
@@ -9546,7 +9588,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='vnm',BUILD='1b92d6b00ee5',URL_JSON='../version.json';
+  const PAGE='vnm',BUILD='98829640a39a',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
