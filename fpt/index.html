@@ -1518,6 +1518,9 @@ html:root[data-theme=dark] body:not(#fs-x1):not(#fs-x2):not(#fs-x3) h2.sec .fs-k
 #milestones li.fs-next-ms .fs-pulse,#stMilestones li.fs-next-ms .fs-pulse{margin:0 8px 0 4px}
 @media(prefers-reduced-motion:reduce){.fs-pulse::after,#tabbar .fs-new::after{animation:none;display:none}}
 @media print{.fs-pulse::after{display:none}}
+/* Giao diện tối: mọi tiêu đề (tên mã, mục, card, khung) màu turquoise #59C5C8 thay vàng (người dùng chốt 29/10/2026); vàng chỉ còn cho key insight */
+html:root[data-theme=dark] body:not(#fs-x1):not(#fs-x2):not(#fs-x3) :is(#coName,.titleband h1,h2.sec,h3.sub,.card>h3,.card h3.sub,.fsa-drawer h3,.fs-share-head span,.multiple-card h3,.fs-panel h3,.fs-tile .R h3):not(.shotcard *){color:#59C5C8!important}
+html:root[data-theme=dark] body:not(#fs-x1):not(#fs-x2):not(#fs-x3) :is(.fs-mega h4,.fs-tile .V,.fs-pj,.db-pg-h b){color:#59C5C8!important}
 
 </style>
 <style>
@@ -8289,7 +8292,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='fpt',BUILD='eaa55491dea1',URL_JSON='../version.json';
+  const PAGE='fpt',BUILD='3f990e3e4536',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
