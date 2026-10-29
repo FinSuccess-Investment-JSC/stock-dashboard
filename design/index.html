@@ -911,6 +911,61 @@ h2.sec{margin:8px 0 16px!important}
 html:root[data-theme=dark] body:not(#fs-x1):not(#fs-x2) :is(#coName,.titleband h1,h2.sec,h3.sub,.card>h3,.card h3.sub,.fsa-drawer h3,.fs-share-head span,.multiple-card h3):not(.shotcard *){color:#FFD45D!important}
 :root[data-theme=dark] .fs-mega h4{color:#FFD45D}
 :root[data-theme=dark] .stock-search :is(input,form,.box,div){background-color:#161616!important;border-color:#2A2A2A!important}
+/* ===== Tinh chỉnh theo mẫu Blockpinned (người dùng chốt 29/10/2026, thay khối "Box nổi rõ hơn" 28/10) =====
+   Nền xám rất nhạt + card trắng, bóng mềm, bo nhỏ hơn; ba cấp chữ: khu vực → tên chart → kỳ/đơn vị/nguồn;
+   navy tiêu đề, mực tối nội dung, xám metadata, teal tương tác; số thẳng cột. */
+:root:not([data-theme=dark]){--bg:#F6F7FA;--fs-radius:10px;--fs-r:10px;--muted:#5A6375}
+:root:not([data-theme=dark]) body{background:#F6F7FA;color:#303540;font-size:15px;line-height:1.55}
+:root:not([data-theme=dark]) .card:not(.card .card),:root:not([data-theme=dark]) .kpi{border:1px solid #E4E7EE!important;box-shadow:0 1px 2px rgba(16,24,64,.04)!important;border-radius:10px!important}
+:root:not([data-theme=dark]) .card:not(.card .card):hover,:root:not([data-theme=dark]) .kpi:hover{box-shadow:0 1px 2px rgba(16,24,64,.05),0 4px 14px rgba(16,24,64,.06)!important;border-color:#D5DAE5!important}
+:root:not([data-theme=dark]) .card:is(:focus-within,.is-active,.on):not(.card .card){border-color:#59C5C8!important}
+:root:not([data-theme=dark]) .card .card{background:#FAFBFC;border:1px solid #ECEEF3!important;border-radius:8px!important}
+.kpi::after{display:none}
+/* Cấp 1 tên khu vực · cấp 2 tên chart · cấp 3 kỳ/đơn vị/nguồn */
+h2.sec{font-size:22px!important;font-weight:800;color:var(--navy)}
+h3.sub{font:600 17px/1.35 Inter,Arial,sans-serif!important;color:var(--navy)}
+:root:not([data-theme=dark]) h3.sub{border-bottom:0!important;padding-bottom:0!important}
+.card p,.card li,.callout{font-size:14.5px}
+:is(.note,.src,.source,.unit,.muted,.sub-note,.chart-note,.multiple-horizon-note,.vc-per,.vc-sm,figcaption,.card small,.card .s,.overview-facts .s,.overview-facts .l,.mkt-pct,.tsctl .lb){font-size:12.5px!important;color:var(--muted)}
+.multiple-legend,.chart-legend,.legend{font-size:12.5px!important;color:#454B5C}
+table td{font-size:14px}table:not(.fintbl) th{font-size:12px}
+table td,table th,.kpi .v,.vc-val,.vc-sv{font-variant-numeric:tabular-nums}
+/* Card KPI: chỉ tiêu + kỳ → giá trị → biến động → chart nhỏ, cùng vị trí giữa các card */
+.kpi{display:flex;flex-direction:column;gap:4px}
+.kpi .l{font-size:12px!important;letter-spacing:.04em;color:var(--muted)!important;order:0}
+.kpi .v{font-size:28px!important;line-height:1.15;color:var(--navy);order:1}
+.kpi :is(.d,.chg,.mkt-chg,.mkt-pct){order:2}.kpi :is(.mkt-spark,svg,canvas){order:3;margin-top:auto}
+@media(max-width:700px){.kpi .v{font-size:24px!important}}
+/* Tương tác = teal */
+:root:not([data-theme=dark]) :is(.ctl,.seg-share-ctl,.fin-subnav,.vc-mode) button.on{color:#1D2678!important;box-shadow:inset 0 -2px 0 #59C5C8,0 1px 2px rgba(16,24,64,.10)!important}
+:root:not([data-theme=dark]) a:not(.btn):not(.mkt-wl){color:#1E7F83}
+:focus-visible{outline:2px solid #59C5C8;outline-offset:2px}
+/* Badge trạng thái dự án: màu cố định, tách khỏi màu tăng/giảm tài chính */
+.st-badge{display:inline-block;padding:2px 8px;border-radius:999px;font:600 12px/1.5 Inter,Arial,sans-serif;white-space:nowrap}
+.st-badge.signed{background:#E3E6F6;color:#1D2678}
+.st-badge.pipeline{background:#E1F4F4;color:#1E6F72}
+.st-badge.loa{background:#FFF3D1;color:#7A5A00}
+.st-badge.cancel{background:#EEF0F4;color:#5A6375;text-decoration:line-through}
+/* Waterfall 2D phẳng: navy tổng, teal kết quả cuối, màu nhạt khoản cộng/trừ */
+.vc-flat .vc-bar.total .vc-front{fill:#1D2678}
+.vc-flat .vc-bar.last .vc-front{fill:#59C5C8}
+.vc-flat .vc-bar.up .vc-front{fill:#B3BDE8}
+.vc-flat .vc-bar.dn .vc-front{fill:#E6C3D3}
+.vc-flat .vc-front{rx:2}
+.vc-flat .vc-link{stroke:#AEB5C4;stroke-width:1;stroke-dasharray:3 3}
+.vc-flat .vc-base{stroke:#C9CFDA;stroke-dasharray:none}
+.vc-flat .vc-val{font:700 16px Inter,Arial,sans-serif;fill:#303540}
+.vc-flat .vc-val.total{fill:#1D2678}.vc-flat .vc-bar.last .vc-val{fill:#1E7F83}.vc-flat .vc-val.dn{fill:#861C52}
+.vc-flat .vc-xl{font:500 13px Inter,Arial,sans-serif;fill:#454B5C}.vc-flat .vc-xl.sm{font-size:12px}
+:root[data-theme=dark] .vc-flat .vc-bar.total .vc-front{fill:#4354B7}
+:root[data-theme=dark] .vc-flat .vc-bar.up .vc-front{fill:#3A4A8C}
+:root[data-theme=dark] .vc-flat .vc-bar.dn .vc-front{fill:#6B2A4A}
+:root[data-theme=dark] .vc-flat :is(.vc-val,.vc-xl){fill:#E5E5E5}
+/* Mở tất cả / Thu gọn */
+.fs-xall{margin-left:auto;border:1px solid #DCE1E9;background:#fff;color:#1E6F72;font:600 12px Inter,Arial,sans-serif;padding:4px 10px;border-radius:7px;cursor:pointer}
+.fs-xall:hover{border-color:#59C5C8}
+:root[data-theme=dark] .fs-xall{background:#161616;border-color:#2A2A2A;color:#59C5C8}
+@media print{.fs-xall{display:none}}
 </style>
 <style>
 body{margin:0;background:var(--bg);color:var(--ink)}
