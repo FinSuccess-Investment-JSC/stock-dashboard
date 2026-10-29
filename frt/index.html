@@ -1401,6 +1401,18 @@ html.fs-tape-off .mkt-tape{display:none!important}
 .fs-gantt .n{text-align:left}.fs-gantt .fs-pj{text-align:left}
 :root:not([data-theme=dark]) html.fs-scrolled .titleband,:root:not([data-theme=dark]).fs-scrolled .titleband{background:#fff!important}
 :root[data-theme=dark].fs-scrolled .titleband{background:#0A0A0A!important}
+/* Thanh tiến độ thực hiện / kế hoạch năm (Bản tin dữ liệu) */
+.db-plan{position:static!important;grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px 24px;padding-top:16px;border-top:1px solid #E3E8F0}
+.db-pk{grid-column:1/-1;font:600 12px Inter,Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#64748B}
+.db-pg-h{display:flex;align-items:baseline;gap:8px;font-size:13px;color:#334155;margin-bottom:6px;font-variant-numeric:tabular-nums}
+.db-pg-h b{font-size:18px;color:#243878}.db-pg-h small{margin-left:auto;color:#64748B;font-size:12.5px}
+.db-pg-t{position:relative;height:10px;border-radius:5px;background:#EEF2F7}
+.db-pg-t i{position:absolute;left:0;top:0;bottom:0;border-radius:5px;background:#243878}
+.db-pg-t em{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;background:#D4A72C}
+.db-pn{grid-column:1/-1;font-size:12px;color:#64748B}
+:root[data-theme=dark] .db-pg-t{background:#2A2A2A}:root[data-theme=dark] .db-pg-t i{background:#59C5C8}:root[data-theme=dark] .db-pg-h b{color:#FFD45D}
+.db-pg-h span{white-space:nowrap}
+.db.card.db>.db-plan.db-plan{position:static!important;top:auto;right:auto}
 
 </style>
 <style>
@@ -5881,6 +5893,21 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
           ${c.viz||''}
         </button>`).join('')}</div>
       <div class="note">Đoạn tóm tắt và các ô số được viết tự động từ số liệu trên dashboard, không phải nhận định hay khuyến nghị đầu tư. Số quý ${esc(L)} là số riêng quý; so với cùng kỳ là cùng quý năm trước; phân vị P/E tính trên 20 quý gần nhất. Nguồn: BCTC hợp nhất (CafeF, VNDirect finfo); giá đóng cửa VNDirect finfo</div>`;
+    // Thanh tiến độ thực hiện / kế hoạch năm (người dùng chốt 29/10/2026): chỉ khi có planYYYY cùng năm với lũy kế quý.
+    // Thực hiện = doanh thu thuần và LNST thuộc cổ đông mẹ cộng các quý đã công bố; vạch mốc = số quý đã qua ÷ 4.
+    const pl=yrRev&&D()['plan'+yrRev.y];
+    if(pl&&(pl.revenue||pl.npat)){
+      const rows=[[pl.revenue,yrRev.cur,'Doanh thu'],[pl.npat,yr&&yr.cur,'LNST']].filter(r=>r[0]>0&&r[1]!=null);
+      const pace=yrRev.q/4*100;
+      if(rows.length){
+        const bar=([t,a,n])=>{const pct=a/t*100;return `<div class="db-pg"><div class="db-pg-h"><span>${n} ${yrRev.q*3}T/${yrRev.y}</span><b>${f0(pct)}%</b><small>${f0(a)} / ${f0(t)} tỷ</small></div>
+          <div class="db-pg-t" role="img" aria-label="${n}: thực hiện ${f0(a)} tỷ, ${f0(pct)}% kế hoạch ${f0(t)} tỷ; mốc thời gian ${f0(pace)}%"><i style="width:${Math.min(pct,100).toFixed(1)}%"></i><em style="left:${pace}%" title="Mốc thời gian: ${yrRev.q} quý = ${f0(pace)}% năm"></em></div></div>`;};
+        const pe=document.createElement('div'); pe.className='db-plan';
+        pe.innerHTML=`<div class="db-pk">Tiến độ kế hoạch ${yrRev.y}</div>${rows.map(bar).join('')}
+          <div class="db-pn">Kế hoạch: ${esc(pl.src||'ĐHĐCĐ')}. Thực hiện: doanh thu thuần và LNST thuộc cổ đông mẹ cộng các quý đã công bố; kế hoạch có thể tính theo tổng doanh thu hoặc LNST hợp nhất. Vạch dọc = phần năm đã qua (${f0(pace)}%).</div>`;
+        el.querySelector('.db-r').after(pe);
+      }
+    }
     host.before(el);
 
     el.querySelector('.db-ask').onclick=()=>document.dispatchEvent(new KeyboardEvent('keydown',{key:'k',metaKey:true,ctrlKey:true,bubbles:true}));
@@ -7987,7 +8014,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='frt',BUILD='ab62a81c0a55',URL_JSON='../version.json';
+  const PAGE='frt',BUILD='93d25682762c',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
