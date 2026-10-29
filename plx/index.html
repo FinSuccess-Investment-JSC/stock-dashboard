@@ -1411,6 +1411,49 @@ html.fs-tape-off .mkt-tape{display:none!important}
 :root:not([data-theme=dark]) :is(.card:not(.card .card),.kpi){background:#fff;border:1px solid #D6DDE8!important;box-shadow:0 1px 2px rgba(15,23,42,.06),0 4px 14px rgba(15,23,42,.06)!important}
 :root:not([data-theme=dark]) :is(.card:not(.card .card),.kpi):hover{border-color:#C3CCDB!important;box-shadow:0 1px 2px rgba(15,23,42,.07),0 8px 22px rgba(15,23,42,.09)!important}
 :root:not([data-theme=dark]) .card .card{background:#F8FAFC!important;border:1px solid #E1E6EE!important}
+/* ===== Tiêu đề highlight, box nổi, khung chi tiết (người dùng chốt 29/10/2026, theo mẫu tham khảo) ===== */
+/* Tiêu đề khu vực: nền highlight nhẹ thay gạch vàng; phần sau dấu — là key insight, màu khác */
+:root:not([data-theme=dark]) h2.sec{border-left:0!important;padding:2px 10px!important;display:inline-block;background:linear-gradient(transparent 12%,rgba(89,197,200,.20) 12%,rgba(89,197,200,.20) 92%,transparent 92%);border-radius:4px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+h2.sec .fs-key{color:#861C52}
+:root[data-theme=dark] h2.sec{background:rgba(255,212,93,.10);padding:2px 10px!important;border-radius:4px;display:inline-block}
+:root[data-theme=dark] h2.sec .fs-key{color:#59C5C8}
+/* Box nổi khi rê chuột: nhấc lên (dùng top, không transform để popup fixed không lệch), viền màu, bóng sâu */
+:root:not([data-theme=dark]) :is(.card:not(.card .card),.kpi){position:relative;top:0;transition:top .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s,border-color .2s!important}
+:root:not([data-theme=dark]) :is(.card:not(.card .card),.kpi):hover{top:-3px;border-color:rgba(41,56,168,.35)!important;box-shadow:0 2px 4px rgba(15,23,42,.06),0 14px 32px -8px rgba(29,38,120,.22)!important}
+:root:not([data-theme=dark]) .card .card{transition:box-shadow .2s,border-color .2s}
+:root:not([data-theme=dark]) .card .card:hover{border-color:rgba(41,56,168,.30)!important;box-shadow:0 6px 18px -6px rgba(29,38,120,.18)}
+/* Hiệu ứng màu: vạch sáng mảnh ở mép trên + quầng màu rất nhạt ở góc, hiện rõ hơn khi rê chuột */
+:is(.card:not(.card .card),.kpi){overflow:visible}
+:is(.card:not(.card .card),.kpi)::before{content:'';position:absolute;left:16px;right:16px;top:-1px;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,#59C5C8 30%,#2938A8 70%,transparent);opacity:.0;transition:opacity .25s;pointer-events:none}
+:is(.card:not(.card .card),.kpi):hover::before{opacity:.9}
+:root:not([data-theme=dark]) .kpi{background:radial-gradient(120% 80% at 100% 0%,rgba(89,197,200,.10),transparent 55%),#fff!important}
+:root[data-theme=dark] :is(.card:not(.card .card),.kpi){background:radial-gradient(120% 70% at 85% 0%,rgba(255,140,90,.08),transparent 60%),#161616!important}
+:root[data-theme=dark] :is(.card:not(.card .card),.kpi):hover{box-shadow:0 0 0 1px rgba(255,212,93,.25),0 18px 40px -12px rgba(0,0,0,.7),0 0 32px -8px rgba(255,140,90,.18)!important}
+.kpi.fs-golink{cursor:pointer}
+@media(prefers-reduced-motion:reduce){:is(.card,.kpi){transition:none!important}:is(.card,.kpi):hover{top:0!important}}
+@media print{:is(.card,.kpi)::before{display:none}}
+/* Khung chi tiết ô KPI */
+.fs-tile{position:fixed;inset:0;z-index:95;display:none;place-items:center;padding:24px;background:rgba(15,23,42,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.fs-tile.on{display:grid;animation:fsTileIn .18s ease}
+@keyframes fsTileIn{from{opacity:0}to{opacity:1}}
+.fs-tile-box{display:grid;grid-template-columns:minmax(260px,320px) minmax(0,1fr);width:min(920px,100%);max-height:calc(100vh - 48px);overflow:auto;border-radius:16px;background:#fff;box-shadow:0 30px 80px -20px rgba(15,23,42,.45);animation:fsTileUp .22s cubic-bezier(.2,.8,.2,1)}
+@keyframes fsTileUp{from{transform:translateY(12px) scale(.98)}to{transform:none}}
+.fs-tile .L{padding:24px;background:linear-gradient(160deg,#EEF7F8,#F3F4FB);border-right:1px solid #E1E6EE;display:flex;flex-direction:column;gap:10px}
+.fs-tile .L .k,.fs-tile .R .k{font:600 11.5px Inter,Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#64748B}
+.fs-tile .V{font:800 44px/1.05 Inter,Arial,sans-serif;color:#1D2678;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.fs-tile .S{font-size:13px;color:#334155;display:flex;flex-direction:column;gap:4px}
+.fs-tile .Z svg{width:100%;height:auto;max-height:90px}
+.fs-tile .go{margin-top:auto;height:40px;border:0;border-radius:10px;background:#1D2678;color:#fff;font:600 14px Inter,Arial,sans-serif;cursor:pointer}
+.fs-tile .go:hover{background:#2938A8}
+.fs-tile .R{position:relative;padding:24px 28px}
+.fs-tile .R h3{font:700 22px/1.3 Inter,Arial,sans-serif;color:#182230;margin:0 40px 14px 0}
+.fs-tile .R .N{font-size:14px;line-height:1.6;color:#334155;margin-top:8px}
+.fs-tile .x{position:absolute;top:16px;right:16px;width:34px;height:34px;border:1px solid #E1E6EE;border-radius:10px;background:#fff;font-size:20px;cursor:pointer}
+:root[data-theme=dark] .fs-tile-box{background:#161616;color:#F5F5F5}
+:root[data-theme=dark] .fs-tile .L{background:linear-gradient(160deg,#1F1A16,#161616);border-color:#2A2A2A}
+:root[data-theme=dark] .fs-tile .V{color:#FFD45D}:root[data-theme=dark] .fs-tile .R h3,:root[data-theme=dark] .fs-tile :is(.S,.N){color:#E5E5E5}
+:root[data-theme=dark] .fs-tile .x{background:#1F1F1F;border-color:#2A2A2A;color:#F5F5F5}
+@media(max-width:700px){.fs-tile-box{grid-template-columns:1fr}.fs-tile .L{border-right:0;border-bottom:1px solid #E1E6EE}.fs-tile .V{font-size:36px}}
 
 </style>
 <style>
@@ -7536,9 +7579,35 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
   }
   function kpiLinks(){
     document.querySelectorAll('.kpi,.db-c').forEach(k=>{ if(k.__fsGo) return; k.__fsGo=1;
-      const l=norm((k.querySelector('.l,.db-ch')||k).textContent); if(!RULES.some(x=>x[0].test(l))) return;
-      k.classList.add('fs-golink'); k.title=(k.title?k.title+' · ':'')+'Bấm để mở chart liên quan';
-      k.addEventListener('click',e=>{ if(e.target.closest('button,a,.info,.icon-note,input,select,[role=button]')) return; if(getSelection().toString()) return; goChart(k);});
+      const isKpi=k.classList.contains('kpi'), l=norm((k.querySelector('.l,.db-ch')||k).textContent), has=RULES.some(x=>x[0].test(l));
+      if(!isKpi&&!has) return;
+      k.classList.add('fs-golink'); k.title=(k.title?k.title+' · ':'')+(isKpi?'Bấm để xem chi tiết':'Bấm để mở chart liên quan');
+      k.addEventListener('click',e=>{ if(e.target.closest('button,a,.info,.icon-note,input,select,[role=button]')) return; if(getSelection().toString()) return; isKpi?tile(k):goChart(k);});
+    });
+  }
+
+  /* Bấm ô KPI → khung chi tiết lớn (người dùng chốt 29/10/2026, mẫu thẻ token): trái = tên, số lớn, biến động, chart nhỏ;
+     phải = giải thích ⓘ và nút mở chart liên quan. Chỉ hiển thị lại nội dung sẵn có của ô, không thêm số mới. */
+  function tile(k){
+    let m=document.getElementById('fsTile');
+    if(!m){m=document.createElement('div'); m.id='fsTile'; m.className='fs-tile'; m.setAttribute('role','dialog'); m.setAttribute('aria-modal','true'); document.body.append(m);
+      m.addEventListener('click',e=>{if(e.target===m||e.target.closest('.x')) m.classList.remove('on');});
+      addEventListener('keydown',e=>{if(e.key==='Escape') m.classList.remove('on');});}
+    const lab=((k.querySelector('.l')||{}).textContent||'').replace(/[ⓘ]/g,'').trim(), v=k.querySelector('.v'), sub=[...k.querySelectorAll('.s,.mkt-chg,.mkt-pct')].map(x=>x.outerHTML).join('');
+    const viz=k.querySelector('.mkt-sparkwrap,.mkt-spark,svg'), note=k.querySelector('.icon-note-original,.note');
+    const tk=((D().meta||{}).ticker)||'', ok=RULES.some(x=>x[0].test(norm(lab)));
+    m.innerHTML=`<div class="fs-tile-box"><div class="L"><div class="k">${esc(tk)} · ${esc(lab)}</div><div class="V">${v?v.innerHTML:''}</div><div class="S">${sub}</div><div class="Z">${viz?viz.outerHTML:''}</div>
+      ${ok?'<button type="button" class="go">Mở chart liên quan →</button>':''}</div>
+      <div class="R"><button type="button" class="x" aria-label="Đóng">×</button><h3>${esc(lab)}</h3>
+      ${note&&note.textContent.trim()?`<div class="k">Cách đọc &amp; nguồn</div><div class="N">${note.innerHTML}</div>`:''}</div></div>`;
+    const g=m.querySelector('.go'); if(g) g.onclick=()=>{m.classList.remove('on'); goChart(k);};
+    m.classList.add('on'); m.querySelector('.x').focus();
+  }
+  function titles(){
+    document.querySelectorAll('h2.sec').forEach(h=>{ if(h.__fsT) return; h.__fsT=1;
+      const t=h.firstChild; if(!t||t.nodeType!==3) return; const i=t.textContent.indexOf(' — '); if(i<0) return;
+      const b=t.textContent.slice(i+3), sp=document.createElement('span'); sp.className='fs-key'; sp.textContent=b;
+      t.textContent=t.textContent.slice(0,i)+' — '; t.after(sp);
     });
   }
 
@@ -7607,7 +7676,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
     add(); setTimeout(add,1500); setTimeout(add,4000);
   }
 
-  function boot(){ header(); kpiLinks(); gantt(); projTableLinks(); cagrPatch();
+  function boot(){ header(); titles(); setTimeout(titles,1500); kpiLinks(); gantt(); projTableLinks(); cagrPatch();
     setTimeout(()=>{kpiLinks(); gantt(); projTableLinks();},1500);
     new MutationObserver(()=>{clearTimeout(boot.t); boot.t=setTimeout(()=>{kpiLinks(); gantt(); projTableLinks();},200);}).observe(document.querySelector('.wrap')||document.body,{childList:true,subtree:true});
   }
@@ -8031,7 +8100,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='plx',BUILD='5f46f0d2a619',URL_JSON='../version.json';
+  const PAGE='plx',BUILD='3ba26dc8fdfe',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
