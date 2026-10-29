@@ -1492,6 +1492,9 @@ h2.sec .fs-key{color:#861C52}
 @media(max-width:700px){.fs-tile-box{grid-template-columns:1fr}.fs-tile .L{border-right:0;border-bottom:1px solid #E1E6EE}.fs-tile .V{font-size:36px}}
 /* Đoạn tóm tắt Bản tin dữ liệu căn đều hai bên (người dùng chốt 29/10/2026) */
 .db-lead{text-align:justify;text-justify:inter-word}
+/* Giao diện tối: tiêu đề khu vực màu turquoise #59C5C8 thay vàng (người dùng chốt 29/10/2026); nền highlight teal nhạt; phần key insight đổi sang vàng ấm */
+html:root[data-theme=dark] body:not(#fs-x1):not(#fs-x2):not(#fs-x3) h2.sec{color:#59C5C8!important;background:rgba(89,197,200,.12)!important}
+html:root[data-theme=dark] body:not(#fs-x1):not(#fs-x2):not(#fs-x3) h2.sec .fs-key{color:#FFD45D!important}
 /* Bản tin dữ liệu: chừa khoảng đệm trên đủ rộng ở mọi khổ màn hình (người dùng báo chữ sát mép trên, 29/10/2026). */
 .db.card .db-l{padding-top:28px!important}
 .db.card .db-c{padding-top:22px!important;padding-left:22px!important}
@@ -8213,7 +8216,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='ctd',BUILD='b1b7c38fc8ef',URL_JSON='../version.json';
+  const PAGE='ctd',BUILD='c400e14dd4f7',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
