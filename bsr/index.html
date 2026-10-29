@@ -7946,16 +7946,37 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
     cells.forEach((c,i)=>{const r=Math.floor(i/cols),k=i%cols,x=pad+k*(cw+gap),yy=y+rowH.slice(0,r).reduce((a,b)=>a+b,0)+r*gap;
       let cy=yy;if(c.note.length){ctx.fillStyle=MUTED;ctx.font=`italic 500 ${noteF}px ${FONT}`;ctx.textBaseline='top';c.note.forEach(l=>{ctx.fillText(l,x,cy);cy+=noteF*1.35});cy+=noteF*0.5}
       ctx.drawImage(c.s,x,cy,cw,c.h);
-      // Watermark vẽ đè lên chart, hai lớp (29/10/2026): bản navy hiện trên nền trắng, bản trắng hiện trên cột/vùng màu đậm —
-      // chart cao hay cột dày cũng không che mất logo.
+      // Watermark đặt vào khoảng trống nhất của chart (người dùng chốt 29/10/2026): quét bản chụp, tìm ô ít nét vẽ nhất
+      // trong vùng vẽ (bỏ dải tiêu đề/thanh chọn kỳ phía trên và nhãn trục/chú giải phía dưới), đặt chữ "FinSuccess" ở đó.
+      // Chart kín (vd. cột 100%) thì đặt giữa vùng vẽ, hai lớp mờ: trắng hiện trên cột đậm, navy hiện trên nền sáng.
+      let wm=watermark(null,cw*0.26,NAVY), sp=emptiest(c.s,wm.width/c.sc,wm.height/c.sc);
+      ctx.save();
+      if(sp.dense){wm=watermark(null,cw*0.22,NAVY);const wv=watermark(null,cw*0.22,'#fff'),px=x+(cw-wm.width)/2,py=cy+c.h*0.48-wm.height/2;ctx.globalAlpha=.10;ctx.drawImage(wm,px,py);ctx.globalAlpha=.24;ctx.drawImage(wv,px,py)}
+      else{ctx.globalAlpha=.13;ctx.drawImage(wm,x+sp.x*c.sc,cy+sp.y*c.sc)}
+      ctx.restore();
     });
-    // Nhận diện ở chân ảnh, chỗ trống (người dùng chốt 29/10/2026): chữ "FinSuccess" đậm, rõ + "MÃ · fisc.vn"; không watermark giữa chart vì chart dày cột làm chữ chìm.
+    // Nhận diện ở chân ảnh, chỗ trống (người dùng chốt 29/10/2026): chữ "FinSuccess" đậm, rõ + "MÃ · fisc.vn" (watermark trong chart đặt ở khoảng trống, xem emptiest).
     {const fs=Math.max(14,Math.round(cw*0.022)),tail='  ·  '+(p.ticker?p.ticker+'  ·  ':'')+'fisc.vn';ctx.save();ctx.textBaseline='bottom';ctx.textAlign='left';
      ctx.font=`500 ${fs}px ${FONT}`;const tw=ctx.measureText(tail).width;ctx.font=`800 ${fs}px ${FONT}`;const bw=ctx.measureText('FinSuccess').width,x0=CW-pad-tw-bw,yb=CH-pad*0.3;
      ctx.fillStyle=NAVY;ctx.fillText('FinSuccess',x0,yb);ctx.font=`500 ${fs}px ${FONT}`;ctx.fillStyle=MUTED;ctx.fillText(tail,x0+bw,yb);ctx.restore();}
     if(ratio==='fit')return content;
     const R=RATIOS[ratio],cv=document.createElement('canvas');cv.width=R.w;cv.height=R.h;const c2=cv.getContext('2d');c2.fillStyle='#fff';c2.fillRect(0,0,R.w,R.h);
     const s=Math.min(R.w/CW,R.h/CH);c2.imageSmoothingEnabled=true;c2.imageSmoothingQuality='high';c2.drawImage(content,(R.w-CW*s)/2,(R.h-CH*s)/2,CW*s,CH*s);return cv;
+  }
+  // Tìm vị trí (góc trên trái) của khung w×h có ít điểm ảnh đậm nhất trong vùng vẽ; ưu tiên gần giữa khi ngang nhau.
+  function emptiest(cv,w,h){
+    const N=96,sx=cv.width/N,M=Math.max(8,Math.round(cv.height/sx)),t=document.createElement('canvas');t.width=N;t.height=M;
+    const g=t.getContext('2d');g.drawImage(cv,0,0,N,M);const d=g.getImageData(0,0,N,M).data,I=new Float64Array((N+1)*(M+1));
+    for(let y=0;y<M;y++){let row=0;for(let x=0;x<N;x++){const k=(y*N+x)*4,ink=255*3-(d[k]+d[k+1]+d[k+2]);row+=ink>45?ink:0;I[(y+1)*(N+1)+x+1]=I[y*(N+1)+x+1]+row}}
+    const bw=Math.max(1,Math.round(w/sx)),bh=Math.max(1,Math.round(h/sx)),y0=Math.round(M*0.30),y1=Math.round(M*0.72)-bh,x0=Math.round(N*0.10),x1=Math.round(N*0.95)-bw;
+    let best=null;
+    for(let y=y0;y<=Math.max(y0,y1);y++)for(let x=x0;x<=Math.max(x0,x1);x++){
+      const sum=I[(y+bh)*(N+1)+x+bw]-I[y*(N+1)+x+bw]-I[(y+bh)*(N+1)+x]+I[y*(N+1)+x];
+      const off=Math.abs(x+bw/2-N/2)/N+Math.abs(y+bh/2-M*0.55)/M, sc=sum+off*bw*bh*6;
+      if(!best||sc<best.s)best={s:sc,x,y};
+    }
+    const dense=!best||(best.s/(bw*bh))>90; // trung bình độ đậm mỗi điểm > 90/765: không có khoảng trống thật
+    return !dense?{x:best.x*sx,y:best.y*sx,dense:false}:{x:(cv.width-w)/2,y:cv.height*0.48-h/2,dense:true};
   }
   // Logo một màu (navy hoặc trắng) cùng kích thước, để đặt chồng hai lớp watermark.
   function watermark(lg,ww,color){
@@ -8120,7 +8141,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='bsr',BUILD='233d0c6e1941',URL_JSON='../version.json';
+  const PAGE='bsr',BUILD='cf4439712e63',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
