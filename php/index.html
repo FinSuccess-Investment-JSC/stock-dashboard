@@ -1466,6 +1466,8 @@ h2.sec .fs-key{color:#861C52}
 :root[data-theme=dark] .fs-tile .V{color:#FFD45D}:root[data-theme=dark] .fs-tile .R h3,:root[data-theme=dark] .fs-tile :is(.S,.N){color:#E5E5E5}
 :root[data-theme=dark] .fs-tile .x{background:#1F1F1F;border-color:#2A2A2A;color:#F5F5F5}
 @media(max-width:700px){.fs-tile-box{grid-template-columns:1fr}.fs-tile .L{border-right:0;border-bottom:1px solid #E1E6EE}.fs-tile .V{font-size:36px}}
+/* Đoạn tóm tắt Bản tin dữ liệu căn đều hai bên (người dùng chốt 29/10/2026) */
+.db-lead{text-align:justify;text-justify:inter-word}
 
 </style>
 <style>
@@ -8193,7 +8195,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='php',BUILD='af546828810a',URL_JSON='../version.json';
+  const PAGE='php',BUILD='3fb2ddce2300',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
