@@ -1470,6 +1470,17 @@ html:root[data-theme=dark] body:not(#fs-x1):not(#fs-x2):not(#fs-x3) h2.sec .fs-k
 /* Bản tin dữ liệu: chừa khoảng đệm trên đủ rộng ở mọi khổ màn hình (người dùng báo chữ sát mép trên, 29/10/2026). */
 .db.card .db-l{padding-top:28px!important}
 .db.card .db-c{padding-top:22px!important;padding-left:22px!important}
+/* Bản tin dữ liệu: tách dòng "Bản tin dữ liệu" khỏi tên mã (người dùng báo vẫn sát, 29/10/2026) */
+.db.card .db-tk{margin-top:16px!important;margin-bottom:12px!important}
+/* Nhấp nháy (người dùng chốt 29/10/2026): chấm "Bản tin dữ liệu" nhấp nháy như tín hiệu trực tiếp;
+   phần key insight của tiêu đề có nền vàng nhạt, ánh sáng lướt qua định kỳ. Tắt khi người dùng chọn giảm chuyển động. */
+.db .db-dot{animation:fsBlink 1.6s ease-in-out infinite}
+@keyframes fsBlink{0%,100%{opacity:1}50%{opacity:.35}}
+h2.sec .fs-key{position:relative;padding:0 4px;border-radius:3px;background:linear-gradient(100deg,rgba(255,212,93,.38) 0%,rgba(255,212,93,.38) 40%,rgba(255,240,190,.95) 50%,rgba(255,212,93,.38) 60%,rgba(255,212,93,.38) 100%);background-size:250% 100%;background-position:100% 0;animation:fsSheen 4.5s ease-in-out infinite;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+@keyframes fsSheen{0%,55%{background-position:100% 0}85%,100%{background-position:0 0}}
+html:root[data-theme=dark] body:not(#fs-x1):not(#fs-x2):not(#fs-x3) h2.sec .fs-key{background:linear-gradient(100deg,rgba(255,212,93,.16) 0%,rgba(255,212,93,.16) 40%,rgba(255,212,93,.42) 50%,rgba(255,212,93,.16) 60%,rgba(255,212,93,.16) 100%)!important;background-size:250% 100%!important}
+@media(prefers-reduced-motion:reduce){.db .db-dot,h2.sec .fs-key{animation:none}}
+@media print{h2.sec .fs-key{animation:none;background:rgba(255,212,93,.38)}}
 
 </style>
 <style>
@@ -8106,7 +8117,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='frt',BUILD='819aa823e634',URL_JSON='../version.json';
+  const PAGE='frt',BUILD='dfe819bd8d40',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
