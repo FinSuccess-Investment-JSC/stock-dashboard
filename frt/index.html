@@ -8276,11 +8276,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-<<<<<<< Updated upstream
-  const PAGE='frt',BUILD='7b6d87afeffe',URL_JSON='../version.json';
-=======
   const PAGE='frt',BUILD='a5e4c9f97fec',URL_JSON='../version.json';
->>>>>>> Stashed changes
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
