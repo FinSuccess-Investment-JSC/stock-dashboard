@@ -3474,17 +3474,18 @@ function model(){
  box.oninput=e=>{const el=e.target;if(!el.matches('input[data-group]'))return;const n=Number(el.value),min=el.getAttribute('min'),max=el.getAttribute('max');if(el.value===''||!Number.isFinite(n)||(min!=null&&n<+min)||(max!=null&&n>+max)){el.setAttribute('aria-invalid','true');return;}el.setAttribute('aria-invalid','false');let node=state[el.dataset.group];const path=el.dataset.path.split('.');path.slice(0,-1).forEach(k=>node=node[k]);node[path.at(-1)]=n;box.querySelectorAll('input[data-group="'+el.dataset.group+'"][data-path="'+el.dataset.path+'"]').forEach(i=>i.value=el.value);renderResults();};
  box.onclick=e=>{const preset=e.target.closest('[data-case]');if(preset){state=caseState(+preset.dataset.case);box.querySelectorAll('input[data-group]').forEach(el=>{let value=state[el.dataset.group];el.dataset.path.split('.').forEach(k=>value=value[k]);el.value=value});renderResults();return;}const b=e.target.closest('[data-save-group]');if(!b)return;let z={};try{z=JSON.parse(localStorage.getItem(key)||'{}')}catch{}z[b.dataset.saveGroup]=clone(state[b.dataset.saveGroup]);localStorage.setItem(key,JSON.stringify(z));box.querySelectorAll('[data-saved-group="'+b.dataset.saveGroup+'"]').forEach(el=>el.textContent='Đã lưu nhóm');};renderResults();
 }
+function trimLead(l){const n=l.labels.length;let k=0;while(k<n&&l.values.every(v=>v[k]==null))k++;return k&&k<n?{...l,labels:l.labels.slice(k),values:l.values.map(v=>v.slice(k))}:l}
 function chart(host,id,title,levels,names,type='bar',stack=false,note=''){
  const card=document.createElement('div');card.className='card';card.innerHTML=`<h3 class="sub">${title}</h3><div class="chart tall"><canvas id="${id}"></canvas></div><div class="note">${note}</div>`;host.append(card);
  const spec={ytd:/^pow(Volume|QC|MonthRevenue)$/.test(id),def:levels.m?'m':'y',cfg:(labels,datasets)=>({type,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:10}}},scales:{x:{stacked:stack,grid:{display:false}},y:{stacked:stack,beginAtZero:true,grid:{color:'#EEF0F6'}}}}})};
  if(levels.m&&typeof TSC!=='undefined'&&!TSC[id])TSC[id]={p:'m',n:'10'};
- for(const [k,l] of Object.entries(levels))spec[k]={labels:l.labels,datasets:names.map((label,i)=>({label,data:l.values[i],backgroundColor:stack?stackColor(i,names.length):CAT[i%CAT.length],borderColor:stack?stackColor(i,names.length):CAT[i%CAT.length],borderRadius:4,tension:.15}))};mkTS(id,spec);
+ for(const [k,l0] of Object.entries(levels)){const l=trimLead(l0);spec[k]={labels:l.labels,datasets:names.map((label,i)=>({label,data:l.values[i],backgroundColor:stack?stackColor(i,names.length):CAT[i%CAT.length],borderColor:stack?stackColor(i,names.length):CAT[i%CAT.length],borderRadius:4,tension:.15}))}}mkTS(id,spec);
  return card;
 }
 function business(){
  const seg=$('seg'),overview=document.createElement('div');overview.id='powOverview';[...seg.children].forEach(e=>overview.append(e));const nav=document.createElement('div');nav.className='filters';const tabs=[['overview','Tổng quan'],['dispatch','Sản lượng & Qc'],['price','Giá điện & nhiên liệu'],['plants','Nhà máy & dự án']];nav.innerHTML=tabs.map(([id,n],i)=>`<button data-biz="${id}" class="${i?'':'on'}">${n}</button>`).join('');seg.append(nav,overview);const sections={overview};tabs.slice(1).forEach(([id,n])=>{const x=document.createElement('div');x.hidden=true;sections[id]=x;seg.append(x)});
  const flow=document.createElement('div');flow.className='callout';flow.innerHTML='Qc → sản lượng huy động → giá điện bình quân → doanh thu; chênh lệch giá điện–nhiên liệu và khấu hao → lợi nhuận. <b>Qc là sản lượng hợp đồng, không phải sản lượng phát.</b>';overview.prepend(flow);
- const years=D.segments.years,a=p.actual,marketQuarter=p.tracking.REV.q;
+ const years=D.segments.years,a=p.actual,marketQuarter=trimLead(p.tracking.REV.q);
  const revenueSets=values=>p.names.map((label,i)=>({label,data:values[i],backgroundColor:stackColor(i,7),borderRadius:4}));
  mkTS('segRev',{def:'y',y:{labels:years,datasets:revenueSets(a.revenue)},q:{labels:marketQuarter.labels,datasets:revenueSets(marketQuarter.values)},cfg:(labels,datasets)=>({type:'bar',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:10}}},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}}})});
  const revenueNote=document.createElement('div');revenueNote.className='note';revenueNote.textContent='Năm 2021–2025: doanh thu nhà máy trong Conso mô hình. Quý: cộng 3 tháng tracking tham gia thị trường điện; số tạm tính, không gồm ngoài thị trường và khác phạm vi chuỗi năm. Kỳ thiếu để trống, không nội suy.';$('segRev').closest('.card').append(revenueNote);
@@ -8436,7 +8437,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='pow',BUILD='ebe3a735b980',URL_JSON='../version.json';
+  const PAGE='pow',BUILD='194034b4b1d0',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
