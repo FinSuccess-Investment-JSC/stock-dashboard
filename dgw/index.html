@@ -3571,16 +3571,20 @@ if(ticker==='MWG'){
  specs.slice(-3).forEach(s=>s.annualLabels=h.annual);
 }
 if(['PVT','PVD'].includes(ticker)){
- const x=window.FINANCE_INPUTS[ticker];
+ // PVD: chuỗi BCTC hợp nhất dựng lại cùng trục với financialsFull (PVD/tools/fin_extra_public.py); thiếu thì dùng số workbook cũ.
+ const eb=ticker==='PVD'&&d.pvd&&d.pvd.earningsBridge, ebOk=eb&&eb.annual.labels.length===f.annual.length&&eb.quarterly.labels.length===f.quarterly.length;
+ const ebx=s=>({interest:map(s.interest,v=>-v),pbt:s.pbt,ebitdaExcel:s.pbt.map((p,i)=>p==null||s.depreciation[i]==null||s.interest[i]==null?null:p-s.depreciation[i]-s.interest[i])});
+ const ttm=a=>a.map((v,i)=>i<3||a.slice(i-3,i+1).some(z=>z==null)?null:a.slice(i-3,i+1).reduce((s,z)=>s+z,0));
+ const x=ebOk?{...ebx(eb.annual),q:ebx(eb.quarterly),source:'BCTC hợp nhất (VNDirect finfo); chi phí lãi vay trên KQKD'}:window.FINANCE_INPUTS[ticker];
  const net=row('Nợ vay ròng')||addRow('Nợ vay ròng',combine(combine(row('Vay ngắn hạn').a,row('Vay dài hạn').a,(a,b)=>a+b),combine(row('Tiền & tương đương').a,row('Đầu tư TC ngắn hạn').a,(a,b)=>a+b),(a,b)=>a-b),combine(combine(row('Vay ngắn hạn').q,row('Vay dài hạn').q,(a,b)=>a+b),combine(row('Tiền & tương đương').q,row('Đầu tư TC ngắn hạn').q,(a,b)=>a+b),(a,b)=>a-b));
- addRow('Chi phí đi vay CF',x.interest);
+ addRow(x.q?'Chi phí lãi vay':'Chi phí đi vay CF',x.interest,x.q&&x.q.interest);
  const e=addRow('EBITDA (PBT + khấu hao CF + chi phí vay)',x.ebitdaExcel);
- const leverageQ=ticker==='PVT'?combine(net.q,d.capexDebt.quarterly.ebitdaTtm,(a,b)=>b>0?a/b:null):null;
+ const leverageQ=ticker==='PVT'?combine(net.q,d.capexDebt.quarterly.ebitdaTtm,(a,b)=>b>0?a/b:null):x.q?combine(net.q,ttm(x.q.ebitdaExcel),(a,b)=>b>0?a/b:null):null;
  const leverage=addRow('Nợ ròng / EBITDA năm',combine(net.a,e.a,(a,b)=>b>0?a/b:null),leverageQ,'x');
- const cover=addRow('EBIT proxy / chi phí vay',combine(x.pbt,x.interest,(a,b)=>b>0?(a+b)/b:null),null,'x');
- add('Leverage','Nợ ròng / EBITDA năm · lần',[series(leverage)],'x',ticker==='PVT'?'Nợ ròng = vay NH + DH − tiền − ĐTTC NH. EBITDA = LNTT + khấu hao + chi phí vay; quý dùng EBITDA bốn quý gần nhất. Q2/26 chưa đủ số dư cùng định nghĩa.':'Nợ ròng = vay NH + DH − tiền − ĐTTC NH. EBITDA = PBT + khấu hao CF + chi phí đi vay CF (mô hình Tài chính dòng 5, Raw data 19 + 173 + 178). Tự tính ratio, không dùng Tài chính dòng 31 vốn chỉ trừ tiền. Chưa đủ quý để tính EBITDA TTM.',ticker==='PVT');
- if(ticker==='PVD')add('BorrowingCost','Chi phí đi vay CF · tỷ VND',[{label:'Chi phí đi vay',a:x.interest}],'tỷ VND',x.source+' dòng 25; không phải toàn bộ chi phí tài chính.',false);
- add('Coverage','EBIT proxy / chi phí vay · lần',[series(cover)],'x','EBIT proxy = PBT + chi phí đi vay CF. Chia chi phí đi vay cùng năm; không phải DSCR. '+x.source,false);
+ const cover=addRow('EBIT proxy / chi phí vay',combine(x.pbt,x.interest,(a,b)=>b>0?(a+b)/b:null),x.q?combine(ttm(x.q.pbt),ttm(x.q.interest),(a,b)=>b>0?(a+b)/b:null):null,'x');
+ add('Leverage','Nợ ròng / EBITDA · lần',[series(leverage)],'x',x.q?'Nợ ròng = vay NH + DH − tiền − ĐTTC NH. EBITDA = LNTT + khấu hao + chi phí lãi vay; quý dùng EBITDA bốn quý gần nhất (TTM), quý thiếu khấu hao để trống.':ticker==='PVT'?'Nợ ròng = vay NH + DH − tiền − ĐTTC NH. EBITDA = LNTT + khấu hao + chi phí vay; quý dùng EBITDA bốn quý gần nhất. Q2/26 chưa đủ số dư cùng định nghĩa.':'Nợ ròng = vay NH + DH − tiền − ĐTTC NH. EBITDA = PBT + khấu hao CF + chi phí đi vay CF (mô hình Tài chính dòng 5, Raw data 19 + 173 + 178). Tự tính ratio, không dùng Tài chính dòng 31 vốn chỉ trừ tiền. Chưa đủ quý để tính EBITDA TTM.',ticker==='PVT'||!!x.q);
+ if(ticker==='PVD')add('BorrowingCost',x.q?'Chi phí lãi vay · tỷ VND':'Chi phí đi vay CF · tỷ VND',[{label:x.q?'Chi phí lãi vay':'Chi phí đi vay',a:x.interest,q:x.q&&x.q.interest}],'tỷ VND',x.q?'Chi phí lãi vay trên KQKD hợp nhất; không phải toàn bộ chi phí tài chính.':x.source+' dòng 25; không phải toàn bộ chi phí tài chính.',!!x.q);
+ add('Coverage','EBIT proxy / chi phí vay · lần',[series(cover)],'x',x.q?'EBIT proxy = LNTT + chi phí lãi vay, chia chi phí lãi vay; quý dùng bốn quý gần nhất (TTM). Không phải DSCR.':'EBIT proxy = PBT + chi phí đi vay CF. Chia chi phí đi vay cùng năm; không phải DSCR. '+x.source,!!x.q);
 }
 if(ticker==='GAS'){
  const r=row('Biên gộp');add('Margin','Biên lợi nhuận gộp hợp nhất · %',[series(r)],'%','Biên gộp chịu tác động cơ cấu khí khô/LNG/LPG; không suy biên từng sản phẩm từ tỷ lệ hợp nhất. '+f.src);
@@ -8268,7 +8272,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='dgw',BUILD='9e0514c31da0',URL_JSON='../version.json';
+  const PAGE='dgw',BUILD='4d8a01a4202c',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
