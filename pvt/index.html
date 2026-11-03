@@ -4169,7 +4169,11 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(['pie','doughnut'].includes(base.type)||base.lockChartType)return;
     const spec={def:'y',cfg:(labels,datasets)=>({...deep(base),data:{labels,datasets}})};
     // Nhãn tháng dạng T8/2026 là kỳ tháng, không phải năm; gắn đúng kỳ, không suy ra quý.
-    for(const [p,pattern] of [['y',/^\d{4}$/],['q',/^(?:Q[1-4]\/\d{2,4}|\d{4}Q[1-4])$/],['m',/^T\d{1,2}\/\d{2,4}\*?$/]]){
+    const PATTERNS=[['y',/^\d{4}$/],['q',/^(?:Q[1-4]\/\d{2,4}|\d{4}Q[1-4])$/],['m',/^T\d{1,2}\/\d{2,4}\*?$/]];
+    // Nhãn không thuộc năm/quý/tháng (vd FY06/25, "Q3 FY06/26", 2026F): giữ nguyên cả chuỗi như một trục, không tách để khỏi cắt mất mốc.
+    if(base.data.labels.some(label=>!PATTERNS.some(([,pattern])=>pattern.test(String(label))))){
+      spec.y={labels:[...base.data.labels],datasets:base.data.datasets.map(d=>deep(d))};
+    }else for(const [p,pattern] of PATTERNS){
       const indices=base.data.labels.flatMap((label,i)=>pattern.test(String(label))?[i]:[]);
       if(indices.length)spec[p]={labels:indices.map(i=>base.data.labels[i]),datasets:base.data.datasets.map(d=>({...deep(d),data:indices.map(i=>d.data[i])}))};
     }
@@ -8478,7 +8482,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='pvt',BUILD='3a23fbc2ebed',URL_JSON='../version.json';
+  const PAGE='pvt',BUILD='a19d297cf162',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
