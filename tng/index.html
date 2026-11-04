@@ -7296,7 +7296,8 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
 .fsa-rowlink{cursor:pointer;text-decoration:underline dotted rgba(41,56,168,.35);text-underline-offset:3px}
 .fsa-rowlink:hover{color:${BLUE}}.fsa-rowlink.quiet{text-decoration:none}
 .fsa-tall{max-height:72vh;overflow:auto}
-.fsa-tall thead th{position:sticky;top:0;z-index:2;background:var(--card,#fff)!important}
+.fsa-tall thead th{position:sticky;top:0;z-index:2}
+.fsa-tall table:not(.fintbl) thead th{background:var(--card,#fff)!important}
 th.fsa-rs{position:relative}
 th .fsa-grip{position:absolute;top:0;right:-3px;bottom:0;width:7px;cursor:col-resize;z-index:3}
 th .fsa-grip:hover{background:rgba(89,197,200,.35)}
@@ -8304,7 +8305,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='tng',BUILD='f2e8a5ac5baa',URL_JSON='../version.json';
+  const PAGE='tng',BUILD='843b64b6d58f',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
