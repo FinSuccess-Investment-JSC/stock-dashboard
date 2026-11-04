@@ -1571,9 +1571,9 @@ html.fs-tape-off .mkt-tape{display:none!important}
 :root:not([data-theme=dark]) .card .card{background:#F8FAFC!important;border:1px solid #E1E6EE!important}
 /* ===== Tiêu đề highlight, box nổi, khung chi tiết (người dùng chốt 29/10/2026, theo mẫu tham khảo) ===== */
 /* Tiêu đề khu vực: nền highlight nhẹ thay gạch vàng; phần sau dấu — là key insight, màu khác */
-:root:not([data-theme=dark]) h2.sec{border-left:0!important;padding:2px 10px!important;display:inline-block;background:linear-gradient(transparent 12%,rgba(89,197,200,.20) 12%,rgba(89,197,200,.20) 92%,transparent 92%);border-radius:4px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+:root:not([data-theme=dark]) h2.sec{border-left:0!important;padding:2px 10px!important;display:flex;width:fit-content;background:linear-gradient(transparent 12%,rgba(89,197,200,.20) 12%,rgba(89,197,200,.20) 92%,transparent 92%);border-radius:4px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
 h2.sec .fs-key{color:#861C52}
-:root[data-theme=dark] h2.sec{background:rgba(255,212,93,.10);padding:2px 10px!important;border-radius:4px;display:inline-block}
+:root[data-theme=dark] h2.sec{background:rgba(255,212,93,.10);padding:2px 10px!important;border-radius:4px;display:flex;width:fit-content}
 :root[data-theme=dark] h2.sec .fs-key{color:#59C5C8}
 /* Box nổi khi rê chuột: nhấc lên (dùng top, không transform để popup fixed không lệch), viền màu, bóng sâu */
 :root:not([data-theme=dark]) :is(.card:not(.card .card),.kpi){position:relative;top:0;transition:top .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s,border-color .2s!important}
@@ -8527,7 +8527,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='php',BUILD='711fa76f12f6',URL_JSON='../version.json';
+  const PAGE='php',BUILD='370f2c293cf3',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
