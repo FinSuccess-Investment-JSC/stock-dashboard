@@ -1458,7 +1458,7 @@ html.fs-scrolled nav.tabs{position:sticky;top:var(--fs-title-h,52px);z-index:59}
 /* Nhúng trong website tổng (iframe hoặc ?embed=1): bỏ logo/tìm kiếm/thanh giá trùng thanh của site, cuộn chỉ giữ thanh tab */
 html.fs-embed :is(.brandbar .logo,.fs-crumb){display:none!important}
 html.fs-embed.fs-scrolled .brandbar{display:block}
-html.fs-embed .brandbar .in{min-height:0;padding-top:8px!important;padding-bottom:8px!important}
+html.fs-embed .brandbar .in{min-height:0;padding-top:2px!important;padding-bottom:6px!important}
 html.fs-embed .brandbar .stock-search input{height:30px;font-size:13px}
 html.fs-embed .brandbar .stock-search button[type=submit]{width:24px;height:24px;margin:3px}
 html.fs-embed .fs-q{padding-top:4px!important;padding-bottom:4px!important;height:auto!important;min-height:0!important;font-size:12px!important}
@@ -8576,7 +8576,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='bwe',BUILD='950c020ec028',URL_JSON='../version.json';
+  const PAGE='bwe',BUILD='4459d03e8911',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
