@@ -4946,7 +4946,7 @@ analystInputStyle.textContent=`
 #modelInputs tr:hover td,#modelMcInputs tr:hover td{background:#FAFBFF}
 `;
 document.head.appendChild(analystInputStyle);
-const fmt=(v,d=1)=>v==null?'—':Number(v).toLocaleString('vi-VN',{maximumFractionDigits:Math.min(d,2)});
+const fmt=(v,d=1)=>v==null||Number.isNaN(v)?'—':Number(v).toLocaleString('vi-VN',{maximumFractionDigits:Math.min(d,2)});
 let PVS_USD_VND=D.config.usdVnd;try{const savedFx=Number(localStorage.getItem(KEY+'_usd_vnd'));if(Number.isFinite(savedFx)&&savedFx>0)PVS_USD_VND=savedFx;}catch(e){}
 const add=(a,b)=>a==null||b==null?null:a+b;
 const sumRows=(rows,i)=>rows.every(r=>r[i]!=null)?rows.reduce((a,r)=>a+r[i],0):null;
@@ -5263,7 +5263,7 @@ function backlogRevenue(label){
 function pvsMcQ4Default(md){return backlogRevenue('2026F')-md.actual9T.segRev[md.segments.find(s=>s.backlog).index];}
 function pvsRolling2026(md,i,ai,A,year,label){
  const q4Rev=[],q4Gp=[],segRev=[],segGp=[];
- md.segments.forEach((s,k)=>{const j=s.index;const mcIn=Number(i.mcQ4);const rev=s.backlog?(i.mcQ4!=null&&i.mcQ4!==''&&Number.isFinite(mcIn)?mcIn:pvsMcQ4Default(md)):A.q4PriorYearSegRev[j]*(1+i['g_'+s.key]/100);const gp=rev*i['gm_'+s.key]/100;q4Rev.push(rev);q4Gp.push(gp);segRev.push(A.segRev[j]+rev);segGp.push(A.segGp[j]+gp);});
+ md.segments.forEach((s,k)=>{const j=s.index;const mcIn=Number(i.mcQ4);const rev=s.backlog?(i.mcQ4!=null&&i.mcQ4!==''&&Number.isFinite(mcIn)?mcIn:pvsMcQ4Default(md)):pvsSegRev(i,s);const gp=rev*i['gm_'+s.key]/100;q4Rev.push(rev);q4Gp.push(gp);segRev.push(A.segRev[j]+rev);segGp.push(A.segGp[j]+gp);});
  const sum=a=>a.reduce((x,y)=>x+y,0),qRev=sum(q4Rev),qGp=sum(q4Gp),sgaQ4=Number.isFinite(Number(i.sgaQ4))&&i.sgaQ4!==''&&i.sgaQ4!=null?Number(i.sgaQ4):A.sga/A.revenue*100,qSga=qRev*sgaQ4/100,qEbit=qGp-qSga;
  const daFull=linkedCapexDA(year),qDa=Math.max(0,daFull-A.da),jvFull=linkedJvProfit(year),qJv=jvFull-A.jv;
  const qFinInc=(ai.interestAssets*ai.depositRate/100+ai.fxOther)/4,qFinCost=(ai.avgDebt*ai.debtRate/100+ai.otherFinCost)/4,qOther=ai.netOther/4;
@@ -5272,7 +5272,21 @@ function pvsRolling2026(md,i,ai,A,year,label){
  const revenue=A.revenue+qRev,gp=A.gp+qGp,sga=A.sga+qSga,ebit=gp-sga,da=A.da+qDa,npat=A.npat+qNpat,nci=-A.nci+qNci;
  return {year,label,segRev,segGp,revenue,gp,gm:gp/revenue*100,cogs:gp-revenue,sga:-sga,ebitda:ebit+da,da:-da,ebit,jv:A.jv+qJv,netOther:A.netOther+qOther,finIncome:A.finIncome+qFinInc,finCost:-(A.finCost+qFinCost),ebt:A.ebt+qEbt,tax:-(A.tax+qTax),npat,nci,parent:npat+nci,sgaPct:ai.sgaPct,taxRate:ai.taxRate,nciPct:ai.nciPct,rolling:true,actual:A,q4};
 }
-function pvsFreshModel(){return deep({version:D.model.version,inputs:D.model.inputs,isAssumptions:D.model.isAssumptions,sotp:D.model.sotp});}
+// Doanh thu mảng do analyst nhập số tuyệt đối (người dùng chốt 04/11/2026). Ô trống = thiếu dữ liệu, kết quả hiện —.
+function pvsSegRev(i,s){const v=i['rev_'+s.key];return v==null||v===''?NaN:Number(v);}
+// Quy đổi một lần từ bộ growth cũ để kết quả không đổi: Q4/2026F theo Q4/2025, 2027F theo cả năm 2026F.
+function pvsMigrateRevenue(x){
+ const md=D.model,A=md.actual9T,a=D.segments.periods.annual,cases=['2026F','Worst','Base','Best'];
+ md.segments.filter(s=>!s.backlog).forEach(s=>{
+  const g='g_'+s.key,r='rev_'+s.key,y=x.inputs['2026F'],base=A?A.q4PriorYearSegRev[s.index]:a.revenue[s.index].at(-1);
+  if(y[r]==null&&y[g]!=null)y[r]=Math.round(base*(1+y[g]/100)*100)/100;
+  const full=(A?A.segRev[s.index]:0)+Number(y[r]);
+  cases.slice(1).forEach(c=>{if(x.inputs[c][r]==null&&x.inputs[c][g]!=null)x.inputs[c][r]=Math.round(full*(1+x.inputs[c][g]/100)*100)/100;});
+  cases.forEach(c=>delete x.inputs[c][g]);
+ });
+ return x;
+}
+function pvsFreshModel(){return pvsMigrateRevenue(deep({version:D.model.version,inputs:D.model.inputs,isAssumptions:D.model.isAssumptions,sotp:D.model.sotp}));}
 calcModel=function(){
  const md=D.model,a=D.segments.periods.annual,baseRev=a.revenue.map(r=>r[r.length-1]),cases=['2026F','Worst','Base','Best'],out={};
  cases.forEach(c=>{
@@ -5280,7 +5294,7 @@ calcModel=function(){
   const A=c==='2026F'?md.actual9T:null;
   if(A){out[c]=pvsRolling2026(md,i,ai,A,year,label);return;}
   const segRev=[],segGp=[];
-  md.segments.forEach((s,k)=>{const rev=s.backlog?backlogRevenue(label):prior[k]*(1+i['g_'+s.key]/100),gm=i['gm_'+s.key];segRev.push(rev);segGp.push(rev*gm/100);});
+  md.segments.forEach((s,k)=>{const rev=s.backlog?backlogRevenue(label):pvsSegRev(i,s),gm=i['gm_'+s.key];segRev.push(rev);segGp.push(rev*gm/100);});
   const revenue=segRev.reduce((x,y)=>x+y,0),gp=segGp.reduce((x,y)=>x+y,0),sga=revenue*ai.sgaPct/100,ebit=gp-sga,da=linkedCapexDA(year),ebitda=ebit+da,jv=linkedJvProfit(year);
   const interest=ai.interestAssets*ai.depositRate/100,finIncome=interest+ai.fxOther,interestCost=ai.avgDebt*ai.debtRate/100,finCost=interestCost+ai.otherFinCost,ebt=ebit+jv+ai.netOther+finIncome-finCost,tax=Math.max(0,ebt*ai.taxRate/100),npat=ebt-tax,nci=npat*ai.nciPct/100,parent=npat+nci;
   out[c]={year,label,segRev,segGp,revenue,gp,gm:gp/revenue*100,cogs:gp-revenue,sga:-sga,ebitda,da:-da,ebit,jv,netOther:ai.netOther,interest,finIncome,interestCost,finCost:-finCost,ebt,tax:-tax,npat,nci,parent,sgaPct:ai.sgaPct,taxRate:ai.taxRate,nciPct:ai.nciPct};
@@ -5299,11 +5313,12 @@ function calcPvsSotp(modelOut){
 renderModel=function(){
  const md=D.model;if(!md)return;
  $('modelBlock').hidden=false;['valStaticRow1','valStaticRow2','valStaticRow3','valHistRow'].forEach(id=>{const e=$(id);if(e)e.style.display='none';});
- const old=loadModel();if(!M||M.version!==md.version)M=old&&old.version===md.version?old:pvsFreshModel();
+ const old=loadModel();if(!M||M.version!==md.version)M=old&&old.version===md.version?old:pvsFreshModel();pvsMigrateRevenue(M);
  const cases=['2026F','Worst','Base','Best'],heads=['2026F','2027F Worst','2027F Base','2027F Best'],A9=md.actual9T,inHeads=A9?['Q4/2026F','2027F Worst','2027F Base','2027F Best']:heads;
- const input=(c,k,step=.1)=>`<input aria-label="${esc(md.segments.find(s=>k.endsWith('_'+s.key))?.name||k)} · ${k.startsWith('gm_')?'Biên lợi nhuận gộp':'Tăng trưởng doanh thu'} · ${heads[cases.indexOf(c)]}" class="cell" type="number" step="${step}" value="${M.inputs[c][k]}" onchange="M.inputs['${c}']['${k}']=Number(this.value);previewModel()">`;
+ const input=(c,k,step=.1)=>`<input aria-label="${esc(md.segments.find(s=>k.endsWith('_'+s.key))?.name||k)}${k.startsWith('rev_')?': doanh thu tỷ VND, ':' · Biên lợi nhuận gộp · '}${heads[cases.indexOf(c)]}" class="cell" type="number" step="${step}" value="${M.inputs[c][k]}" onchange="M.inputs['${c}']['${k}']=this.value===''?null:Number(this.value);previewModel()">`;
  const oPre=A9?calcModel():null,pc=v=>v==null||!Number.isFinite(v)?'—':(v>0?'+':'')+fmt(v,1)+'%';
- let segRows='';md.segments.filter(s=>!s.backlog).forEach((s)=>{const k=md.segments.indexOf(s),j=s.index;segRows+=`<tr class="h"><td>${esc(s.name)} · tăng trưởng DT (% YoY)${A9?' <span class="hint">Q4/2026F so với Q4/2025</span>':''}</td>${cases.map(c=>`<td class="num">${input(c,'g_'+s.key)}</td>`).join('')}</tr><tr><td>↳ Biên lợi nhuận gộp (%)</td>${cases.map(c=>`<td class="num">${input(c,'gm_'+s.key)}</td>`).join('')}</tr>`;
+ const annualRev=D.segments.periods.annual,revHist=j=>annualRev.labels.slice(-5).map((y,n)=>`${y} <b>${fmt(annualRev.revenue[j].slice(-5)[n],0)}</b>`).join(' · ')+(A9?` · Q4/2025 <b>${fmt(A9.q4PriorYearSegRev[j],0)}</b> · ${esc(A9.label)} <b>${fmt(A9.segRev[j],0)}</b>`:'');
+ let segRows='';md.segments.filter(s=>!s.backlog).forEach((s)=>{const k=md.segments.indexOf(s),j=s.index;segRows+=`<tr class="h"><td>${esc(s.name)} · doanh thu (tỷ VND)</td>${cases.map(c=>`<td class="num">${input(c,'rev_'+s.key,10)}</td>`).join('')}</tr><tr class="sub"><td colspan="6">↳ Thực tế: ${revHist(j)}</td></tr><tr><td>↳ Biên lợi nhuận gộp (%)</td>${cases.map(c=>`<td class="num">${input(c,'gm_'+s.key)}</td>`).join('')}</tr>`;
   if(A9){const r=A9.segRev[j],g=A9.prior9TSegRev?.[j]?(r/A9.prior9TSegRev[j]-1)*100:null,m=A9.segGp[j]/r*100,fy=oPre['2026F'].segRev[k],fyg=A9.annual2025SegRev?.[j]?(fy/A9.annual2025SegRev[j]-1)*100:null,fym=oPre['2026F'].segGp[k]/fy*100;
    segRows+=`<tr class="sub"><td>↳ ${esc(A9.label)} thực tế · DT ${fmt(r,0)} tỷ (${pc(g)} YoY) · biên ${fmt(m,1)}%</td><td class="num" colspan="4" style="text-align:left">Cả năm 2026F = 9T + Q4: DT <b>${fmt(fy,0)}</b> tỷ (${pc(fyg)} so 2025) · biên ${fmt(fym,1)}%</td></tr>`;}});
  $('modelInputs').innerHTML='<tr><th>Driver mảng</th>'+inHeads.map(h=>`<th class="num">${h}</th>`).join('')+'</tr>'+segRows;
@@ -5324,7 +5339,7 @@ renderModel=function(){
  const histEbit=h.gp.map((v,i)=>v+h.sga[i]),histEbitda=histEbit.map((v,i)=>v-h.da[i]),histGm=h.gp.map((v,i)=>v/h.revenue[i]*100),histYoy=h.parent.map((v,i)=>i?(v/h.parent[i-1]-1)*100:null);
  const fv=k=>cases.map(c=>o[c][k]),pctRows=k=>cases.map(c=>o[c][k]);
  const rows=[['h','Doanh thu',h.revenue,fv('revenue'),fa],['sub','Giá vốn',h.cogs,fv('cogs'),fa],['h','Lợi nhuận gộp',h.gp,fv('gp'),fa],['sub','Biên lợi nhuận gộp',histGm,pctRows('gm'),fp],['sub','CP bán hàng & QLDN',h.sga,fv('sga'),fa],['h','EBITDA',histEbitda,fv('ebitda'),fa],['sub','Khấu hao',h.da,fv('da'),fa],['h','EBIT',histEbit,fv('ebit'),fa],['sub','Lãi/lỗ từ LDLK',h.jv,fv('jv'),fa],['sub','Thu nhập khác ròng',h.netOther,fv('netOther'),fa],['sub','Doanh thu tài chính',h.finIncome,fv('finIncome'),fa],['sub','Chi phí tài chính',h.finCost,fv('finCost'),fa],['h','Lợi nhuận trước thuế',h.ebt,fv('ebt'),fa],['sub','Thuế TNDN',h.tax,fv('tax'),fa],['sub','LNST hợp nhất',h.npat,fv('npat'),fa],['sub','LNST cổ đông không kiểm soát',h.nci,fv('nci'),fa],['h','LNST công ty mẹ',h.parent,fv('parent'),fa],['sub','Tăng trưởng LNST công ty mẹ',histYoy,[o['2026F'].parent/h.parent.at(-1)*100-100,...['Worst','Base','Best'].map(c=>o[c].parent/o['2026F'].parent*100-100)],fp]];
- $('modelIS').innerHTML='<tr><th>Chỉ tiêu</th>'+hc.concat(heads).map(x=>`<th class="num">${x}</th>`).join('')+'</tr>'+rows.map(([cls,l,hv,ov,f])=>`<tr class="${cls}"><td>${l}</td>${hv.concat(ov).map(v=>`<td class="num">${f(v)}</td>`).join('')}</tr>`).join('');
+ $('modelIS').innerHTML='<tr><th>Chỉ tiêu</th>'+hc.concat(heads).map(x=>`<th class="num">${x}</th>`).join('')+'</tr>'+rows.map(([cls,l,hv,ov,f])=>`<tr class="${cls}"><td>${l}</td>${hv.concat(ov).map(v=>`<td class="num">${Number.isNaN(v)?"—":f(v)}</td>`).join('')}</tr>`).join('');
  let realized=$('pvsRealizedForecast');if(!realized){realized=document.createElement('div');realized.id='pvsRealizedForecast';realized.className='card model-part';$('modelIsCard').after(realized);}
  const base=o['2026F'],A=base.actual,Q=base.q4;
  if(base.rolling){const br=[['Doanh thu thuần',A.revenue,Q.revenue],['Lợi nhuận gộp',A.gp,Q.gp],['CP bán hàng & QLDN',-A.sga,-Q.sga],['EBIT',A.gp-A.sga,Q.ebit],['Lãi/lỗ từ LDLK',A.jv,Q.jv],['Thu nhập khác ròng',A.netOther,Q.netOther],['Doanh thu tài chính',A.finIncome,Q.finIncome],['Chi phí tài chính',-A.finCost,-Q.finCost],['Lợi nhuận trước thuế',A.ebt,Q.ebt],['LNST hợp nhất',A.npat,Q.npat],['LNST công ty mẹ',A.parent,Q.parent]];
@@ -11242,7 +11257,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='pvs',BUILD='8f293e5ea9a2',URL_JSON='../version.json';
+  const PAGE='pvs',BUILD='9f80d7e2c3fe',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
