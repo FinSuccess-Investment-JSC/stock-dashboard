@@ -86,9 +86,9 @@ window.PVS_DATA = {"meta":{"ticker":"PHP","name":"CTCP Cảng Hải Phòng","exc
 
 Object.assign(window.PVS_DATA,{"consensus":[{"broker":"AGRISECO","date":"2026-09-24","rating":"MUA","tpRaw":49000,"tpAdj":49000,"adjusted":false,"revF":null,"revF1":null,"npF":null,"npF1":null,"thesis":"Động lực tăng trưởng từ Bến 3&4 cảng Lạch Huyện","src":"","origin":"PDF CTCK","verified":"2026-10-15"},{"broker":"BSC","date":"2026-09-17","rating":"KHÁC","tpRaw":null,"tpAdj":null,"adjusted":false,"revF":null,"revF1":null,"npF":null,"npF1":null,"thesis":"","src":"","origin":"PDF CTCK","verified":"2026-10-15"},{"broker":"VIX","date":"2026-08-21","rating":"MUA","tpRaw":56900,"tpAdj":56900,"adjusted":false,"revF":3312,"revF1":null,"npF":1658,"npF1":null,"thesis":"","src":"","origin":"PDF CTCK","verified":"2026-10-15"},{"broker":"FPTS","date":"2026-08-18","rating":"MUA","tpRaw":50800,"tpAdj":50800,"adjusted":false,"revF":3298,"revF1":3408,"npF":1223,"npF1":1293,"thesis":"Động lực tăng trưởng từ cảng Lạch Huyện 3&4","src":"","origin":"PDF CTCK","verified":"2026-10-15"},{"broker":"SHS","date":"2026-08-17","rating":"TRUNG LẬP","tpRaw":null,"tpAdj":null,"adjusted":false,"revF":3662,"revF1":4087,"npF":1265,"npF1":1243,"thesis":"","src":"","origin":"PDF CTCK","verified":"2026-10-15"},{"broker":"TCBS","date":"2026-08-14","rating":"KHÁC","tpRaw":null,"tpAdj":null,"adjusted":false,"revF":3560,"revF1":3845,"npF":1515,"npF1":1643,"thesis":"Báo cáo cập nhật KQKD Q2/2026","src":"","origin":"PDF CTCK","verified":"2026-10-15"}],"consensusFY":["2026F","2027F"],"consensusNote":"Báo cáo CTCK đọc từ file PDF gốc do CTCK phát hành. Khuyến nghị chuẩn hóa MUA/BÁN/TRUNG LẬP/KHÁC; cột thiếu giữ trống. Với báo cáo ra năm 2025, cột 2026F/2027F là số dự phóng năm kế tiếp nêu trong chính báo cáo.","consensusFcstNote":"Dự phóng lấy từ chính báo cáo PDF của CTCK; LNST = lợi nhuận cổ đông công ty mẹ (để trống nếu báo cáo chỉ nêu LNST toàn doanh nghiệp). TP điều chỉnh = TP công bố, chưa điều chỉnh pha loãng."});
 
-Object.assign(window.PVS_DATA.meta=window.PVS_DATA.meta||{},{"price":42000,"priceDate":"2026-11-03","priceNote":"đóng cửa 03/11/2026","mcap":13732.32,"mcapDate":"03/11/2026","peTTM":11.21,"pb":2.07});
+Object.assign(window.PVS_DATA.meta=window.PVS_DATA.meta||{},{"price":43800,"priceDate":"2026-11-04","priceNote":"đóng cửa 04/11/2026","mcap":14320.85,"mcapDate":"04/11/2026","peTTM":11.7,"pb":2.15});
 
-(function(v){(window.PVS_DATA.signals||[]).forEach(function(s){if(Object.prototype.hasOwnProperty.call(v,s.id))s.value=v[s.id];});})({"pe":11.21});
+(function(v){(window.PVS_DATA.signals||[]).forEach(function(s){if(Object.prototype.hasOwnProperty.call(v,s.id))s.value=v[s.id];});})({"pe":11.7});
 
 Object.assign(window.PVS_DATA.meta=window.PVS_DATA.meta||{},{"foreignRoom":{"shares":159916546,"percent":48.91,"limitPct":49.0,"foreignHeldPct":0.09,"listedShares":326960000,"basis":"trên KL cổ phiếu niêm yết","date":"2026-10-30","src":"https://finance.vietstock.vn/PHP/tai-chinh.htm"}});
 
@@ -8673,7 +8673,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='php',BUILD='2d1bef83ebb2',URL_JSON='../version.json';
+  const PAGE='php',BUILD='26cc72689512',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
