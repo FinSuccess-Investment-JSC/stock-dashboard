@@ -8043,6 +8043,126 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',go); else go();
 })();
 
+/* Tiến độ thực hiện forecast (người dùng chốt 04/11/2026): khi có quý mới, phần forecast tự hiện
+   % doanh thu và % LNST lũy kế thực tế so với số forecast cả năm.
+   Thực tế lấy từ KQKD dài hạn dùng chung; forecast đọc từ chính bảng model trong #fsModel nên đổi input là tính lại.
+   Mã có bảng khác chuẩn khai window.PVS_DATA.forecastProgress = {year, column, columnLabel, revenueRow, profitRow, fiscalStartQuarter}. */
+(function(){
+  const d=window.PVS_DATA,store=window.FS_INCOME_HISTORY_10Y;
+  const company=d&&d.meta&&store&&store[d.meta.ticker];if(!company)return;
+  const cfg=d.forecastProgress||{},startQ=cfg.fiscalStartQuarter||1;
+  const BOX='forecastProgress';
+  const fmt=v=>v==null?'—':Number(v).toLocaleString('vi-VN',{maximumFractionDigits:v>=100||v<=-100?0:2});
+  const pct=v=>v==null?'—':v.toLocaleString('vi-VN',{maximumFractionDigits:1})+'%';
+  const clean=s=>String(s||'').replace(/\s+/g,' ').replace(/^=\s*/,'').trim();
+  const num=s=>{const t=clean(s).replace(/\./g,'').replace(',','.');return /^-?\d+(\.\d+)?$/.test(t)?Number(t):null;};
+  // Năm tài chính mới nhất có số thực tế; niên độ lệch năm dương lịch (CTD 1/7–30/6) đếm từ quý bắt đầu niên độ.
+  function latest(){
+    let y=0,q=0;
+    for(const [year,record] of Object.entries(company)){
+      if(!/^\d{4}$/.test(year))continue;
+      for(const key of ['revenue','parentProfit'])(record[key]||[]).forEach((v,i)=>{if(v!=null&&(+year>y||+year===y&&i+1>q)){y=+year;q=i+1;}});
+    }
+    if(!y)return null;
+    const fy=startQ>1&&q>=startQ?y+1:y,first=startQ>1?fy-1:fy,quarters=[];
+    for(let n=0,cy=first,cq=startQ;n<4;n++){quarters.push([cy,cq]);if(++cq>4){cq=1;cy++;}}
+    const done=quarters.findIndex(([a,b])=>a===y&&b===q)+1;
+    return {fy,quarters:quarters.slice(0,done),last:'Q'+q+'/'+y};
+  }
+  // Cộng đúng các quý riêng từ đầu năm; thiếu một quý thì không tính, không nội suy.
+  function ytd(period,key){
+    let sum=0;
+    for(const [y,q] of period.quarters){const v=company[y]&&company[y][key]&&company[y][key][q-1];if(v==null)return null;sum+=v;}
+    return sum;
+  }
+  const columnRe=fy=>{const yy=String(fy).slice(2);return new RegExp('(?:^|\\s|FY)(?:20)?'+yy+'\\s*(?:[FE]\\b|dự phóng)','i');};
+  function grid(table){
+    return [...table.rows].map(row=>{
+      const cells=[];
+      for(const cell of row.cells)for(let i=0;i<(cell.colSpan||1);i++)cells.push(cell);
+      return cells;
+    }).map((cells,_,all)=>{
+      // Dòng kết quả bỏ cột phụ (vd Mốc lịch sử) thì canh theo cột năm từ bên phải.
+      const gap=all[0].length-cells.length;
+      return gap>0&&cells.length>1?[cells[0],...Array(gap).fill(null),...cells.slice(1)]:cells;
+    });
+  }
+  const headText=cell=>clean(cell.textContent).replace(/\([^)]*\)/g,' ').split(' · ')[0].trim();
+  function columns(rows,fy){
+    const head=rows[0]||[],out=[],re=cfg.column||columnRe(fy);
+    head.forEach((cell,i)=>{
+      if(!i||head[i-1]===cell)return;
+      const text=headText(cell);
+      if(re.test(text)&&!/YoY|\bvs\b|\bso với\b|KH\b|cả năm|cuối|nửa|\b\dT\b/i.test(text))out.push({i,label:cfg.columnLabel||clean(cell.textContent).replace(/\([^)]*\)/g,'').split(' · ')[0].replace(/(\d)(Dự phóng|Thực tế)/,'$1').trim()});
+    });
+    return out;
+  }
+  const value=cell=>{if(!cell)return null;const input=cell.querySelector('input');return input?num(input.value):num(cell.textContent);};
+  const REVENUE=[cfg.revenueRow,/^(Tổng )?doanh thu( thuần| hợp nhất( dự phóng)?)?( \(.*\))?$/i].filter(Boolean);
+  const PROFIT=[cfg.profitRow,/^(LNST|Lợi nhuận sau thuế).*(mẹ)/i,/^(LNST dự phóng|LNST|Lợi nhuận ròng)( \(|$)/i].filter(Boolean);
+  const skip=/tăng trưởng|biên|\/|FOX|không kiểm soát|thiểu số|NCI|%/i;
+  function row(rows,patterns,col){
+    for(const re of patterns)for(const cells of rows){
+      const name=clean(cells[0]&&cells[0].textContent);
+      if(!re.test(name)||(re!==cfg.revenueRow&&re!==cfg.profitRow&&skip.test(name)))continue;
+      return {name,values:col.map(c=>value(cells[c.i]))};
+    }
+    return null;
+  }
+  function findModel(root,fy){
+    let best=null;
+    for(const table of root.querySelectorAll('table')){
+      if(table.closest('#'+BOX))continue;
+      const rows=grid(table),head=clean(rows[0]&&rows[0][0]&&rows[0][0].textContent);
+      if(!rows.length||/standalone|theo mảng|FOX|niêm yết/i.test(head))continue;
+      const col=columns(rows,fy);if(!col.length)continue;
+      const revenue=row(rows,REVENUE,col),profit=row(rows,PROFIT,col);
+      const score=(revenue?revenue.values.filter(v=>v!=null).length:0)+(profit?profit.values.filter(v=>v!=null).length:0);
+      if(score&&(!best||score>best.score))best={table,col,revenue,profit,score};
+    }
+    return best;
+  }
+  function html(period,model,sig){
+    const months=period.quarters.length*3,label=months+'T/'+(startQ>1?'FY':'')+period.fy;
+    const fyName=(startQ>1?'FY':'')+period.fy;
+    const line=(name,actual,found)=>'<tr><td>'+name+'</td><td class="num">'+fmt(actual)+'</td>'+model.col.map((c,i)=>{
+      const f=found?found.values[i]:null,ok=actual!=null&&f!=null&&f>0;
+      return '<td class="num">'+fmt(f)+'</td><td class="num"><b>'+pct(ok?actual/f*100:null)+'</b></td>';
+    }).join('')+'</tr>';
+    const rev=ytd(period,'revenue'),prof=ytd(period,'parentProfit');
+    const multi=model.col.length>1;
+    const notes=['Lũy kế thực tế = tổng các quý riêng đã công bố của '+fyName+' ('+period.quarters.map(([y,q])=>'Q'+q+'/'+y).join(', ')+'). % = lũy kế thực tế ÷ forecast cả năm trong model; chưa điều chỉnh tính mùa vụ, không phải dự báo cả năm. Đổi giả định thì % tự tính lại.'];
+    if(model.profit&&!/mẹ/i.test(model.profit.name))notes.push('Forecast dùng dòng “'+model.profit.name+'”; thực tế là LNST cổ đông mẹ.');
+    if(!model.revenue)notes.push('Model không dự phóng doanh thu hợp nhất nên % doanh thu để trống.');
+    return {sig,body:'<h3 class="sub">Tiến độ so với forecast '+fyName+' · '+label+'</h3><div class="tbl-wrap"><table><thead><tr><th>Tỷ VND</th><th class="num">Thực tế '+label+'</th>'+model.col.map(c=>'<th class="num">'+(multi?c.label:'Forecast '+c.label)+'</th><th class="num">% forecast</th>').join('')+'</tr></thead><tbody>'+line('Doanh thu thuần',rev,model.revenue)+line('LNST cổ đông mẹ',prof,model.profit)+'</tbody></table></div><div class="note">'+notes.join(' ')+'</div>'};
+  }
+  let last='',timer=0;
+  function update(){
+    const root=document.getElementById('fsModel');if(!root)return;
+    const period=latest();const box=document.getElementById(BOX);
+    const model=period&&period.quarters.length&&(!cfg.year||cfg.year===period.fy)?findModel(root,period.fy):null;
+    if(!model){if(box)box.remove();last='';return;}
+    const sig=JSON.stringify([period.last,model.col.map(c=>c.label),model.revenue&&model.revenue.values,model.profit&&model.profit.values]);
+    if(sig===last&&box)return;
+    const view=html(period,model,sig);last=sig;
+    const anchor=(()=>{let el=model.table.closest('.card')||model.table,top=el;for(let p=el.closest('details');p&&root.contains(p);p=p.parentElement&&p.parentElement.closest('details'))top=p.closest('.card')||p;return top;})();
+    const card=box||document.createElement('div');
+    card.id=BOX;card.className='card';card.style.margin='16px 0';
+    card.dataset.source='BCTC hợp nhất (VNDirect finfo); Mô hình/giả định analyst FinSuccess';
+    card.innerHTML=view.body;
+    if(card.nextElementSibling!==anchor)anchor.before(card);
+  }
+  const schedule=()=>{clearTimeout(timer);timer=setTimeout(update,160);};
+  function start(){
+    const root=document.getElementById('fsModel');if(!root)return;
+    update();
+    // Chỉ theo dõi bảng model; bỏ qua thay đổi của chính khối này để không tự kích lại.
+    new MutationObserver(list=>{if(list.some(m=>!(m.target.nodeType===1?m.target:m.target.parentElement)?.closest('#'+BOX)))schedule();}).observe(root,{childList:true,subtree:true,characterData:true});
+    root.addEventListener('input',schedule);root.addEventListener('change',schedule);
+  }
+  if(document.readyState==='complete')start();else window.addEventListener('load',start);
+})();
+
 
 </script>
 <script>
@@ -8481,7 +8601,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='pvt',BUILD='f4bcf3673360',URL_JSON='../version.json';
+  const PAGE='pvt',BUILD='1d8826b60635',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
