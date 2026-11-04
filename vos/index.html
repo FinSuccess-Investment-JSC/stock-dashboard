@@ -7855,11 +7855,13 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
       if(ctl&&tb.nextSibling!==null&&ctl.parentElement===h)h.append(ctl); // giữ .ctl sau cụm nút để xuống hàng khi mở Tùy chỉnh
     });
     // Bố cục 2 cột: ghép đôi các card chart đứng liền nhau (không nằm trong lưới sẵn có), không đổi display của tab/pane
-    document.querySelectorAll('.card.fs-half').forEach(c=>c.classList.remove('fs-half','fs-half-r'));
+    // Tính trước rồi chỉ đổi card thật sự khác: gỡ rồi gắn lại class làm đổi display giữa chừng, trình duyệt đóng ngay danh sách <select> đang mở.
+    const half=new Map();
     if(document.documentElement.classList.contains('fs-2col')){let prev=null;
       document.querySelectorAll('.card').forEach(c=>{const ok=c.offsetParent&&c.querySelector('canvas')&&!c.querySelector('.card,table tr:nth-child(13)')&&!c.closest('.grid,.card .card,.fs-combo')&&!c.classList.contains('db')&&c.parentElement&&!/overview/.test(c.closest('section.tab')?.id||'');
         if(!ok){prev=null;return}
-        if(prev&&prev.parentElement===c.parentElement&&prev.nextElementSibling===c){prev.classList.add('fs-half');c.classList.add('fs-half','fs-half-r');prev=null}else prev=c})}
+        if(prev&&prev.parentElement===c.parentElement&&prev.nextElementSibling===c){half.set(prev,'l');half.set(c,'r');prev=null}else prev=c})}
+    new Set([...document.querySelectorAll('.card.fs-half'),...half.keys()]).forEach(c=>{const v=half.get(c);c.classList.toggle('fs-half',!!v);c.classList.toggle('fs-half-r',v==='r')});
     // Nhãn rõ cho icon
     document.querySelectorAll('button').forEach(b=>{const t=b.textContent.trim();if(t==='◐'&&!b.title)b.title='Đổi giao diện sáng / tối';if(t==='⌘K'&&!b.title)b.title='Tìm nhanh (⌘K)'});
   }
@@ -8541,7 +8543,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='vos',BUILD='587b35be761d',URL_JSON='../version.json';
+  const PAGE='vos',BUILD='4823e2b88a74',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
