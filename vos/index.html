@@ -1575,6 +1575,20 @@ html:root[data-theme=dark] body :is(input,select,textarea):focus{border-color:#5
 html:root[data-theme=dark] body .analyst-table input{background:#2A2614!important;color:#FFE9A6!important;border-color:#4A4220!important}
 html:root[data-theme=dark] body select option{background:#1F1F1F;color:#F5F5F5}
 .sankeywrap text{font-family:Inter,system-ui,Arial,sans-serif!important}
+/* Thanh tab nổi: khay trắng đổ bóng, tab chia đều, tab đang chọn khối xanh. Dùng chung cổ phiếu (.tabs-inner) và ngành (.majortabs/.major-tabs) */
+@media(min-width:701px){
+nav.tabs:not(.majortabs){background:transparent!important;backdrop-filter:none!important;border:0!important;box-shadow:none!important;padding:6px 20px!important}
+:is(.tabs-inner,.majortabs,.major-tabs){display:flex;align-items:center;gap:4px;padding:6px!important;background:#fff!important;backdrop-filter:none!important;border:0!important;border-radius:16px!important;box-shadow:0 4px 16px rgba(29,38,120,.10),0 1px 3px rgba(29,38,120,.06)!important}
+.tabs-inner{margin:0 auto;box-sizing:border-box}
+:is(.majortabs,.major-tabs){top:8px;margin:8px max(24px,calc((100% - 1392px)/2))!important;box-sizing:border-box;max-width:none}
+main.wrap>.major-tabs{margin:8px 0!important}
+:is(.tabs-inner>button[data-tab],.majortabbtn){flex:1 1 auto!important;justify-content:center;text-align:center;padding:9px 12px!important;border:0!important;border-radius:12px!important;background:transparent!important;color:#5a6682!important;box-shadow:none!important;white-space:nowrap;transition:background .15s,color .15s}
+:is(.tabs-inner>button[data-tab],.majortabbtn):hover{background:#F1F3FB!important;color:#1D2678!important}
+:is(.tabs-inner>button[data-tab].active,.majortabbtn.active,.majortabbtn[aria-selected="true"]){background:#2938A8!important;color:#fff!important;box-shadow:0 4px 12px rgba(41,56,168,.28)!important}
+:is(.tabs-inner>button[data-tab],.majortabbtn)::after,:is(.tabs-inner,.majortabs,.major-tabs) .mo-ink{display:none!important}
+:root[data-theme=dark] :is(.tabs-inner,.majortabs,.major-tabs){background:#161616!important;box-shadow:0 4px 16px rgba(0,0,0,.5)!important}
+:root[data-theme=dark] :is(.tabs-inner>button[data-tab],.majortabbtn):not(.active):hover{background:#2A2A2A!important;color:#fff!important}
+}
 
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet"><style>
@@ -8687,7 +8701,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='vos',BUILD='fc7be1ad6060',URL_JSON='../version.json';
+  const PAGE='vos',BUILD='e287ed4d51b9',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
