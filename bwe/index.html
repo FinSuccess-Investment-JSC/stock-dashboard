@@ -4051,9 +4051,10 @@ document.addEventListener('DOMContentLoaded',()=>{
     // Mẫu số = tổng các mảng dương cùng kỳ; mảng âm ở kỳ nào thì để trống tỷ trọng của mảng đó ở kỳ ấy.
     const totals=labels.map((_,j)=>datasets.every(d=>Number.isFinite(d.data[j]))?datasets.reduce((a,d)=>a+Math.max(d.data[j],0),0):null);
     const pctDs=datasets.map(d=>({...d,data:d.data.map((v,j)=>totals[j]>0&&v>=0?v/totals[j]*100:null)}));
-    const c=orig(labels,pctDs,period);c.shareView=true;c.lockChartType=true;c.options=c.options||{};
-    const pl=c.options.plugins=c.options.plugins||{};pl.tooltip={...(pl.tooltip||{}),callbacks:{...(pl.tooltip?.callbacks||{}),label:x=>x.dataset.label+': '+fmtPct(x.parsed.y)}};
-    const sc=c.options.scales=c.options.scales||{};sc.x={...(sc.x||{}),stacked:true};sc.y={...(sc.y||{}),stacked:true,beginAtZero:true,min:0,max:100,ticks:{...(sc.y?.ticks||{}),callback:v=>v+'%'}};
+    // orig có thể trả object options dùng chung với chế độ Tỷ VND: chép ra rồi mới sửa, không để % dính lại.
+    const c=orig(labels,pctDs,period);c.shareView=true;c.lockChartType=true;c.options={...(c.options||{})};
+    const pl=c.options.plugins={...(c.options.plugins||{})};pl.tooltip={...(pl.tooltip||{}),callbacks:{...(pl.tooltip?.callbacks||{}),label:x=>x.dataset.label+': '+fmtPct(x.parsed.y)}};
+    const sc=c.options.scales={...(c.options.scales||{})};sc.x={...(sc.x||{}),stacked:true};sc.y={...(sc.y||{}),stacked:true,beginAtZero:true,min:0,max:100,ticks:{...(sc.y?.ticks||{}),callback:v=>v+'%'}};
     return c;
   };
   const shareControls=id=>{
@@ -8431,7 +8432,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='bwe',BUILD='78177927cc94',URL_JSON='../version.json';
+  const PAGE='bwe',BUILD='a7bcba2cb070',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
