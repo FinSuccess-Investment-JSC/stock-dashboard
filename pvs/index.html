@@ -76,6 +76,28 @@
   });
 })();
 
+</script>
+<script>
+/* Áp giả định analyst đã publish cho mã này (<MÃ>/published-defaults.json, do analyst-gate.js lưu).
+   build_stock_site.py chèn ngay đầu <head> kèm dữ liệu, trước mọi script đọc localStorage.
+   Bản publish mới hơn bản trình duyệt đã áp thì ghi đè giá trị trên trình duyệt người xem;
+   khóa đang trống luôn được điền. So sánh version theo thời gian để không lấy bản cũ đè bản
+   analyst vừa lưu khi website chưa kịp build lại. */
+(function (pub, ticker) {
+  if (!pub || !pub.version || !pub.values) return;
+  try {
+    var vk = 'fs_pub_version:' + ticker, seen = localStorage.getItem(vk);
+    var fresh = !seen || pub.version > seen;
+    Object.keys(pub.values).forEach(function (k) {
+      if (typeof pub.values[k] === 'string' && (fresh || localStorage.getItem(k) === null)) localStorage.setItem(k, pub.values[k]);
+    });
+    if (fresh) {
+      (pub.removed || []).forEach(function (k) { localStorage.removeItem(k); });
+      localStorage.setItem(vk, pub.version);
+    }
+  } catch (e) { /* trình duyệt chặn localStorage: dùng giả định trong dữ liệu */ }
+})({"version": "2026-11-04T07:24:57.284Z", "values": {"pvs_dashboard_notes_v1_model": "{\"inputs\":{\"2026F\":{\"g_osv\":78.8,\"gm_osv\":16.8,\"g_fso\":-1.4,\"gm_fso\":5.9,\"g_rov\":-27.8,\"gm_rov\":29.7,\"g_port\":19.7,\"gm_port\":19.4,\"gm_mc\":4,\"g_om\":58.8,\"gm_om\":5.6,\"g_other\":110.8,\"gm_other\":8.9,\"sgaPct\":4.93,\"interestAssets\":16600,\"depositRate\":2.5,\"fxOther\":546,\"avgDebt\":1500,\"debtRate\":6,\"otherFinCost\":24,\"netOther\":100,\"taxRate\":15.56,\"nciPct\":-4,\"sgaQ4\":7.29},\"Worst\":{\"g_osv\":-5,\"gm_osv\":13,\"g_fso\":0,\"gm_fso\":5,\"g_rov\":0,\"gm_rov\":10,\"g_port\":0,\"gm_port\":18,\"gm_mc\":3.5,\"g_om\":0,\"gm_om\":3,\"g_other\":-5,\"gm_other\":15,\"sgaPct\":5.2,\"interestAssets\":14000,\"depositRate\":2.2,\"fxOther\":200,\"avgDebt\":3500,\"debtRate\":7.5,\"otherFinCost\":100,\"netOther\":0,\"taxRate\":18,\"nciPct\":-4},\"Base\":{\"g_osv\":5,\"gm_osv\":16,\"g_fso\":10,\"gm_fso\":6,\"g_rov\":10,\"gm_rov\":15,\"g_port\":7,\"gm_port\":20,\"gm_mc\":5,\"g_om\":10,\"gm_om\":5,\"g_other\":0,\"gm_other\":20,\"sgaPct\":4.8,\"interestAssets\":15500,\"depositRate\":2.5,\"fxOther\":350,\"avgDebt\":3000,\"debtRate\":7,\"otherFinCost\":75,\"netOther\":100,\"taxRate\":16,\"nciPct\":-4},\"Best\":{\"g_osv\":10,\"gm_osv\":18,\"g_fso\":15,\"gm_fso\":8,\"g_rov\":15,\"gm_rov\":18,\"g_port\":10,\"gm_port\":22,\"gm_mc\":6.5,\"g_om\":15,\"gm_om\":7,\"g_other\":5,\"gm_other\":22,\"sgaPct\":4.5,\"interestAssets\":17000,\"depositRate\":2.8,\"fxOther\":500,\"avgDebt\":2500,\"debtRate\":6.5,\"otherFinCost\":50,\"netOther\":150,\"taxRate\":15,\"nciPct\":-4}},\"sotp\":{\"peCore\":14,\"jvNpat\":600,\"peJv\":8,\"parentCash\":8224.55,\"parentDebt\":1487.61,\"ownershipProxy\":51},\"version\":7,\"isAssumptions\":{\"sgaPct\":4.93,\"interestAssets\":16600,\"depositRate\":2.5,\"fxOther\":546,\"avgDebt\":1500,\"debtRate\":6,\"otherFinCost\":24,\"netOther\":100,\"taxRate\":15.56,\"nciPct\":-4}}"}, "removed": []}, "PVS");
+
 </script><script>window.FS_SITE_BASE="../";try{var t=localStorage.getItem("fs_theme_v1");if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11220,7 +11242,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='pvs',BUILD='6b0737d1960b',URL_JSON='../version.json';
+  const PAGE='pvs',BUILD='69589001b1e9',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
