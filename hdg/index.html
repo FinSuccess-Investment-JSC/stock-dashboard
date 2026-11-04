@@ -5385,12 +5385,12 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
     }
     const last=quarterly[quarterly.length-1];
     const header='<h3 class="sub">Kết quả kinh doanh dài hạn · '+esc(annual[0])+'–'+esc(last)+'</h3>'+
-      '<p class="note">Chọn <b>Năm</b>, <b>Quý</b> hoặc <b>Lũy kế</b> (tổng từ đầu năm so cùng kỳ, biên tính lại từ tổng lũy kế) cho cả hai biểu đồ. '+esc(annualOverride?.note||'Năm là tổng 4 quý có đủ dữ liệu; kỳ thiếu để trống.')+' Đơn vị tỷ VND. Bấm chú giải để bật hoặc tắt từng chuỗi.</p>'+
+      '<p class="note">Chọn <b>Năm</b>, <b>Quý</b> hoặc <b>Lũy kế</b> (tổng từ đầu năm so cùng kỳ, biên tính lại từ tổng lũy kế) cho cả ba biểu đồ. '+esc(annualOverride?.note||'Năm là tổng 4 quý có đủ dữ liệu; kỳ thiếu để trống.')+' Đơn vị tỷ VND. Bấm chú giải để bật hoặc tắt từng chuỗi.</p>'+
       '';
     const fmt=v=>v==null?'—':Number(v).toLocaleString('vi-VN',{maximumFractionDigits:2});
     const periodTable=(labels,read)=>'<table><thead><tr><th>Kỳ</th>'+metrics.map(m=>'<th class="num">'+esc(m.title)+'</th>').join('')+'</tr></thead><tbody>'+labels.map((label,i)=>'<tr><td>'+esc(label)+'</td>'+metrics.map(m=>'<td class="num">'+fmt(read(m.key,i))+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
     const detail='<details class="dd"><summary>Bảng KQKD theo kỳ</summary><div class="body tbl-wrap"><h4>Năm · tỷ VND</h4>'+periodTable(annual,(key,i)=>sumYear(key,annual[i]))+'<h4>Quý · tỷ VND</h4>'+periodTable(quarterly,(key,i)=>quarterSeries(key)[i])+'</div></details>';
-    box.innerHTML=header+'<div class="card" id="income10Group" style="margin-top:12px"><h3 class="sub">'+(ticker==='VNM'?'Doanh thu và tăng trưởng YoY':'Doanh thu và lợi nhuận')+'</h3><div class="chart" style="height:250px"><canvas id="income10Revenue"></canvas></div><h3 class="sub" style="margin-top:12px">Lợi nhuận và biên</h3><div class="chart tall"><canvas id="income10Profit"></canvas></div><div class="note">Cột: tỷ VND. Đường: '+(ticker==='VNM'?'tăng trưởng YoY và ':'')+'biên lợi nhuận, trục % riêng. Hai biểu đồ cùng kỳ; các quý không có số giữ khoảng trống.</div>'+detail+'</div>';
+    box.innerHTML=header+'<div class="card" id="income10Group" style="margin-top:12px"><h3 class="sub">'+(ticker==='VNM'?'Doanh thu và tăng trưởng YoY':'Doanh thu và lợi nhuận')+'</h3><div class="chart" style="height:250px"><canvas id="income10Revenue"></canvas></div><div class="grid g2" style="margin-top:12px"><div><h3 class="sub">Lợi nhuận (tỷ VND)</h3><div class="chart tall"><canvas id="income10Profit"></canvas></div></div><div><h3 class="sub">Biên lợi nhuận (%)</h3><div class="chart tall"><canvas id="income10Margin"></canvas></div></div></div><div class="note">Ba biểu đồ cùng kỳ; '+(ticker==='VNM'?'tăng trưởng YoY ở trục % riêng; ':'')+'biên = lợi nhuận ÷ doanh thu thuần cùng kỳ; các quý không có số giữ khoảng trống.</div>'+detail+'</div>';
     const annualValues=key=>annual.map(year=>sumYear(key,year));
     const vnm=ticker==='VNM';
     const revenueSets=(labels,values,quarter)=>{
@@ -5399,33 +5399,31 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
       return {labels,datasets:sets};
     };
     const revenueSpec={def:'y',ytd:true,y:revenueSets(annual,annualValues('revenue'),false),q:revenueSets(quarterly,quarterSeries('revenue'),true),cfg:(labels,datasets)=>({type:'bar',financialCombo:vnm,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:vnm,position:'bottom'}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,title:{display:true,text:'Tỷ VND'},grid:{color:'#EEF0F6'}},...(vnm?{ratio:{position:'right',beginAtZero:true,title:{display:true,text:'% YoY'},grid:{drawOnChartArea:false}}}:{})}}})};
-    const profitSets=(revenue,gross,operating,parent)=>[
-      {type:'bar',label:'Lợi nhuận gộp',data:gross,yAxisID:'y',backgroundColor:'#16A6A0',borderColor:'#16A6A0',hidden:true,borderRadius:3,maxBarThickness:27},
-      {type:'bar',label:'Lợi nhuận HĐKD',data:operating,yAxisID:'y',backgroundColor:'#6B4BB6',borderColor:'#6B4BB6',hidden:true,borderRadius:3,maxBarThickness:27},
-      {type:'bar',label:'LNST mẹ',data:parent,yAxisID:'y',backgroundColor:'#861C52',borderColor:'#861C52',borderRadius:3,maxBarThickness:27},
-      {type:'line',ytdRatio:{num:gross,den:revenue},label:'Biên gộp',data:gross.map((v,i)=>v==null||!revenue[i]?null:v/revenue[i]*100),yAxisID:'ratio',axisUnit:'%',borderColor:'#16A6A0',backgroundColor:'#16A6A0',pointRadius:2,spanGaps:false},
-      {type:'line',ytdRatio:{num:parent,den:revenue},label:'Biên ròng mẹ',data:parent.map((v,i)=>v==null||!revenue[i]?null:v/revenue[i]*100),yAxisID:'ratio',axisUnit:'%',borderColor:'#861C52',backgroundColor:'#861C52',pointRadius:2,spanGaps:false}
+    const profitSets=(gross,operating,parent)=>[
+      {label:'Lợi nhuận gộp',data:gross,backgroundColor:'#16A6A0',borderColor:'#16A6A0',borderRadius:3,maxBarThickness:27},
+      {label:'Lợi nhuận HĐKD',data:operating,backgroundColor:'#6B4BB6',borderColor:'#6B4BB6',borderRadius:3,maxBarThickness:27},
+      {label:'LNST mẹ',data:parent,backgroundColor:'#861C52',borderColor:'#861C52',borderRadius:3,maxBarThickness:27}
     ];
-    const profitSpec={def:'y',ytd:true,y:{labels:annual,datasets:profitSets(...['revenue','grossProfit','operatingProfit','parentProfit'].map(annualValues))},q:{labels:quarterly,datasets:profitSets(...['revenue','grossProfit','operatingProfit','parentProfit'].map(quarterSeries))},cfg:(labels,datasets)=>({type:'bar',financialCombo:true,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:item=>item.dataset.label+': '+(item.parsed.y==null?'—':fmt(item.parsed.y))+(item.dataset.yAxisID==='ratio'?'%':' tỷ VND')}}},scales:{x:{grid:{display:false}},y:{position:'left',beginAtZero:true,title:{display:true,text:'Tỷ VND'},grid:{color:'#EEF0F6'}},ratio:{position:'right',beginAtZero:true,title:{display:true,text:'%'},grid:{drawOnChartArea:false}}}}})};
-    mkTS('income10Revenue',revenueSpec);mkTS('income10Profit',profitSpec);
+    const marginSet=(label,profit,revenue,color,hidden)=>({label,ytdRatio:{num:profit,den:revenue},data:profit.map((v,i)=>v==null||!revenue[i]?null:v/revenue[i]*100),axisUnit:'%',borderColor:color,backgroundColor:color,pointRadius:2,spanGaps:false,hidden});
+    const marginSets=(revenue,gross,operating,parent)=>[marginSet('Biên gộp',gross,revenue,'#16A6A0',false),marginSet('Biên HĐKD',operating,revenue,'#6B4BB6',true),marginSet('Biên ròng mẹ',parent,revenue,'#861C52',false)];
+    const incomeKeys=['grossProfit','operatingProfit','parentProfit'];
+    const incomeChart=(type,unit,axis)=>(labels,datasets)=>({type,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:item=>item.dataset.label+': '+(item.parsed.y==null?'—':fmt(item.parsed.y))+unit}}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,title:{display:true,text:axis},grid:{color:'#EEF0F6'}}}}});
+    const profitSpec={def:'y',ytd:true,y:{labels:annual,datasets:profitSets(...incomeKeys.map(annualValues))},q:{labels:quarterly,datasets:profitSets(...incomeKeys.map(quarterSeries))},cfg:incomeChart('bar',' tỷ VND','Tỷ VND')};
+    const marginSpec={def:'y',ytd:true,y:{labels:annual,datasets:marginSets(...['revenue',...incomeKeys].map(annualValues))},q:{labels:quarterly,datasets:marginSets(...['revenue',...incomeKeys].map(quarterSeries))},cfg:incomeChart('line','%','%')};
+    mkTS('income10Revenue',revenueSpec);mkTS('income10Profit',profitSpec);mkTS('income10Margin',marginSpec);
     const card=document.getElementById('income10Group');
-    const first=card.querySelector('#income10Revenue').closest('.chart').previousElementSibling;
-    const second=card.querySelector('#income10Profit').closest('.chart').previousElementSibling;
-    for(const selector of ['tsp','tsn','tsy']){
-      const main=first?.querySelector('select.'+selector),peer=second?.querySelector('select.'+selector);
-      if(main&&peer&&main.value!==peer.value){peer.value=main.value;peer.onchange();}
-    }
-    if(second?.classList?.contains('tsctl'))second.style.display='none';
+    const ctl=id=>card.querySelector('#'+id).closest('.chart').previousElementSibling;
+    const peers=['income10Profit','income10Margin'],selectors=['tsp','tsn','tsy'];
+    const follow=(selector,value)=>peers.forEach(id=>{
+      const peer=ctl(id).querySelector?.('select.'+selector);
+      if(peer&&peer.value!==value){peer.value=value;peer.onchange();}
+    });
+    const hidePeers=()=>peers.forEach(id=>{const c=ctl(id);if(c?.classList?.contains('tsctl'))c.style.setProperty('display','none','important');});
+    const syncAll=()=>{for(const selector of selectors){const main=ctl('income10Revenue')?.querySelector('select.'+selector);if(main)follow(selector,main.value);}hidePeers();};
+    syncAll();
     card.addEventListener('change',event=>{
-      const top=card.querySelector('#income10Revenue').closest('.chart').previousElementSibling;
-      if(event.target.closest('.tsctl')!==top)return;
-      const selector=['tsp','tsn','tsy'].find(c=>event.target.classList.contains(c))||null;
-      if(!selector)return;
-      const value=event.target.value;
-      queueMicrotask(()=>{
-        const peer=second?.querySelector('select.'+selector);
-        if(peer){peer.value=value;peer.onchange();}
-      });
+      if(event.target.closest('.tsctl')!==ctl('income10Revenue'))return;
+      if(selectors.some(c=>event.target.classList.contains(c)))queueMicrotask(syncAll);
     },true);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',render);else render();
@@ -8327,7 +8325,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='hdg',BUILD='fe2648e6e485',URL_JSON='../version.json';
+  const PAGE='hdg',BUILD='aa3488ceea65',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
