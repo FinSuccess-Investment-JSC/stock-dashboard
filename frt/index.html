@@ -76,7 +76,7 @@
   });
 })();
 
-</script><script>window.FS_SITE_BASE="../";try{var t=localStorage.getItem("fs_theme_v1");if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+</script><script>window.FS_SITE_BASE="../";try{if(window.self!==window.top||/[?&]embed=1\b/.test(location.search))document.documentElement.classList.add("fs-embed")}catch(e){document.documentElement.classList.add("fs-embed")};try{var t=localStorage.getItem("fs_theme_v1");if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FinSuccess | FRT</title>
@@ -1368,7 +1368,14 @@ html.fs-scrolled .brandbar{display:none}
 html.fs-scrolled .titleband{position:sticky;top:0;z-index:60;box-shadow:0 1px 0 #E3E8F0,0 4px 12px rgba(15,23,42,.06)}
 html.fs-scrolled .titleband .in{padding-top:6px!important;padding-bottom:6px!important}
 html.fs-scrolled .titleband :is(.logo-co,img){max-height:26px}
-html.fs-scrolled nav.tabs{position:sticky;top:52px;z-index:59}
+html.fs-scrolled nav.tabs{position:sticky;top:var(--fs-title-h,52px);z-index:59}
+/* Nhúng trong website tổng (iframe hoặc ?embed=1): bỏ logo/tìm kiếm/thanh giá trùng thanh của site, cuộn chỉ giữ thanh tab */
+html.fs-embed :is(.brandbar,.mkt-tape,.fs-tape-tg){display:none!important}
+html.fs-embed .titleband .in{padding-top:6px!important;padding-bottom:6px!important}
+html.fs-embed.fs-scrolled .titleband{position:static;box-shadow:none}
+html.fs-embed.fs-scrolled nav.tabs{top:0}
+html.fs-embed section.tab{padding-top:12px}
+html.fs-embed section.tab>h2.sec:first-child{margin-top:0!important}
 html.fs-tape-off .mkt-tape{display:none!important}
 .fs-tape-tg{position:fixed;right:12px;bottom:12px;z-index:70;height:30px;padding:0 12px;border:1px solid #E3E8F0;border-radius:999px;background:#fff;color:#243878;font:600 12px Inter,Arial,sans-serif;box-shadow:0 2px 8px rgba(15,23,42,.08);cursor:pointer}
 /* KPI bấm được → mở chart liên quan */
@@ -7664,7 +7671,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
       b.onclick=()=>{const h=!document.documentElement.classList.contains('fs-tape-off'); set('fs_tape_off_v2',h?'1':'0'); apply(h);};
       apply(get('fs_tape_off_v2')==='1'); document.body.append(b);
     }
-    let raf=0; addEventListener('scroll',()=>{if(raf)return; raf=requestAnimationFrame(()=>{raf=0; document.documentElement.classList.toggle('fs-scrolled',scrollY>160);});},{passive:true});
+    let raf=0; addEventListener('scroll',()=>{if(raf)return; raf=requestAnimationFrame(()=>{raf=0; document.documentElement.classList.toggle('fs-scrolled',scrollY>160); const tb=document.querySelector('.titleband'); if(tb) document.documentElement.style.setProperty('--fs-title-h',tb.offsetHeight+'px');});},{passive:true});
   }
 
   /* 2 KPI → chart */
@@ -8420,7 +8427,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='frt',BUILD='48cf83c89272',URL_JSON='../version.json';
+  const PAGE='frt',BUILD='5f69fa59bcda',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
