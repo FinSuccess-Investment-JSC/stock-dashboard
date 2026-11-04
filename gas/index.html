@@ -1440,7 +1440,7 @@ html.fs-embed :is(.brandbar .logo,.fs-crumb){display:none!important}
 html.fs-embed.fs-scrolled .brandbar{display:block}
 html.fs-embed .mkt-tape{margin:4px 0 6px}
 html.fs-embed nav.tabs{padding-top:6px}
-html.fs-embed .brandbar .in{min-height:0;padding-top:2px!important;padding-bottom:6px!important}
+html.fs-embed .brandbar .in{min-height:0;padding-top:0!important;padding-bottom:6px!important}
 html.fs-embed .brandbar .stock-search input{height:30px;font-size:13px}
 html.fs-embed .brandbar .stock-search button[type=submit]{width:24px;height:24px;margin:3px}
 html.fs-embed .fs-q{padding-top:4px!important;padding-bottom:4px!important;height:auto!important;min-height:0!important;font-size:12px!important}
@@ -8930,7 +8930,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='gas',BUILD='87b0294987ba',URL_JSON='../version.json';
+  const PAGE='gas',BUILD='9f42ad1191c5',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
