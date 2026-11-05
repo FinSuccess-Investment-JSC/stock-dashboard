@@ -8294,6 +8294,8 @@ h3.sub .fs-tb{order:50}
 }
 html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canvas){grid-template-columns:minmax(0,1fr)!important}
 @media(max-width:1099px){.fs-layout{display:none}}
+.card:not(.fs-per-on):not(.fs-per-shot) .tsctl{display:none!important}
+.card.fs-per-on:not(.fs-per-shot) .tsctl{position:absolute!important;top:58px;right:18px;z-index:6;margin:0!important;padding:10px 12px!important;background:var(--card,#fff);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(16,24,64,.16);flex-wrap:wrap}
 .fs-tb .fs-ic{width:30px;padding:0;display:inline-flex;align-items:center;justify-content:center}
 .fs-tb .fs-zoom-btn{position:absolute;top:18px;right:54px;z-index:3;width:32px;height:32px;padding:0;display:inline-grid;place-items:center;border:1px solid transparent;border-radius:10px;background:transparent;color:#7A819A}
 .fs-tb .fs-zoom-btn:hover,.fs-tb .fs-zoom-btn:focus-visible{color:var(--navy);background:#F0F2FA;border-color:var(--line)}
@@ -8318,6 +8320,8 @@ html.fs-zoom-lock{overflow:hidden}
     zbg=document.createElement('div');zbg.className='fs-zoom-bg';zbg.onclick=unzoom;document.body.append(zbg);
     zx=document.createElement('button');zx.type='button';zx.className='fs-zoom-x';zx.setAttribute('aria-label','Đóng');zx.textContent='×';zx.onclick=unzoom;document.body.append(zx);rs()}
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&zcard)unzoom()});
+  document.addEventListener('click',e=>{if(e.target.closest('.tsctl,[data-per]'))return;document.querySelectorAll('.card.fs-per-on').forEach(c=>{c.classList.remove('fs-per-on');c.querySelector('[data-per]')?.setAttribute('aria-pressed','false')})});
+  document.addEventListener('change',e=>{if(e.target.closest('.tsctl'))setTimeout(decorate,60)});
   function decorate(){
     document.querySelectorAll('.card').forEach(card=>{
       const h=card.querySelector('h3.sub'),cv=card.querySelector('canvas');if(!h||!cv||card.querySelector('.card'))return;
@@ -8330,8 +8334,14 @@ html.fs-zoom-lock{overflow:hidden}
         b.onclick=e=>{e.stopPropagation();zoom(card)};tb.append(b)}
       if(canCmp&&!tb.querySelector('[data-cmp]')){const b=document.createElement('button');b.type='button';b.dataset.cmp='1';b.className='fs-ic';b.innerHTML='<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2v12h12"/><path d="M4.5 11l2.5-3 2 1.5"/><path d="M12 3v5M9.5 5.5h5"/></svg>';b.title='So sánh với chỉ tiêu khác (ghép vào cùng chart)';b.setAttribute('aria-label','So sánh với chỉ tiêu khác');
         b.onclick=e=>{e.stopPropagation();const f=compareFn(cv);if(!f||!f(cv.id,card))b.disabled=true};tb.prepend(b)}
-      if((hasCtl||hasAxis)&&!tb.querySelector('[data-cust]')){const b=document.createElement('button');b.type='button';b.dataset.cust='1';b.className='fs-ic';b.innerHTML='<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="11" rx="2"/><path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3"/><path d="M5 9.5h1.5M9.5 9.5H11M5 12h1.5"/></svg>';b.setAttribute('aria-label','Tùy chỉnh chart');b.title='Tùy chỉnh: loại chart, trục giá trị (Từ 0 / Vừa dữ liệu), độ rộng cột. Nhấp đúp vào chart để hiện số.';b.setAttribute('aria-pressed','false');
+      if((hasCtl||hasAxis)&&!tb.querySelector('[data-cust]')){const b=document.createElement('button');b.type='button';b.dataset.cust='1';b.className='fs-ic';b.innerHTML='<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 4h7M13 4h1M2 8h2M8 8h6M2 12h8M14 12h0"/><circle cx="11" cy="4" r="1.6"/><circle cx="6" cy="8" r="1.6"/><circle cx="12" cy="12" r="1.6"/></svg>';b.setAttribute('aria-label','Tùy chỉnh chart');b.title='Tùy chỉnh: loại chart, trục giá trị (Từ 0 / Vừa dữ liệu), độ rộng cột. Nhấp đúp vào chart để hiện số.';b.setAttribute('aria-pressed','false');
         b.onclick=e=>{e.stopPropagation();const on=card.classList.toggle('fs-cust-on');b.setAttribute('aria-pressed',String(on))};tb.append(b)}
+      const per=card.querySelector('.tsctl');
+      if(per&&!tb.querySelector('[data-per]')){const b=document.createElement('button');b.type='button';b.dataset.per='1';b.className='fs-ic';b.innerHTML='<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="11" rx="2"/><path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3"/><path d="M5 9.5h1.5M9.5 9.5H11M5 12h1.5"/></svg>';b.setAttribute('aria-label','Chu kỳ và số kỳ');b.setAttribute('aria-pressed','false');
+        b.onclick=e=>{e.stopPropagation();const on=!card.classList.contains('fs-per-on');document.querySelectorAll('.card.fs-per-on').forEach(c=>{c.classList.remove('fs-per-on');c.querySelector('[data-per]')?.setAttribute('aria-pressed','false')});card.classList.toggle('fs-per-on',on);b.setAttribute('aria-pressed',String(on))};
+        tb.querySelector('[data-cust]')?tb.querySelector('[data-cust]').before(b):tb.append(b)}
+      else if(!per)tb.querySelector('[data-per]')?.remove();
+      const pb=tb.querySelector('[data-per]');if(pb&&per){const t=[...per.querySelectorAll('select')].map(x=>x.selectedOptions[0]?.textContent).filter(Boolean).join(' · ');pb.title='Chu kỳ & số kỳ'+(t?': '+t:'')}
       if(ctl&&tb.nextSibling!==null&&ctl.parentElement===h)h.append(ctl); // giữ .ctl sau cụm nút để xuống hàng khi mở Tùy chỉnh
     });
     // Bố cục 2 cột: ghép đôi các card chart đứng liền nhau (không nằm trong lưới sẵn có), không đổi display của tab/pane
@@ -9089,6 +9099,7 @@ html.fs-zoom-lock{overflow:hidden}
     const charts=window.Chart&&Chart.getChart?[...card.querySelectorAll('canvas')].map(c=>Chart.getChart(c)).filter(Boolean):[];
     const dpr=charts.map(ch=>ch.options.devicePixelRatio);
     charts.forEach(ch=>{ch.options.devicePixelRatio=scale;ch.resize();ch.update('none')});
+    card.classList.add('fs-per-shot'); // thanh Chu kỳ/Số kỳ đang thu vào icon lịch: hiện tạm để ảnh vẫn có
     const selects=[...card.querySelectorAll('select')].map(el=>({text:el.selectedOptions[0]?el.selectedOptions[0].textContent:'',cs:getComputedStyle(el),w:el.offsetWidth,h:el.offsetHeight}));
     try{
       return await h2c(card,{backgroundColor:'#ffffff',scale,useCORS:true,logging:false,onclone:(doc,node)=>{node.style.border='0';node.style.boxShadow='none';node.style.padding='4px';node.style.background='#fff';node.classList.add('fs-shot-clean');const st=doc.createElement('style');st.textContent='.fs-shot-clean,.fs-shot-clean *{background-image:none!important}.fs-shot-clean::before,.fs-shot-clean::after{display:none!important}';doc.head.append(st);
@@ -9099,7 +9110,7 @@ html.fs-zoom-lock{overflow:hidden}
           Object.assign(d.style,{display:'inline-flex',alignItems:'center',justifyContent:'space-between',gap:'8px',boxSizing:'border-box',width:o.w+'px',height:o.h+'px',padding:'0 10px',border:o.cs.border,borderRadius:o.cs.borderRadius,background:o.cs.backgroundColor,color:o.cs.color,font:o.cs.font,whiteSpace:'nowrap',overflow:'hidden',verticalAlign:'middle'});
           el.replaceWith(d)})},
         ignoreElements:n=>n.tagName==='BUTTON'||n.classList&&(n.classList.contains('fs-share-btn')||n.classList.contains('chart-card-actions')||n.classList.contains('chart-source-details')||n.tagName==='DETAILS'&&!n.open)});
-    }finally{charts.forEach((ch,i)=>{ch.options.devicePixelRatio=dpr[i];ch.resize();ch.update('none')})}
+    }finally{card.classList.remove('fs-per-shot');charts.forEach((ch,i)=>{ch.options.devicePixelRatio=dpr[i];ch.resize();ch.update('none')})}
   }
   // Cắt bỏ viền trắng quanh nội dung của bản chụp (giữ lề nhỏ) để chart to nhất trong khung.
   function trim(cv){
@@ -9334,7 +9345,7 @@ html.fs-zoom-lock{overflow:hidden}
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='gas',BUILD='3470a209cd15',URL_JSON='../version.json';
+  const PAGE='gas',BUILD='9e7b1a0e19a8',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
