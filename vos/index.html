@@ -5706,12 +5706,26 @@ function bindAxisDrag(canvas){
   canvas.addEventListener('pointerup',end);canvas.addEventListener('pointercancel',end);
   canvas.addEventListener('dblclick',e=>{
     const chart=Chart.getChart(canvas);if(!chart)return;const p=pos(e),hit=axisAt(chart,p.x,p.y);
-    // Nhấp đúp trong vùng vẽ: bật/tắt Số liệu (cùng trạng thái nút Số liệu, nhấp đúp lần nữa để tắt)
-    if(!hit){const ca=chart.chartArea;if(ca&&p.x>=ca.left&&p.x<=ca.right&&p.y>=ca.top&&p.y<=ca.bottom){const box=canvas.closest('.chart'),ctl=box&&box.querySelector(':scope > .axis-mode');if(ctl){e.preventDefault();window.getSelection&&getSelection().removeAllRanges();toggleValues(canvas.id,ctl);}}return;}
+    // Nhấp đúp trong vùng vẽ: phóng to chart (toàn màn hình card), nhấp đúp lần nữa/Esc để thu lại (người dùng chốt 05/11/2026). Số liệu bật ở nút trong Tùy chỉnh.
+    if(!hit){const ca=chart.chartArea;if(ca&&p.x>=ca.left&&p.x<=ca.right&&p.y>=ca.top&&p.y<=ca.bottom){e.preventDefault();window.getSelection&&getSelection().removeAllRanges();zoomCard(canvas);}return;}
     const id=canvas.id,d=direct.get(id);
     if(d){restore(chart.options.scales[hit.key],d.base[hit.key]);if(modes[id]==='fit')fit(chart.options.scales[hit.key]);chart.update('none');}
     else if(typeof mk==='function'&&typeof chartBase!=='undefined'&&chartBase[id])mk(id,chartBase[id]);
   });
+}
+function zoomCard(canvas){
+  const card=canvas.closest('.card,.viz-block')||canvas.closest('.chart');if(!card)return;
+  const fs=document.fullscreenElement;
+  if(fs){document.exitFullscreen&&document.exitFullscreen().catch(()=>{});return;}
+  if(card.classList.contains('fs-zoomed')){card.classList.remove('fs-zoomed');document.documentElement.classList.remove('fs-zoom-lock');}
+  else if(card.requestFullscreen){card.requestFullscreen().catch(()=>{card.classList.add('fs-zoomed');document.documentElement.classList.add('fs-zoom-lock');});}
+  else{card.classList.add('fs-zoomed');document.documentElement.classList.add('fs-zoom-lock');}
+  setTimeout(()=>{const c=Chart.getChart(canvas);c&&c.resize()},80);
+}
+if(!window.__fsZoomInit){window.__fsZoomInit=1;
+  const st=document.createElement('style');st.textContent='.fs-zoomed{position:fixed!important;inset:12px!important;z-index:9999;width:auto!important;margin:0!important;overflow:auto;background:var(--card,#fff)!important;box-shadow:0 10px 40px rgba(0,0,0,.35)}.fs-zoomed .chart{height:calc(100vh - 220px)!important}html.fs-zoom-lock{overflow:hidden}';document.head.append(st);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){const z=document.querySelector('.fs-zoomed');if(z){z.classList.remove('fs-zoomed');document.documentElement.classList.remove('fs-zoom-lock');const c=z.querySelector('canvas');c&&Chart.getChart(c)&&setTimeout(()=>Chart.getChart(c).resize(),80);}}});
+  document.addEventListener('fullscreenchange',()=>setTimeout(()=>window.Chart&&Object.values(Chart.instances||{}).forEach(c=>{try{c.resize()}catch(e){}}),80));
 }
 function toggleValues(id,ctl){
   if(labels[id])delete labels[id];else labels[id]=1;
@@ -8006,7 +8020,7 @@ td.fsa-focus,th.fsa-focus{outline:2px solid ${TURQ};outline-offset:-2px}
 
 /* Thanh công cụ chart gọn (người dùng chốt 28/10/2026):
    - Hiện trực tiếp: Chu kỳ · Số kỳ · Chart/Bảng. Loại chart, trục Từ 0/Vừa dữ liệu, độ rộng cột −/+ gom vào nút "Tùy chỉnh".
-   - Bỏ nút "Số liệu" trên từng chart: nhấp đúp vào chart để bật/tắt số (chart-explore.js).
+   - Nút "Số liệu" nằm trong Tùy chỉnh; nhấp đúp vào chart để phóng to (chart-explore.js, chốt 05/11/2026).
    - "So sánh với…" ngay tại chart (mở khung Ghép chart dưới card, chọn chỉ tiêu thứ hai).
    - Bố cục Rộng / 2 cột cho toàn trang; chart mặc định thấp hơn; nhãn rõ cho các icon.
    Chỉ đổi DOM hiển thị bằng class, không di chuyển nút gốc nên handler của mk()/renderChartAxes giữ nguyên. */
@@ -8014,7 +8028,6 @@ td.fsa-focus,th.fsa-focus{outline:2px solid ${TURQ};outline-offset:-2px}
   const LKEY='fs_layout_v1';
   const get=k=>{try{return localStorage.getItem(k)}catch(e){return null}},set=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
   const css=`
-.chart .axis-mode .axis-values{display:none!important}
 .card:not(.fs-cust-on) h3.sub>.ctl,.card:not(.fs-cust-on) .chart>.axis-mode{display:none!important}
 .fs-tb{display:inline-flex;gap:6px;margin-left:auto;align-items:center}
 h3.sub .fs-tb{order:50}
@@ -8045,7 +8058,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
       if(!tb){if(!hasCtl&&!hasAxis&&!canCmp)return;tb=document.createElement('span');tb.className='fs-tb';h.append(tb)}
       if(canCmp&&!tb.querySelector('[data-cmp]')){const b=document.createElement('button');b.type='button';b.dataset.cmp='1';b.textContent='So sánh với…';b.title='Ghép chỉ tiêu khác vào cùng chart, ngay bên dưới';
         b.onclick=e=>{e.stopPropagation();const f=compareFn(cv);if(!f||!f(cv.id,card))b.disabled=true};tb.prepend(b)}
-      if((hasCtl||hasAxis)&&!tb.querySelector('[data-cust]')){const b=document.createElement('button');b.type='button';b.dataset.cust='1';b.textContent='Tùy chỉnh';b.title='Loại chart, trục giá trị (Từ 0 / Vừa dữ liệu), độ rộng cột. Nhấp đúp vào chart để hiện số.';b.setAttribute('aria-pressed','false');
+      if((hasCtl||hasAxis)&&!tb.querySelector('[data-cust]')){const b=document.createElement('button');b.type='button';b.dataset.cust='1';b.textContent='Tùy chỉnh';b.title='Loại chart, trục giá trị (Từ 0 / Vừa dữ liệu), độ rộng cột, Số liệu. Nhấp đúp vào chart để phóng to.';b.setAttribute('aria-pressed','false');
         b.onclick=e=>{e.stopPropagation();const on=card.classList.toggle('fs-cust-on');b.setAttribute('aria-pressed',String(on))};tb.append(b)}
       if(ctl&&tb.nextSibling!==null&&ctl.parentElement===h)h.append(ctl); // giữ .ctl sau cụm nút để xuống hàng khi mở Tùy chỉnh
     });
@@ -8984,7 +8997,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='vos',BUILD='653c44908370',URL_JSON='../version.json';
+  const PAGE='vos',BUILD='47061214a323',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
