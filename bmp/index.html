@@ -1745,7 +1745,7 @@ main.wrap>.major-tabs{margin:8px 0!important}
   const message=document.getElementById('stockMessage');
   const stocks=[{code:'MWG',name:'Thế Giới Di Động',path:'../'},{code:'PVS',name:'Dịch vụ Kỹ thuật Dầu khí',path:'../pvs/'},{code:'HPG',name:'Tập đoàn Hòa Phát',path:'../hpg/'},{code:'PVT',name:'Vận tải Dầu khí',path:'../pvt/'},{code:'GAS',name:'Tổng Công ty Khí Việt Nam',path:'../gas/'},{code:'PVD',name:'PV Drilling',path:'../pvd/'},{code:'FPT',name:'Tập đoàn FPT',path:'../fpt/'},{code:'POW',name:'Điện lực Dầu khí Việt Nam',path:'../pow/'},{code:'REE',name:'Cơ Điện Lạnh',path:'../ree/'},{code:'VNM',name:'Vinamilk',path:'../vnm/'},{code:'QNS',name:'Đường Quảng Ngãi',path:'../qns/'},{code:'VHC',name:'Vĩnh Hoàn',path:'../vhc/'},{code:'PHP',name:'Cảng Hải Phòng',path:'../php/'},{code:'FRT',name:'Bán lẻ Kỹ thuật số FPT',path:'../frt/'},{code:'DHC',name:'Đông Hải Bến Tre',path:'../dhc/'},{code:'CTD',name:'Coteccons',path:'../ctd/'},{code:'BWE',name:'Nước – Môi trường Bình Dương',path:'../bwe/'},{code:'HDG',name:'Tập đoàn Hà Đô',path:'../hdg/'},{code:'HAG',name:'Hoàng Anh Gia Lai',path:'../hag/'},{code:'MSH',name:'May Sông Hồng',path:'../msh/'},{code:'GMD',name:'Gemadept',path:'../gmd/'},{code:'NT2',name:'Điện lực Dầu khí Nhơn Trạch 2',path:'../nt2/'},{code:'DGW',name:'Thế Giới Số',path:'../dgw/'},{code:'BSR',name:'Lọc hóa dầu Bình Sơn',path:'../bsr/'},{code:'PLX',name:'Tập đoàn Xăng dầu Việt Nam',path:'../plx/'},{code:'HAH',name:'Vận tải và Xếp dỡ Hải An',path:'../hah/'},{code:'TNG',name:'Đầu tư và Thương mại TNG',path:'../tng/'},{code:'VOS',name:'Vận tải biển Việt Nam',path:'../vos/'},{code:'NTP',name:'Nhựa Tiền Phong',path:'../ntp/'},{code:'MSN',name:'Tập đoàn Masan',path:'../msn/'},{code:'PNJ',name:'Vàng bạc Đá quý Phú Nhuận',path:'../pnj/'},{code:'SIP',name:'Đầu tư Sài Gòn VRG',path:'../sip/'},{code:'VHM',name:'Vinhomes',path:'../vhm/'},{code:'BMP',name:'Nhựa Bình Minh',path:'../bmp/'},{code:'DCM',name:'Đạm Cà Mau',path:'../dcm/'}];
   const catalogPath='../stocks.json', catalogBase='../';
-  [["VCB", "Vietcombank"], ["BID", "BIDV"], ["CTG", "VietinBank"], ["TCB", "Techcombank"], ["MBB", "MB Bank"], ["ACB", "Ngân hàng Á Châu"], ["STB", "Sacombank"], ["VPB", "VPBank"], ["HDB", "HDBank"]].forEach(([code,name])=>stocks.push({code,name,path:catalogBase+code.toLowerCase()+'/'}));
+  [["VCB", "Vietcombank · Ngoại thương Việt Nam"], ["BID", "BIDV · Đầu tư và Phát triển Việt Nam"], ["CTG", "VietinBank · Công Thương Việt Nam"], ["TCB", "Techcombank · Kỹ Thương Việt Nam"], ["MBB", "MB Bank · Quân đội"], ["ACB", "ACB · Ngân hàng Á Châu"], ["STB", "Sacombank · Sài Gòn Thương Tín"], ["VPB", "VPBank · Việt Nam Thịnh Vượng"], ["HDB", "HDBank · Phát triển TP.HCM"]].forEach(([code,name])=>stocks.push({code,name,path:catalogBase+code.toLowerCase()+'/'}));
   async function refreshStocks(){
     try{
       const response=await fetch(catalogPath+'?t='+Date.now(),{cache:'no-store'});
@@ -8709,7 +8709,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='bmp',BUILD='0f5e32adfee5',URL_JSON='../version.json';
+  const PAGE='bmp',BUILD='d1ff5e41f899',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
