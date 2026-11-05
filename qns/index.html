@@ -8440,7 +8440,7 @@ html.fs-zoom-lock{overflow:hidden}
       if(!tb.querySelector('[data-zoom]')){const b=document.createElement('button');b.type='button';b.dataset.zoom='1';b.className='fs-zoom-btn';b.title='Phóng to chart (Esc để đóng)';b.setAttribute('aria-label','Phóng to chart');
         b.innerHTML='<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg>';
         b.onclick=e=>{e.stopPropagation();zoom(card)};tb.append(b)}
-      if(canCmp&&!tb.querySelector('[data-cmp]')){const b=document.createElement('button');b.type='button';b.dataset.cmp='1';b.className='fs-ic';b.innerHTML='<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 12.5l4-5 3 3 6-7"/><path d="M1.5 9l4 1.5 3-3.5 6 2" stroke-dasharray="1.6 1.8"/></svg>';b.title='So sánh với chỉ tiêu khác (ghép vào cùng chart)';b.setAttribute('aria-label','So sánh với chỉ tiêu khác');
+      if(canCmp&&!tb.querySelector('[data-cmp]')){const b=document.createElement('button');b.type='button';b.dataset.cmp='1';b.className='fs-ic';b.innerHTML='<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2v12h12"/><path d="M4.5 11l2.5-3 2 1.5"/><path d="M12 3v5M9.5 5.5h5"/></svg>';b.title='So sánh với chỉ tiêu khác (ghép vào cùng chart)';b.setAttribute('aria-label','So sánh với chỉ tiêu khác');
         b.onclick=e=>{e.stopPropagation();const f=compareFn(cv);if(!f||!f(cv.id,card))b.disabled=true};tb.prepend(b)}
       if((hasCtl||hasAxis)&&!tb.querySelector('[data-cust]')){const b=document.createElement('button');b.type='button';b.dataset.cust='1';b.className='fs-ic';b.innerHTML='<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="11" rx="2"/><path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3"/><path d="M5 9.5h1.5M9.5 9.5H11M5 12h1.5"/></svg>';b.setAttribute('aria-label','Tùy chỉnh chart');b.title='Tùy chỉnh: loại chart, trục giá trị (Từ 0 / Vừa dữ liệu), độ rộng cột. Nhấp đúp vào chart để hiện số.';b.setAttribute('aria-pressed','false');
         b.onclick=e=>{e.stopPropagation();const on=card.classList.toggle('fs-cust-on');b.setAttribute('aria-pressed',String(on))};tb.append(b)}
@@ -9446,7 +9446,7 @@ html.fs-zoom-lock{overflow:hidden}
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='qns',BUILD='957f6cec368d',URL_JSON='../version.json';
+  const PAGE='qns',BUILD='1e816dd4c92e',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
