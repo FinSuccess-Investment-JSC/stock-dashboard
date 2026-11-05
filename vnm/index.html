@@ -7870,7 +7870,9 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
     if(!toc){toc=document.createElement('nav'); toc.id='mktToc'; toc.className='mkt-toc'; toc.setAttribute('aria-label','Mục lục tab'); document.body.appendChild(toc);}
     const sec=document.querySelector('section.tab.active');
     // Chỉ tiêu đề khu vực (h2/h3.sec), bỏ tên từng chart cho gọn.
-    const heads=sec?[...sec.querySelectorAll('h2.sec, h3.sec')].filter(h=>h.offsetParent!==null&&title(h)):[];
+    const vis=q=>sec?[...sec.querySelectorAll(q)].filter(h=>h.offsetParent!==null&&title(h)):[];
+    let heads=vis('h2.sec, h3.sec');
+    if(heads.length<2) heads=vis('.card h3'); // tab chỉ có 1 khu vực: dùng tên chart (rút gọn)
     const short=h=>title(h).split(/\s+[—–]\s+/)[0].replace(/\s*\([^)]*\)\s*$/,'').trim();
     if(tocIO) tocIO.disconnect();
     if(heads.length<2){toc.innerHTML=''; toc.hidden=true; return;}
@@ -10919,7 +10921,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='vnm',BUILD='0dd49dc929fc',URL_JSON='../version.json';
+  const PAGE='vnm',BUILD='5e75cfc23fd9',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
