@@ -5445,26 +5445,12 @@ function bindAxisDrag(canvas){
   canvas.addEventListener('pointerup',end);canvas.addEventListener('pointercancel',end);
   canvas.addEventListener('dblclick',e=>{
     const chart=Chart.getChart(canvas);if(!chart)return;const p=pos(e),hit=axisAt(chart,p.x,p.y);
-    // Nhấp đúp trong vùng vẽ: phóng to chart (toàn màn hình card), nhấp đúp lần nữa/Esc để thu lại (người dùng chốt 05/11/2026). Số liệu bật ở nút trong Tùy chỉnh.
-    if(!hit){const ca=chart.chartArea;if(ca&&p.x>=ca.left&&p.x<=ca.right&&p.y>=ca.top&&p.y<=ca.bottom){e.preventDefault();window.getSelection&&getSelection().removeAllRanges();zoomCard(canvas);}return;}
+    // Nhấp đúp trong vùng vẽ: bật/tắt Số liệu (cùng trạng thái nút Số liệu, nhấp đúp lần nữa để tắt)
+    if(!hit){const ca=chart.chartArea;if(ca&&p.x>=ca.left&&p.x<=ca.right&&p.y>=ca.top&&p.y<=ca.bottom){const box=canvas.closest('.chart'),ctl=box&&box.querySelector(':scope > .axis-mode');if(ctl){e.preventDefault();window.getSelection&&getSelection().removeAllRanges();toggleValues(canvas.id,ctl);}}return;}
     const id=canvas.id,d=direct.get(id);
     if(d){restore(chart.options.scales[hit.key],d.base[hit.key]);if(modes[id]==='fit')fit(chart.options.scales[hit.key]);chart.update('none');}
     else if(typeof mk==='function'&&typeof chartBase!=='undefined'&&chartBase[id])mk(id,chartBase[id]);
   });
-}
-function zoomCard(canvas){
-  const card=canvas.closest('.card,.viz-block')||canvas.closest('.chart');if(!card)return;
-  const fs=document.fullscreenElement;
-  if(fs){document.exitFullscreen&&document.exitFullscreen().catch(()=>{});return;}
-  if(card.classList.contains('fs-zoomed')){card.classList.remove('fs-zoomed');document.documentElement.classList.remove('fs-zoom-lock');}
-  else if(card.requestFullscreen){card.requestFullscreen().catch(()=>{card.classList.add('fs-zoomed');document.documentElement.classList.add('fs-zoom-lock');});}
-  else{card.classList.add('fs-zoomed');document.documentElement.classList.add('fs-zoom-lock');}
-  setTimeout(()=>{const c=Chart.getChart(canvas);c&&c.resize()},80);
-}
-if(!window.__fsZoomInit){window.__fsZoomInit=1;
-  const st=document.createElement('style');st.textContent='.fs-zoomed{position:fixed!important;inset:12px!important;z-index:9999;width:auto!important;margin:0!important;overflow:auto;background:var(--card,#fff)!important;box-shadow:0 10px 40px rgba(0,0,0,.35)}.fs-zoomed .chart{height:calc(100vh - 220px)!important}html.fs-zoom-lock{overflow:hidden}';document.head.append(st);
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'){const z=document.querySelector('.fs-zoomed');if(z){z.classList.remove('fs-zoomed');document.documentElement.classList.remove('fs-zoom-lock');const c=z.querySelector('canvas');c&&Chart.getChart(c)&&setTimeout(()=>Chart.getChart(c).resize(),80);}}});
-  document.addEventListener('fullscreenchange',()=>setTimeout(()=>window.Chart&&Object.values(Chart.instances||{}).forEach(c=>{try{c.resize()}catch(e){}}),80));
 }
 function toggleValues(id,ctl){
   if(labels[id])delete labels[id];else labels[id]=1;
@@ -7764,7 +7750,7 @@ td.fsa-focus,th.fsa-focus{outline:2px solid ${TURQ};outline-offset:-2px}
 
 /* Thanh công cụ chart gọn (người dùng chốt 28/10/2026):
    - Hiện trực tiếp: Chu kỳ · Số kỳ · Chart/Bảng. Loại chart, trục Từ 0/Vừa dữ liệu, độ rộng cột −/+ gom vào nút "Tùy chỉnh".
-   - Nút "Số liệu" nằm trong Tùy chỉnh; nhấp đúp vào chart để phóng to (chart-explore.js, chốt 05/11/2026).
+   - Bỏ nút "Số liệu" trên từng chart: nhấp đúp vào chart để bật/tắt số (chart-explore.js).
    - "So sánh với…" ngay tại chart (mở khung Ghép chart dưới card, chọn chỉ tiêu thứ hai).
    - Bố cục Rộng / 2 cột cho toàn trang; chart mặc định thấp hơn; nhãn rõ cho các icon.
    Chỉ đổi DOM hiển thị bằng class, không di chuyển nút gốc nên handler của mk()/renderChartAxes giữ nguyên. */
@@ -7772,6 +7758,7 @@ td.fsa-focus,th.fsa-focus{outline:2px solid ${TURQ};outline-offset:-2px}
   const LKEY='fs_layout_v1';
   const get=k=>{try{return localStorage.getItem(k)}catch(e){return null}},set=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
   const css=`
+.chart .axis-mode .axis-values{display:none!important}
 .card:not(.fs-cust-on) h3.sub>.ctl,.card:not(.fs-cust-on) .chart>.axis-mode{display:none!important}
 .fs-tb{display:inline-flex;gap:6px;margin-left:auto;align-items:center}
 h3.sub .fs-tb{order:50}
@@ -7790,19 +7777,37 @@ h3.sub .fs-tb{order:50}
 }
 html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canvas){grid-template-columns:minmax(0,1fr)!important}
 @media(max-width:1099px){.fs-layout{display:none}}
-@media print{.fs-tb,.fs-layout{display:none!important}}`;
+.fs-tb .fs-zoom-btn{width:30px;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.fs-zoom-bg{position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.55)}
+.card.fs-zoomed{position:fixed!important;inset:56px 40px 32px!important;z-index:9999;width:auto!important;max-width:none!important;margin:0!important;overflow:auto;display:block!important;box-shadow:0 12px 48px rgba(0,0,0,.4)}
+.card.fs-zoomed .chart{height:calc(100vh - 240px)!important;min-height:360px}
+.fs-zoom-x{position:fixed;top:12px;right:28px;z-index:10000;width:34px;height:34px;border-radius:50%;border:2px solid #fff;background:rgba(0,0,0,.4);color:#fff;font:600 22px/1 Inter,Arial,sans-serif;cursor:pointer}
+html.fs-zoom-lock{overflow:hidden}
+@media(max-width:700px){.card.fs-zoomed{inset:48px 6px 6px!important}}
+@media print{.fs-zoom-btn,.fs-zoom-bg,.fs-zoom-x,.fs-tb,.fs-layout{display:none!important}}`;
 
   function compareFn(cv){for(let n=cv.parentElement;n;n=n.parentElement){const h=n.querySelector&&n.querySelector(':scope > h2.sec');if(h&&h._fsCompare)return h._fsCompare}return null}
+  // Icon ⛶ phóng to chart trong khung nổi (người dùng chốt 05/11/2026): nền mờ, nút × góc phải, Esc/bấm nền để đóng. Card giữ nguyên DOM nên mọi nút vẫn chạy.
+  let zcard=null,zbg=null,zx=null,zph=null;
+  const rs=()=>setTimeout(()=>window.Chart&&Object.values(Chart.instances||{}).forEach(c=>{try{c.resize()}catch(e){}}),60);
+  function unzoom(){if(!zcard)return;zcard.classList.remove('fs-zoomed');zph&&zph.parentNode&&zph.replaceWith(zcard);zph=null;zbg&&zbg.remove();zx&&zx.remove();document.documentElement.classList.remove('fs-zoom-lock');zcard=null;rs()}
+  function zoom(card){if(zcard===card)return unzoom();unzoom();zcard=card;zph=document.createComment('fs-zoom');card.replaceWith(zph);document.body.append(card);card.classList.add('fs-zoomed');document.documentElement.classList.add('fs-zoom-lock');
+    zbg=document.createElement('div');zbg.className='fs-zoom-bg';zbg.onclick=unzoom;document.body.append(zbg);
+    zx=document.createElement('button');zx.type='button';zx.className='fs-zoom-x';zx.setAttribute('aria-label','Đóng');zx.textContent='×';zx.onclick=unzoom;document.body.append(zx);rs()}
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&zcard)unzoom()});
   function decorate(){
     document.querySelectorAll('.card').forEach(card=>{
       const h=card.querySelector('h3.sub'),cv=card.querySelector('canvas');if(!h||!cv||card.querySelector('.card'))return;
       let tb=h.querySelector(':scope > .fs-tb');
       const ctl=h.querySelector(':scope > .ctl'),hasCtl=ctl&&ctl.style.display!=='none'&&ctl.children.length>1,hasAxis=!!card.querySelector('.chart>.axis-mode');
       const canCmp=typeof TSREG!=='undefined'&&cv.id&&TSREG[cv.id]&&!/^fsCombo/.test(cv.id)&&compareFn(cv);
-      if(!tb){if(!hasCtl&&!hasAxis&&!canCmp)return;tb=document.createElement('span');tb.className='fs-tb';h.append(tb)}
+      if(!tb){tb=document.createElement('span');tb.className='fs-tb';h.append(tb)}
+      if(!tb.querySelector('[data-zoom]')){const b=document.createElement('button');b.type='button';b.dataset.zoom='1';b.className='fs-zoom-btn';b.title='Phóng to chart (Esc để đóng)';b.setAttribute('aria-label','Phóng to chart');
+        b.innerHTML='<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg>';
+        b.onclick=e=>{e.stopPropagation();zoom(card)};tb.append(b)}
       if(canCmp&&!tb.querySelector('[data-cmp]')){const b=document.createElement('button');b.type='button';b.dataset.cmp='1';b.textContent='So sánh với…';b.title='Ghép chỉ tiêu khác vào cùng chart, ngay bên dưới';
         b.onclick=e=>{e.stopPropagation();const f=compareFn(cv);if(!f||!f(cv.id,card))b.disabled=true};tb.prepend(b)}
-      if((hasCtl||hasAxis)&&!tb.querySelector('[data-cust]')){const b=document.createElement('button');b.type='button';b.dataset.cust='1';b.textContent='Tùy chỉnh';b.title='Loại chart, trục giá trị (Từ 0 / Vừa dữ liệu), độ rộng cột, Số liệu. Nhấp đúp vào chart để phóng to.';b.setAttribute('aria-pressed','false');
+      if((hasCtl||hasAxis)&&!tb.querySelector('[data-cust]')){const b=document.createElement('button');b.type='button';b.dataset.cust='1';b.textContent='Tùy chỉnh';b.title='Loại chart, trục giá trị (Từ 0 / Vừa dữ liệu), độ rộng cột. Nhấp đúp vào chart để hiện số.';b.setAttribute('aria-pressed','false');
         b.onclick=e=>{e.stopPropagation();const on=card.classList.toggle('fs-cust-on');b.setAttribute('aria-pressed',String(on))};tb.append(b)}
       if(ctl&&tb.nextSibling!==null&&ctl.parentElement===h)h.append(ctl); // giữ .ctl sau cụm nút để xuống hàng khi mở Tùy chỉnh
     });
@@ -8806,7 +8811,7 @@ html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canv
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='sab',BUILD='c6b11b67e7fa',URL_JSON='../version.json';
+  const PAGE='sab',BUILD='971c4810d5c0',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
