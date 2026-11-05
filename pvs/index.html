@@ -10636,7 +10636,13 @@ h3.sub .fs-tb{order:50}
 }
 html.fs-wide .grid.g2:has(> .card canvas),html.fs-wide .grid.g3:has(> .card canvas){grid-template-columns:minmax(0,1fr)!important}
 @media(max-width:1099px){.fs-layout{display:none}}
-.fs-tb .fs-zoom-btn{width:30px;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.fs-tb .fs-ic{width:30px;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.fs-tb .fs-zoom-btn{position:absolute;top:18px;right:54px;z-index:3;width:32px;height:32px;padding:0;display:inline-grid;place-items:center;border:1px solid transparent;border-radius:10px;background:transparent;color:#7A819A}
+.fs-tb .fs-zoom-btn:hover,.fs-tb .fs-zoom-btn:focus-visible{color:var(--navy);background:#F0F2FA;border-color:var(--line)}
+.card:not(:has(> .fs-share-btn)) .fs-tb .fs-zoom-btn{right:18px}
+.card:has(.fs-zoom-btn){position:relative}
+.card:has(.fs-zoom-btn)>h3.sub{padding-right:84px}
+.card.fs-zoomed .fs-tb .fs-zoom-btn{color:var(--navy)}
 .fs-zoom-bg{position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.55)}
 .card.fs-zoomed{position:fixed!important;inset:56px 40px 32px!important;z-index:9999;width:auto!important;max-width:none!important;margin:0!important;overflow:auto;display:block!important;box-shadow:0 12px 48px rgba(0,0,0,.4)}
 .card.fs-zoomed .chart{height:calc(100vh - 240px)!important;min-height:360px}
@@ -10664,9 +10670,9 @@ html.fs-zoom-lock{overflow:hidden}
       if(!tb.querySelector('[data-zoom]')){const b=document.createElement('button');b.type='button';b.dataset.zoom='1';b.className='fs-zoom-btn';b.title='Phóng to chart (Esc để đóng)';b.setAttribute('aria-label','Phóng to chart');
         b.innerHTML='<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg>';
         b.onclick=e=>{e.stopPropagation();zoom(card)};tb.append(b)}
-      if(canCmp&&!tb.querySelector('[data-cmp]')){const b=document.createElement('button');b.type='button';b.dataset.cmp='1';b.textContent='So sánh với…';b.title='Ghép chỉ tiêu khác vào cùng chart, ngay bên dưới';
+      if(canCmp&&!tb.querySelector('[data-cmp]')){const b=document.createElement('button');b.type='button';b.dataset.cmp='1';b.className='fs-ic';b.innerHTML='<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 12.5l4-5 3 3 6-7"/><path d="M1.5 9l4 1.5 3-3.5 6 2" stroke-dasharray="1.6 1.8"/></svg>';b.title='So sánh với chỉ tiêu khác (ghép vào cùng chart)';b.setAttribute('aria-label','So sánh với chỉ tiêu khác');
         b.onclick=e=>{e.stopPropagation();const f=compareFn(cv);if(!f||!f(cv.id,card))b.disabled=true};tb.prepend(b)}
-      if((hasCtl||hasAxis)&&!tb.querySelector('[data-cust]')){const b=document.createElement('button');b.type='button';b.dataset.cust='1';b.textContent='Tùy chỉnh';b.title='Loại chart, trục giá trị (Từ 0 / Vừa dữ liệu), độ rộng cột. Nhấp đúp vào chart để hiện số.';b.setAttribute('aria-pressed','false');
+      if((hasCtl||hasAxis)&&!tb.querySelector('[data-cust]')){const b=document.createElement('button');b.type='button';b.dataset.cust='1';b.className='fs-ic';b.innerHTML='<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="11" rx="2"/><path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3"/><path d="M5 9.5h1.5M9.5 9.5H11M5 12h1.5"/></svg>';b.setAttribute('aria-label','Tùy chỉnh chart');b.title='Tùy chỉnh: loại chart, trục giá trị (Từ 0 / Vừa dữ liệu), độ rộng cột. Nhấp đúp vào chart để hiện số.';b.setAttribute('aria-pressed','false');
         b.onclick=e=>{e.stopPropagation();const on=card.classList.toggle('fs-cust-on');b.setAttribute('aria-pressed',String(on))};tb.append(b)}
       if(ctl&&tb.nextSibling!==null&&ctl.parentElement===h)h.append(ctl); // giữ .ctl sau cụm nút để xuống hàng khi mở Tùy chỉnh
     });
@@ -10834,7 +10840,7 @@ html.fs-zoom-lock{overflow:hidden}
       armed.__n=(armed.__n||0)+1; if(armed.__n>=2){armed.__n=0; armed.setAttribute('aria-pressed','false'); armed=null;}},true);
     const add=()=>document.querySelectorAll('.fs-tb').forEach(tb=>{ if(tb.querySelector('.fs-ab')) return; const card=tb.closest('.card'); if(!card||!card.querySelector('canvas')) return;
       const b=document.createElement('button'); b.type='button'; b.className='fs-ab'; b.textContent='A–B'; b.title='So sánh hai kỳ: bấm nút rồi bấm hai điểm trên chart (thay đổi, %, CAGR)'; b.setAttribute('aria-pressed','false'); tb.prepend(b);});
-    add(); setTimeout(add,1500); setTimeout(add,4000);
+    // Bỏ nút A–B theo yêu cầu người dùng 05/11/2026; Shift+bấm hai kỳ trên chart vẫn so sánh (ux-analytics).
   }
 
   function boot(){ header(); titles(); setTimeout(titles,1500); kpiLinks(); gantt(); projTableLinks(); cagrPatch();
@@ -11670,7 +11676,7 @@ html.fs-zoom-lock{overflow:hidden}
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='pvs',BUILD='7560b1a280e9',URL_JSON='../version.json';
+  const PAGE='pvs',BUILD='7b31d45f15fb',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
