@@ -6535,7 +6535,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
       const d=pv==null?null:pct?cd[i]-pv:(pv>0?(cd[i]/pv-1)*100:null);
       return {card,h,title:title.replace(/\s*\([^)]*\)\s*$/,''),unit,series:'',v:cd[i],lab:lb+'/'+cur.d.label,prevLab:pv==null?'':lb+'/'+prev.d.label,d,pct,data:seq.filter(x=>x!=null)};
     }
-    const pref=vis.find(o=>/hợp nhất|tổng|ròng|net/i.test(o.d.label||''));
+    const pref=vis.find(o=>/hợp nhất|ròng|\bnet\b|^\s*tổng(?!\s*thầu)/i.test(o.d.label||'')); // "Tổng thầu" là tên mảng, không phải chuỗi tổng
     let ds, data;
     if(pref){ ds=pref.d; data=ds.data.map(val); }
     else if(stacked&&bars.length>1){
@@ -9062,7 +9062,7 @@ html.fs-zoom-lock{overflow:hidden}
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='pvt',BUILD='4d6cbfe9c72f',URL_JSON='../version.json';
+  const PAGE='pvt',BUILD='e6061707f8a6',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
