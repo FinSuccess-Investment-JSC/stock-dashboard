@@ -5226,7 +5226,7 @@ renderBS=function(){
  +section('Tiền & dòng tiền',chartCard('pvsNetCash','Tiền mặt ròng (tỷ VND)',stockNote+' Tiền mặt ròng = tiền + đầu tư nắm giữ đến đáo hạn ngắn hạn − vay ngắn/dài hạn. Đường điều chỉnh trừ thêm khách hàng ứng trước ngắn/dài hạn; chưa loại trừ các tiền gửi hạn chế sử dụng khác.')+chartCard('pvsCfo','CFO & tiền chi đầu tư TSCĐ (tỷ VND)',periodNote+' CFO = lưu chuyển tiền thuần từ HĐKD. Chi đầu tư trình bày trị tuyệt đối mã 21 LCTT; không đồng nhất với tổng giải ngân đầu tư.'))
  +section('Vốn lưu động & tài trợ hợp đồng',chartCard('pvsReceivables','Phải thu khách hàng & HĐ xây dựng (tỷ VND)',stockNote+' Phải thu khách hàng ngắn hạn và phải thu theo tiến độ HĐXD là hai khoản riêng, cộng được; không cộng lại tổng phải thu ngắn hạn.')+chartCard('pvsFunding','Phải trả, chi phí phải trả & KH ứng trước (tỷ VND)',stockNote+' Phải trả người bán và chi phí phải trả: ngắn hạn; KH ứng trước: ngắn + dài hạn. Khoản chi phí phải trả dài hạn các năm cũ rất nhỏ, không gộp vào chuỗi này.'))
  +section('Tiến độ thi công & nguồn tài trợ',chartCard('pvsExecution','Phải thu HĐXD vs chi phí phải trả (tỷ VND)','Số dư cuối năm 2016–2025 hoặc Q1/2016–Q3/2026. Hai số dư cùng tăng có thể phản ánh khối lượng thi công tăng; cần đối chiếu nghiệm thu và thời hạn thanh toán. Không nội suy kỳ thiếu.','<div class="src"><a href="'+esc(D.balance.q1_2026.sourceUrl)+'" target="_blank" rel="noopener">PTSC · BCTC hợp nhất Q1/2026 ↗</a> · <a href="'+esc(D.provisionProjects.sourceUrl)+'" target="_blank" rel="noopener">PTSC · BCTC 6T/2026 soát xét ↗</a></div>')+chartCard('pvsAdvances','Khách hàng ứng trước / contract liabilities (tỷ VND)','Số dư cuối năm 2016–2025 hoặc Q1/2016–Q2/2026; gồm ngắn hạn + dài hạn. Chưa phân bổ theo dự án vì thuyết minh giữa các kỳ chưa nhất quán.'))
- +section('Doanh thu & khả năng thu tiền',chartCard('pvsRevenue','Doanh thu thuần hợp nhất (tỷ VND)',periodNote+' Nguồn BCTC hợp nhất; độc lập với bảng mảng analyst.')+chartCard('pvsArTurnover','Doanh thu / phải thu bình quân (lần)','Năm: doanh thu cả năm / bình quân phải thu đầu-cuối năm. Quý: doanh thu bốn quý gần nhất / bình quân phải thu cuối quý và cùng quý năm trước. Mẫu số = phải thu KH ngắn hạn + phải thu HĐXD. Kỳ đầu thiếu số đối chiếu để trống; không dùng chỉ tiêu này như DSO chính thức.'))
+ +section('Doanh thu & khả năng thu tiền',chartCard('pvsArTurnover','Doanh thu / phải thu bình quân (lần)','Năm: doanh thu cả năm / bình quân phải thu đầu-cuối năm. Quý: doanh thu bốn quý gần nhất / bình quân phải thu cuối quý và cùng quý năm trước. Mẫu số = phải thu KH ngắn hạn + phải thu HĐXD. Kỳ đầu thiếu số đối chiếu để trống; không dùng chỉ tiêu này như DSO chính thức.'))
  +section('Nguồn lợi nhuận',chartCard('pvsJv','Lãi từ liên doanh, liên kết (tỷ VND)',periodNote+' Phần lãi PVS đã ghi nhận theo phương pháp vốn chủ sở hữu.',jvDetails())+chartCard('pvsOther','Thu nhập khác ròng (tỷ VND)',periodNote+' Thu nhập khác ròng = thu nhập khác − chi phí khác; có thể chứa khoản không thường xuyên.')+chartCard('pvsFin','Thu nhập, chi phí tài chính & LNST (tỷ VND)',periodNote)+chartCard('pvsFinRatio','Lợi nhuận tài chính / LNST (%)',periodNote+' (Doanh thu tài chính − chi phí tài chính) / LNST hợp nhất.'))
  +section('Dự phòng',chartCard('pvsProvisions','Dự phòng phải trả (tỷ VND)',stockNote+' Gồm ngắn hạn và dài hạn; không đồng nhất toàn bộ với bảo hành Sao Vàng – Đại Nguyệt. Số dư giảm không tự động bằng thu nhập hoàn nhập.')+chartCard('pvsInventory','Hàng tồn kho (tỷ VND)',stockNote+' Tồn kho thuần sau dự phòng.'))
  +section('Dự phòng theo dự án · thuyết minh 28',chartCard('pvsProjectProvision','Số dư dự phòng theo dự án (tỷ VND)','6T/2026: trích thêm 357,35 tỷ cho hợp đồng rủi ro lớn; Gallaf 3 giảm 123,38 tỷ; CHW2204 chuyển 382,76 tỷ từ dài hạn sang ngắn hạn. Giảm chưa chắc là hoàn nhập ghi nhận vào lợi nhuận. Cột là số dư cuối kỳ, không phải chi phí kỳ.')+'<div class="card"><h3 class="sub">Tăng, giảm & phân loại trong 6T/2026</h3><p class="note">'+esc(D.provisionProjects.note)+'</p><details class="dd"><summary>Chi tiết từng dự án · mở bảng</summary><div class="body"><div class="tbl-wrap"><table id="pvsProjectProvisionTable"></table></div></div></details><div class="src"><a href="'+esc(D.provisionProjects.sourceUrl)+'" target="_blank" rel="noopener">PTSC · BCTC 6T/2026 soát xét, thuyết minh 28, tr. 51–52 ↗</a></div></div>')
@@ -5248,7 +5248,6 @@ renderBS=function(){
  pvsLongChart('pvsFunding',[pvsMetric('Phải trả người bán','payables'),pvsMetric('Chi phí phải trả','accruals'),{name:'KH ứng trước (NH+DH)',value:r=>pvsSum(v(r,'advancesShort'),v(r,'advancesLong'))}],{stacked:true});
  pvsLongChart('pvsExecution',[pvsMetric('Phải thu theo tiến độ HĐXD','contractAssets'),pvsMetric('Chi phí phải trả','accruals')],{type:'line'});
  pvsLongChart('pvsAdvances',[pvsMetric('Ứng trước ngắn hạn','advancesShort'),pvsMetric('Ứng trước dài hạn','advancesLong')],{stacked:true});
- pvsLongChart('pvsRevenue',[pvsMetric('Doanh thu thuần','revenue')]);
  const ar=r=>pvsSum(v(r,'receivables'),v(r,'contractAssets'));
  pvsLongChart('pvsArTurnover',[{name:'Doanh thu / phải thu bình quân',value:(r,i,rows)=>{
    const lag=r.quarter===0?1:4;if(i<lag)return null;
@@ -6537,7 +6536,7 @@ const questionTests={
   {evidence:['segRev','mwgFinanceOperatingMargin'],forecast:'ICT-CE: g_ict, m_ict; phân biệt tăng doanh thu với cải thiện lợi nhuận'},
   {evidence:['mwgFinanceInventory','mwgFinanceCCC'],forecast:'Rủi ro vốn lưu động/định giá; model hiện chưa forecast CFO, không suy ra dòng tiền tương lai'}],
  PVS:[
-  {evidence:['pvsRevenue','pvsReceivables'],forecast:'Growth và biên M&C theo backlog; phải thu/tiến độ thu tiền kiểm tra chất lượng chuyển đổi'},
+  {evidence:['income10Revenue','pvsReceivables'],forecast:'Growth và biên M&C theo backlog; phải thu/tiến độ thu tiền kiểm tra chất lượng chuyển đổi'},
   {evidence:['pvsJv'],forecast:'Tách LN liên doanh khỏi forecast lợi nhuận theo mảng hợp nhất'},
   {evidence:['pvsNetCash','pvsFunding'],forecast:'Adjusted Net Cash trong SOTP sau ứng trước khách hàng'}],
  HPG:[
@@ -11676,7 +11675,7 @@ html.fs-zoom-lock{overflow:hidden}
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='pvs',BUILD='7b31d45f15fb',URL_JSON='../version.json';
+  const PAGE='pvs',BUILD='2665fb602664',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;

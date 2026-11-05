@@ -3792,7 +3792,7 @@ const questionTests={
   {evidence:['segRev','mwgFinanceOperatingMargin'],forecast:'ICT-CE: g_ict, m_ict; phân biệt tăng doanh thu với cải thiện lợi nhuận'},
   {evidence:['mwgFinanceInventory','mwgFinanceCCC'],forecast:'Rủi ro vốn lưu động/định giá; model hiện chưa forecast CFO, không suy ra dòng tiền tương lai'}],
  PVS:[
-  {evidence:['pvsRevenue','pvsReceivables'],forecast:'Growth và biên M&C theo backlog; phải thu/tiến độ thu tiền kiểm tra chất lượng chuyển đổi'},
+  {evidence:['income10Revenue','pvsReceivables'],forecast:'Growth và biên M&C theo backlog; phải thu/tiến độ thu tiền kiểm tra chất lượng chuyển đổi'},
   {evidence:['pvsJv'],forecast:'Tách LN liên doanh khỏi forecast lợi nhuận theo mảng hợp nhất'},
   {evidence:['pvsNetCash','pvsFunding'],forecast:'Adjusted Net Cash trong SOTP sau ứng trước khách hàng'}],
  HPG:[
@@ -8931,7 +8931,7 @@ html.fs-zoom-lock{overflow:hidden}
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='frt',BUILD='c7112f152c35',URL_JSON='../version.json';
+  const PAGE='frt',BUILD='990aa0e6f5c7',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
