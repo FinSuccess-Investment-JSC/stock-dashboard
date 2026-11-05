@@ -1223,6 +1223,17 @@ main.wrap>.major-tabs{margin:8px 0!important}
 :root[data-theme=dark] :is(.tabs-inner,.majortabs,.major-tabs){background:#161616!important;box-shadow:0 4px 16px rgba(0,0,0,.5)!important}
 :root[data-theme=dark] :is(.tabs-inner>button[data-tab],.majortabbtn):not(.active):hover{background:#2A2A2A!important;color:#fff!important}
 }
+
+/* Mục lục "Trong tab" (05/11/2026): chỉ tiêu đề khu vực, khay trắng cùng kiểu card, màu chữ theo dashboard */
+html .mkt-toc{width:180px;padding:12px 10px;border:1px solid #D6DDE8;border-left:1px solid #D6DDE8;border-radius:12px;background:#fff;box-shadow:0 1px 2px rgba(15,23,42,.06),0 4px 14px rgba(15,23,42,.06);font:13px/1.35 Inter,Arial,sans-serif}
+html .mkt-toc .h{font-size:11px;font-weight:600;letter-spacing:.5px;color:#64748B;margin:0 0 6px 6px}
+html .mkt-toc a{margin:0;padding:6px 8px;border:0;border-radius:8px;color:#334155;font-weight:500}
+html .mkt-toc a:hover{color:#243878;background:#F1F4FA}
+html .mkt-toc a.on{color:#fff;background:#1D2678;font-weight:600}
+:root[data-theme=dark] .mkt-toc{background:#161616;border-color:#2A2A2A;box-shadow:none}
+:root[data-theme=dark] .mkt-toc a{color:#F5F5F5}
+:root[data-theme=dark] .mkt-toc a:hover{background:#222;color:#59C5C8}
+:root[data-theme=dark] .mkt-toc a.on{background:#59C5C8;color:#0A0A0A}
 </style>
 <style>
 body{margin:0;background:var(--bg);color:var(--ink)}

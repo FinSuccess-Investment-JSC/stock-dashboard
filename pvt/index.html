@@ -1814,6 +1814,17 @@ main.wrap>.major-tabs{margin:8px 0!important}
 :root[data-theme=dark] :is(.tabs-inner>button[data-tab],.majortabbtn):not(.active):hover{background:#2A2A2A!important;color:#fff!important}
 }
 
+/* Mục lục "Trong tab" (05/11/2026): chỉ tiêu đề khu vực, khay trắng cùng kiểu card, màu chữ theo dashboard */
+html .mkt-toc{width:180px;padding:12px 10px;border:1px solid #D6DDE8;border-left:1px solid #D6DDE8;border-radius:12px;background:#fff;box-shadow:0 1px 2px rgba(15,23,42,.06),0 4px 14px rgba(15,23,42,.06);font:13px/1.35 Inter,Arial,sans-serif}
+html .mkt-toc .h{font-size:11px;font-weight:600;letter-spacing:.5px;color:#64748B;margin:0 0 6px 6px}
+html .mkt-toc a{margin:0;padding:6px 8px;border:0;border-radius:8px;color:#334155;font-weight:500}
+html .mkt-toc a:hover{color:#243878;background:#F1F4FA}
+html .mkt-toc a.on{color:#fff;background:#1D2678;font-weight:600}
+:root[data-theme=dark] .mkt-toc{background:#161616;border-color:#2A2A2A;box-shadow:none}
+:root[data-theme=dark] .mkt-toc a{color:#F5F5F5}
+:root[data-theme=dark] .mkt-toc a:hover{background:#222;color:#59C5C8}
+:root[data-theme=dark] .mkt-toc a.on{background:#59C5C8;color:#0A0A0A}
+
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet"><style>
 .stock-search{max-width:1440px;margin:16px auto 0;padding:0 24px}
@@ -6174,11 +6185,13 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
     let toc=$('mktToc');
     if(!toc){toc=document.createElement('nav'); toc.id='mktToc'; toc.className='mkt-toc'; toc.setAttribute('aria-label','Mục lục tab'); document.body.appendChild(toc);}
     const sec=document.querySelector('section.tab.active');
-    const heads=sec?[...sec.querySelectorAll('.card h3, h3.sec')].filter(h=>h.offsetParent!==null&&title(h)):[];
+    // Chỉ tiêu đề khu vực (h2/h3.sec), bỏ tên từng chart cho gọn.
+    const heads=sec?[...sec.querySelectorAll('h2.sec, h3.sec')].filter(h=>h.offsetParent!==null&&title(h)):[];
+    const short=h=>title(h).split(/\s+[—–]\s+/)[0].replace(/\s*\([^)]*\)\s*$/,'').trim();
     if(tocIO) tocIO.disconnect();
-    if(heads.length<3){toc.innerHTML=''; toc.hidden=true; return;}
+    if(heads.length<2){toc.innerHTML=''; toc.hidden=true; return;}
     toc.hidden=false;
-    toc.innerHTML='<div class="h">Trong tab</div>'+heads.map((h,i)=>`<a href="#" data-i="${i}" class="${h.classList.contains('sec')?'grp':''}">${esc(title(h))}</a>`).join('');
+    toc.innerHTML='<div class="h">Trong tab</div>'+heads.map((h,i)=>`<a href="#" data-i="${i}">${esc(short(h))}</a>`).join('');
     toc.onclick=e=>{const a=e.target.closest('a[data-i]'); if(!a) return; e.preventDefault(); reveal(heads[+a.dataset.i]);};
     const links=[...toc.querySelectorAll('a')];
     tocIO=new IntersectionObserver(ents=>{
@@ -9062,7 +9075,7 @@ html.fs-zoom-lock{overflow:hidden}
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='pvt',BUILD='e6061707f8a6',URL_JSON='../version.json';
+  const PAGE='pvt',BUILD='02d80e249230',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
