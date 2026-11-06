@@ -3921,6 +3921,67 @@ function financeCharts(){
 document.addEventListener('DOMContentLoaded',()=>{try{business();model();applyChartTips();}catch(e){console.error('FPT',e);document.documentElement.dataset.fptError=e.message}});
 })();
 
+/* FPT — Doanh thu / LNTT theo mảng dạng cột nhóm YoY (phiếu analyst 06/11/2026).
+   Trục ngang Q1–Q4, mỗi năm một cột; chọn mảng, năm, Giá trị / YoY %. Chỉ dùng PVS_DATA.segments.quarterly
+   (riêng quý, LNTT theo bộ phận). Số tháng của FPT là lũy kế T1+T2 gộp nên chưa dựng chế độ Tháng. */
+(()=>{
+const YC={2021:'#CBD5E1',2022:'#94A3B8',2023:'#8997D6',2024:'#59C5C8',2025:'#2938A8',2026:'#861C52'};
+const fm=v=>v==null?'—':Number(v).toLocaleString('vi-VN',{maximumFractionDigits:2});
+const st={seg:0,mode:'v',years:null,labels:false};
+const KEY='fpt_seg_yoy_v1'; try{Object.assign(st,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}
+function data(){
+ const s=window.PVS_DATA.segments||{},q=s.quarterly||{};const names=q.names||s.names||[];
+ const by={};(q.labels||[]).forEach((l,i)=>{const m=/Q(\d)\/(\d{2})/.exec(l);if(m)(by[2000+ +m[2]]=by[2000+ +m[2]]||{})[+m[1]]=i});
+ return {names,by,q,years:Object.keys(by).map(Number).sort()};
+}
+function val(M,d,sg,y,qq){const i=(d.by[y]||{})[qq];if(i==null||!M[sg])return null;const v=M[sg][i];return v==null?null:v}
+function yoy(M,d,sg,y,qq,pbt){const c=val(M,d,sg,y,qq),p=val(M,d,sg,y-1,qq);
+ if(c==null||p==null)return {};const diff=c-p;
+ if(p<=0||(pbt&&c<0))return {diff,pct:null,state:p<=0&&c>0?'chuyển sang lãi':c<0?(p<0?'lỗ':'chuyển sang lỗ'):'kỳ gốc ≤ 0'};
+ return {diff,pct:(c/p-1)*100};}
+function build(){
+ if(document.getElementById('fptYoyRev')||!window.Chart||typeof mk!=='function')return false;
+ const d=data();if(!d.years.length||!document.getElementById('segRev'))return false;
+ if(!st.years)st.years=d.years.slice(-3);
+ if(!document.getElementById('fptycCss')){const e=document.createElement('style');e.id='fptycCss';e.textContent='.fptyc{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:0 0 8px;font-size:11.5px}.fptyc .lb{font-weight:600;letter-spacing:.5px;color:#64748B}.fptyc select{height:28px;font-size:12.5px;max-width:190px}.fptyc .sep{width:6px}';document.head.appendChild(e)}
+ const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
+ const revOld=document.getElementById('segRev').closest('.card'),pbtOld=document.getElementById('segGP').closest('.card');
+ const specs=[{id:'fptYoyRev',M:d.q.revenue,t:'Doanh thu theo mảng (tỷ VND)',n:'Doanh thu thuần bộ phận (tỷ VND), riêng quý = lũy kế trừ kỳ trước cùng mảng, Q4 = năm − 9T. YoY = giá trị / cùng quý năm trước − 1.',pbt:false,old:revOld},
+  {id:'fptYoyPbt',M:d.q.profit,t:'LNTT theo mảng (tỷ VND)',n:'Lợi nhuận trước thuế theo bộ phận (không phải LNST). YoY chỉ tính khi kỳ gốc và kỳ hiện tại đều dương; ngược lại hiện chênh lệch tuyệt đối và trạng thái lỗ/lãi. Giáo dục, đầu tư & khác đã gồm loại trừ hợp nhất.',pbt:true,old:pbtOld}];
+ let prev=revOld.parentElement;
+ specs.forEach(sp=>{
+  const c=document.createElement('div');c.className='card';c.id=sp.id+'Card';
+  c.innerHTML=`<h3 class="sub">${sp.t}</h3><div class="fptyc"><span class="lb">MẢNG</span><select data-k="seg">${d.names.map((n,i)=>`<option value="${i}">${n}</option>`).join('')}</select><span class="sep"></span><span class="lb">HIỂN THỊ</span><select data-k="mode"><option value="v">Giá trị (tỷ VND)</option><option value="y">Tăng trưởng YoY (%)</option></select><span class="sep"></span><span class="lb">NHÃN</span><select data-k="labels"><option value="0">Tắt</option><option value="1">Bật</option></select></div><div class="fptyc"><span class="lb">NĂM</span>${d.years.map(y=>`<label style="display:inline-flex;gap:3px;align-items:center;margin-right:6px"><input type="checkbox" data-y="${y}"><span style="color:${YC[y]||'#2938A8'};font-weight:600">${y}</span></label>`).join('')}</div><div class="chart xl"><canvas id="${sp.id}"></canvas></div><div class="note">${sp.n} Chỉ hiện kỳ đã có số thực tế; kỳ chưa có để trống, không thay bằng 0. Nguồn: thuyết minh Báo cáo bộ phận BCTC hợp nhất quý.</div><details class="dd"><summary>Bảng số liệu và YoY</summary><div class="body"><div class="tbl-wrap" id="${sp.id}Tbl"></div></div></details>`;
+  sp.card=c;prev.after(c);prev=c;sp.old.style.display='none';
+ });
+ const sync=()=>specs.forEach(sp=>{const c=sp.card;c.querySelector('[data-k=seg]').value=st.seg;c.querySelector('[data-k=mode]').value=st.mode;c.querySelector('[data-k=labels]').value=st.labels?'1':'0';c.querySelectorAll('[data-y]').forEach(i=>i.checked=st.years.includes(+i.dataset.y))});
+ function cfg(sp){
+  const ys=d.years.filter(y=>st.years.includes(y)),pct=st.mode==='y',nm=d.names[st.seg];
+  const ds=ys.map(y=>({label:String(y),backgroundColor:YC[y]||'#2938A8',borderRadius:2,maxBarThickness:26,categoryPercentage:.85,barPercentage:.9,
+   data:[1,2,3,4].map(qq=>pct?(yoy(sp.M,d,st.seg,y,qq,sp.pbt).pct??null):val(sp.M,d,st.seg,y,qq))}));
+  const lab={id:'fptYoyLab',afterDatasetsDraw(ch){if(!st.labels)return;const x=ch.ctx;x.save();x.font='600 10px Inter,sans-serif';x.textAlign='center';
+   ch.data.datasets.forEach((s,di)=>{const y=ys[di];ch.getDatasetMeta(di).data.forEach((b,qi)=>{const v=s.data[qi];if(v==null)return;const r=yoy(sp.M,d,st.seg,y,qi+1,sp.pbt);const t=pct?(v>0?'+':'')+fm(v)+'%':(r.pct==null?fm(v):(r.pct>0?'+':'')+fm(r.pct)+'%');
+    x.fillStyle=pct||r.pct!=null?(( pct?v:r.pct)>=0?'#15803D':'#B91C1C'):'#475569';x.fillText(t,b.x,v<0?b.y+12:b.y-4)})});x.restore()}};
+  return {type:'bar',plugins:[lab],data:{labels:['Q1','Q2','Q3','Q4'],datasets:ds},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:st.labels?14:0}},interaction:{mode:'index',intersect:false},
+   plugins:{legend:{position:'bottom',labels:{boxWidth:10,boxHeight:10,usePointStyle:true,font:{size:11}}},
+    tooltip:{callbacks:{title:it=>nm+' — '+(sp.pbt?'LNTT':'Doanh thu')+' '+it[0].label,
+     label:c=>{const y=ys[c.datasetIndex],qq=c.dataIndex+1,cur=val(sp.M,d,st.seg,y,qq);if(cur==null)return c.dataset.label+': chưa có số liệu';const r=yoy(sp.M,d,st.seg,y,qq,sp.pbt),p=val(sp.M,d,st.seg,y-1,qq);
+      let s=`Q${qq}/${y}: ${fm(cur)} tỷ`;s+=p==null?' · cùng kỳ: chưa có':` · cùng kỳ Q${qq}/${y-1}: ${fm(p)} tỷ · chênh ${r.diff>0?'+':''}${fm(r.diff)} tỷ`;
+      s+=r.pct!=null?` · YoY ${r.pct>0?'+':''}${fm(r.pct)}%`:(r.state?` · YoY n/a (${r.state})`:'');return s},
+     labelTextColor:c=>{const r=yoy(sp.M,d,st.seg,ys[c.datasetIndex],c.dataIndex+1,sp.pbt);return r.pct==null?'#fff':r.pct>=0?'#86EFAC':'#FCA5A5'}}}},
+   scales:{x:{grid:{display:false},ticks:{font:{size:12,weight:'600'}}},y:{grid:{color:'#EEF0F6'},ticks:{callback:v=>pct?fm(v)+'%':fm(v)}}}}};
+ }
+ function table(sp){const ys=d.years.filter(y=>st.years.includes(y));let h='<table><tr><th>Quý</th>'+ys.map(y=>`<th class="num">${y}</th><th class="num">YoY ${y}</th>`).join('')+'</tr>';
+  [1,2,3,4].forEach(qq=>{h+=`<tr><td>Q${qq}</td>`+ys.map(y=>{const v=val(sp.M,d,st.seg,y,qq),r=yoy(sp.M,d,st.seg,y,qq,sp.pbt);return `<td class="num">${fm(v)}</td><td class="num">${r.pct!=null?(r.pct>0?'+':'')+fm(r.pct)+'%':(r.state||'—')}</td>`}).join('')+'</tr>'});
+  document.getElementById(sp.id+'Tbl').innerHTML=h+'</table>'}
+ function draw(){sync();specs.forEach(sp=>{mk(sp.id,cfg(sp));table(sp)});if(typeof applyChartTips==='function')applyChartTips()}
+ specs.forEach(sp=>{sp.card.addEventListener('change',e=>{const t=e.target;if(t.dataset.k==='seg')st.seg=+t.value;else if(t.dataset.k==='mode')st.mode=t.value;else if(t.dataset.k==='labels')st.labels=t.value==='1';else if(t.dataset.y){const y=+t.dataset.y;st.years=t.checked?[...st.years,y]:st.years.filter(k=>k!==y);if(!st.years.length)st.years=[y]}save();draw()})});
+ draw();return true;
+}
+const go=(n=0)=>{try{if(!build()&&n<20)setTimeout(()=>go(n+1),500)}catch(e){console.error('FPT YoY',e)}};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(go,700));else setTimeout(go,700);
+})();
+
 </script>
 
 <script>window.FINANCE_INPUTS = {
@@ -9330,7 +9391,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='fpt',BUILD='05bea8980231',URL_JSON='../version.json';
+  const PAGE='fpt',BUILD='5abe507f4d0f',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
