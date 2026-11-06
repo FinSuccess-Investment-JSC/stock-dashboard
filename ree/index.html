@@ -1885,6 +1885,18 @@ table.is-sheet tbody tr:nth-child(even) td{background:#fff}
 :root[data-theme=dark] table.is-sheet td{background:#161616;color:#F5F5F5;border-color:#2A2A2A}
 :root[data-theme=dark] table.is-sheet tr.total td{background:#1C2553;color:#59C5C8}
 
+/* Tiến độ so với forecast dạng thanh (forecast-progress.js, 06/11/2026) */
+.fp-chart{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px 32px;margin:6px 0 10px}
+.fp-name{font-weight:650;color:#243878;margin-bottom:8px}.fp-name span{font-weight:400;color:#64748B;font-size:12.5px;margin-left:6px}
+.fp-row{display:grid;grid-template-columns:110px 1fr 120px;align-items:center;gap:10px;margin:7px 0}
+.fp-case{font-size:12.5px;color:#64748B;font-weight:600}
+.fp-track{position:relative;height:18px;background:#EEF1F6;border-radius:5px}
+.fp-fill{position:absolute;inset:0 auto 0 0;background:#8997D6;border-radius:5px}.fp-fill.ok{background:#1D2678}
+.fp-mark{position:absolute;top:-4px;bottom:-4px;width:2px;background:#D4A72C}
+.fp-full{position:absolute;top:-4px;bottom:-4px;width:0;border-left:2px dashed #94A3B8}
+.fp-val{font-variant-numeric:tabular-nums;font-size:13.5px}.fp-val b{color:#1D2678}.fp-val span{color:#64748B;font-size:12px;margin-left:4px}
+:root[data-theme=dark] .fp-track{background:#2A2A2A}:root[data-theme=dark] .fp-name,:root[data-theme=dark] .fp-val b{color:#59C5C8}
+
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet"><style>
 .stock-search{max-width:1440px;margin:16px auto 0;padding:0 24px}
@@ -8516,7 +8528,14 @@ html.fs-zoom-lock{overflow:hidden}
     const notes=['Lũy kế thực tế = tổng các quý riêng đã công bố của '+fyName+' ('+period.quarters.map(([y,q])=>'Q'+q+'/'+y).join(', ')+'). % = lũy kế thực tế ÷ forecast cả năm trong model; chưa điều chỉnh tính mùa vụ, không phải dự báo cả năm. Đổi giả định thì % tự tính lại.'];
     if(model.profit&&!/mẹ/i.test(model.profit.name))notes.push('Forecast dùng dòng “'+model.profit.name+'”; thực tế là LNST cổ đông mẹ.');
     if(!model.revenue)notes.push('Model không dự phóng doanh thu hợp nhất nên % doanh thu để trống.');
-    return {sig,body:'<h3 class="sub">Tiến độ so với forecast '+fyName+' · '+label+'</h3><div class="tbl-wrap"><table><thead><tr><th>Tỷ VND</th><th class="num">Thực tế '+label+'</th>'+model.col.map(c=>'<th class="num">'+(multi?c.label:'Forecast '+c.label)+'</th><th class="num">% forecast</th>').join('')+'</tr></thead><tbody>'+line('Doanh thu thuần',rev,model.revenue)+line('LNST cổ đông mẹ',prof,model.profit)+'</tbody></table></div><div class="note">'+notes.join(' ')+'</div>'};
+    // Chart thanh tiến độ (người dùng chốt 06/11/2026: vẽ thay bảng). Vạch vàng = phần năm đã qua (số tháng ÷ 12).
+    const elapsed=months/12*100,cap=v=>Math.max(0,Math.min(v,120));
+    const bars=(name,actual,found)=>'<div class="fp-metric"><div class="fp-name">'+name+' <span>thực tế '+label+': <b>'+fmt(actual)+'</b> tỷ</span></div>'+model.col.map((c,i)=>{
+      const f=found?found.values[i]:null,v=actual!=null&&f!=null&&f>0?actual/f*100:null;
+      return '<div class="fp-row"><div class="fp-case">'+(multi?c.label:'Forecast '+c.label)+'</div><div class="fp-track" title="'+name+': '+fmt(actual)+' / '+fmt(f)+' tỷ"><div class="fp-fill'+(v!=null&&v>=elapsed?' ok':'')+'" style="width:'+(v==null?0:cap(v)/1.2)+'%"></div><i class="fp-mark" style="left:'+(elapsed/1.2)+'%"></i><i class="fp-full" style="left:'+(100/1.2)+'%"></i></div><div class="fp-val"><b>'+pct(v)+'</b><span>/ '+fmt(f)+'</span></div></div>';
+    }).join('')+'</div>';
+    notes.push('Vạch vàng = '+months+'/12 tháng đã qua ('+pct(elapsed)+'); vạch xám = 100% forecast cả năm. Thanh đậm khi tiến độ ≥ phần năm đã qua.');
+    return {sig,body:'<h3 class="sub">Tiến độ so với forecast '+fyName+' · '+label+'</h3><div class="fp-chart">'+bars('Doanh thu thuần',rev,model.revenue)+bars('LNST cổ đông mẹ',prof,model.profit)+'</div><details class="dd"><summary>Bảng số</summary><div class="tbl-wrap"><table><thead><tr><th>Tỷ VND</th><th class="num">Thực tế '+label+'</th>'+model.col.map(c=>'<th class="num">'+(multi?c.label:'Forecast '+c.label)+'</th><th class="num">% forecast</th>').join('')+'</tr></thead><tbody>'+line('Doanh thu thuần',rev,model.revenue)+line('LNST cổ đông mẹ',prof,model.profit)+'</tbody></table></div></details><div class="note">'+notes.join(' ')+'</div>'};
   }
   let last='',timer=0;
   function update(){
@@ -9343,7 +9362,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='ree',BUILD='ddc4acf6571a',URL_JSON='../version.json';
+  const PAGE='ree',BUILD='819324a28bc3',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
