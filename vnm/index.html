@@ -7351,7 +7351,7 @@ const wmPlugin={id:'fsWatermark',beforeDatasetsDraw(chart){
   if(window.matchMedia&&matchMedia('print').matches)return;
   const w=a.right-a.left,h=a.bottom-a.top;if(w<160||h<80)return;
   const dark=document.documentElement.classList.contains('dark')||document.documentElement.dataset.theme==='dark';
-  const ctx=chart.ctx,cx=a.left+w/2,cy=a.top+h/2,big=Math.min(w*0.13,h*0.22,64),small=Math.max(9,big*0.28);
+  const ctx=chart.ctx,cx=a.left+w/2,cy=a.top+h*0.3,big=Math.min(w*0.13,h*0.22,64),small=Math.max(9,big*0.28);
   ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';
   ctx.fillStyle=dark?'rgba(255,255,255,.06)':'rgba(29,38,120,.06)';
   ctx.font=`800 ${big}px Inter, Arial, sans-serif`;ctx.fillText('FinSuccess',cx,cy-small*0.6);
@@ -11210,7 +11210,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='vnm',BUILD='778ee960eb19',URL_JSON='../version.json';
+  const PAGE='vnm',BUILD='d09d4496c68c',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
