@@ -3740,7 +3740,35 @@ function finance(){const host=$('bs'),f=p.finance,series=(k,label,sign=1)=>({lab
  chart(host,'reeParentReceipts','Lãi & cổ tức thực nhận tại mẹ',[series('parentReceipts','Lãi & cổ tức đã nhận')],'tỷ VND','BCTC riêng công ty mẹ dòng tiền lãi & cổ tức nhận; gồm lãi cho vay, không chỉ cổ tức. Q4 = cả năm − Q1–Q3; số quý mô hình làm tròn.',false,'bar',f.years,[qs('parentReceipts','Lãi & cổ tức đã nhận')]);
  const details=document.createElement('details');details.className='dd';details.innerHTML='<summary>Đầu tư dở dang & cổ đông không kiểm soát</summary>';host.append(details);chart(details,'reeCWIP','XDCB dở dang',[series('cwip','XDCB dở dang')],'tỷ VND','BCTC hợp nhất dòng 54; số dư cuối kỳ, không phải CAPEX trong kỳ.',false,'bar',f.years,[qs('cwip','XDCB dở dang')]);chart(details,'reeNCI','Vốn thuộc CĐ không kiểm soát',[series('nci','NCI trên bảng cân đối')],'tỷ VND','BCTC hợp nhất dòng 116; NCI vốn chủ khác phần LNST NCI trên P&L.',false,'bar',f.years,[qs('nci','NCI trên bảng cân đối')]);
 }
-document.addEventListener('DOMContentLoaded',()=>{try{business();finance();model();applyChartTips();}catch(e){console.error('REE',e);document.documentElement.dataset.reeError=e.message;}});
+function segYoY(){const Q=D.segments.quarterly,anchor=$('segRev')&&$('segRev').closest('.card');if(!Q||!Q.labels||!Q.revenue||!anchor)return;
+ const names=D.segments.names,KEY='ree_segyoy_v1',YC={2021:'#CBD5E1',2022:'#94A3B8',2023:'#8997D6',2024:'#59C5C8',2025:'#2938A8',2026:'#861C52',2027:'#1D2678'};
+ const pos=Q.labels.map(l=>{const m=/Q(\d)\/(\d{2})/.exec(l);return m?{q:+m[1],y:2000+ +m[2]}:null;});
+ const years=[...new Set(pos.filter(Boolean).map(x=>x.y))].sort();
+ const val=(s,y,q)=>{const i=pos.findIndex(x=>x&&x.y===y&&x.q===q);if(i<0)return null;const v=Q.revenue[s]&&Q.revenue[s][i];return v==null?null:v;};
+ const yoy=(s,y,q)=>{const c=val(s,y,q),p=val(s,y-1,q);return c==null||p==null||p<=0?null:(c/p-1)*100;};
+ let st={s:0,n:3,mode:'v',lab:false};try{Object.assign(st,JSON.parse(localStorage.getItem(KEY)||'{}'));}catch(e){}
+ if(!(st.s>=0&&st.s<names.length))st.s=0;
+ const f0=v=>v==null?'N/A':Number(v).toLocaleString('vi-VN',{maximumFractionDigits:0}),f1=v=>v==null?'N/A':(v>0?'+':'')+Number(v).toLocaleString('vi-VN',{maximumFractionDigits:1})+'%';
+ const card=document.createElement('div');card.className='card ree-card';card.id='reeSegYoYCard';
+ card.innerHTML='<h3 class="sub">Doanh thu theo mảng — so cùng kỳ</h3><div class="reeyoy-ctl" style="display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:0 0 8px;font-size:12.5px"><span class="lb" style="font-weight:600;letter-spacing:.5px;color:#64748B">MẢNG</span><select id="reeSegYoYSeg" style="width:auto;min-width:0;max-width:170px" aria-label="Mảng kinh doanh">'+names.map((n,i)=>'<option value="'+i+'">'+n+'</option>').join('')+'</select><span class="lb" style="font-weight:600;letter-spacing:.5px;color:#64748B">SỐ NĂM</span><select id="reeSegYoYN" style="width:auto;min-width:0;max-width:170px" aria-label="Số năm"><option value="2">2 năm</option><option value="3">3 năm</option><option value="4">4 năm</option><option value="0">Tất cả</option></select><span class="lb" style="font-weight:600;letter-spacing:.5px;color:#64748B">HIỂN THỊ</span><select id="reeSegYoYMode" style="width:auto;min-width:0;max-width:170px" aria-label="Chế độ"><option value="v">Giá trị (tỷ VND)</option><option value="g">Tăng trưởng YoY (%)</option></select><label style="display:inline-flex;gap:4px;align-items:center;cursor:pointer"><input type="checkbox" id="reeSegYoYLab"> Nhãn YoY</label></div><div class="chart xl"><canvas id="reeSegYoY"></canvas></div><div class="note">Mỗi nhóm là một quý, mỗi cột là một năm; so cùng quý các năm. YoY = doanh thu quý / doanh thu cùng quý năm trước − 1; N/A khi thiếu số cùng kỳ hoặc mẫu số ≤ 0. Chỉ hiện quý đã có số thực tế, không điền 0. Doanh thu thuần bộ phận sau loại trừ giữa các bộ phận. Nguồn: '+(Q.src||'BCTC hợp nhất quý, thuyết minh bộ phận')+'.</div>';
+ anchor.after(card);
+ const $s=id=>card.querySelector('#'+id);
+ $s('reeSegYoYSeg').value=st.s;$s('reeSegYoYN').value=st.n;$s('reeSegYoYMode').value=st.mode;$s('reeSegYoYLab').checked=!!st.lab;
+ const labelPlugin={id:'reeYoYLabels',afterDatasetsDraw(ch){if(!st.lab||st.mode!=='v')return;const c=ch.ctx;c.save();c.font='600 10px Inter,sans-serif';c.textAlign='center';c.textBaseline='bottom';
+  ch.data.datasets.forEach((ds,di)=>{if(!ch.isDatasetVisible(di))return;ch.getDatasetMeta(di).data.forEach((b,i)=>{const g=ds.yoy[i];if(g==null||ds.data[i]==null)return;c.fillStyle=g>=0?'#15803D':'#DC2626';c.fillText(f1(g),b.x,b.y-2);});});c.restore();}};
+ function cfg(){const s=st.s,ys=st.n?years.slice(-st.n):years,g=st.mode==='g',qs=[1,2,3,4];
+  const ds=ys.map(y=>{const raw=qs.map(q=>val(s,y,q)),gr=qs.map(q=>yoy(s,y,q));return {label:String(y),data:g?gr:raw,yoy:gr,raw,backgroundColor:YC[y]||'#2938A8',borderRadius:3,maxBarThickness:34,categoryPercentage:.8,barPercentage:.92};});
+  return {type:'bar',data:{labels:['Q1','Q2','Q3','Q4'],datasets:ds},plugins:[labelPlugin],options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:st.lab&&!g?16:0}},interaction:{mode:'index',intersect:false},
+   plugins:{legend:{position:'bottom',labels:{boxWidth:10,boxHeight:10,usePointStyle:true,font:{size:11}}},tooltip:{callbacks:{
+    title:items=>names[s]+' — '+items[0].label+'/'+items[0].dataset.label,
+    label:c=>{const y=+c.dataset.label,q=c.dataIndex+1,cur=val(s,y,q),pv=val(s,y-1,q);return cur==null?c.dataset.label+': chưa có số':c.dataset.label+': '+f0(cur)+' tỷ';},
+    afterLabel:c=>{const y=+c.dataset.label,q=c.dataIndex+1,pv=val(s,y-1,q);return c.raw==null&&val(s,y,q)==null?'':['  Cùng kỳ '+(y-1)+': '+f0(pv)+' tỷ','  YoY: '+f1(yoy(s,y,q))];}}}},
+   scales:{x:{grid:{display:false},ticks:{font:{size:12,weight:'600'}}},y:{beginAtZero:!g,grid:{color:c=>g&&c.tick&&c.tick.value===0?'#64748B':'#EEF0F6',lineWidth:c=>g&&c.tick&&c.tick.value===0?1.5:1},ticks:{callback:v=>g?v+'%':Number(v).toLocaleString('vi-VN')}}}}};}
+ function draw(){mk('reeSegYoY',cfg());}
+ const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}};
+ card.addEventListener('change',e=>{st.s=+$s('reeSegYoYSeg').value;st.n=+$s('reeSegYoYN').value;st.mode=$s('reeSegYoYMode').value;st.lab=$s('reeSegYoYLab').checked;save();draw();});
+ draw();}
+document.addEventListener('DOMContentLoaded',()=>{try{business();segYoY();finance();model();applyChartTips();}catch(e){console.error('REE',e);document.documentElement.dataset.reeError=e.message;}});
 })();
 
 </script>
@@ -9152,7 +9180,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='ree',BUILD='d368116c8da9',URL_JSON='../version.json';
+  const PAGE='ree',BUILD='1c40e133613c',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
