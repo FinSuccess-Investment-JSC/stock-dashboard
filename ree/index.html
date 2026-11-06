@@ -3861,8 +3861,6 @@ function business(){const seg=$('seg'),overview=document.createElement('div');ov
  {const W=p.waterQuarterly;chart(sections.water,'reeWaterRevenue','Doanh thu mảng nước',[{label:'Doanh thu',data:D.segments.revenue[3]}],'tỷ VND','Doanh thu bộ phận nước. Năm: thuyết minh bộ phận BCTC; quý: số riêng quý từ Q1/24 (tổng bốn quý 2024, 2025 khớp cột năm). Kỳ thiếu để trống. Nguồn: Mô hình/giả định analyst FinSuccess.',false,'bar',a.years,W&&W.revenue?{labels:W.revenueLabels,series:[{label:'Doanh thu',data:W.revenue}]}:undefined);}
  chart(sections.water,'reeWaterProfit','LNST mẹ mảng nước',[{label:'LNST mẹ gồm LDLK',data:D.segments.grossProfit[3]}],'tỷ VND','Năm: IS 45 / Nước & CĐL 6. Quý: LNST bộ phận thuộc cổ đông mẹ (gồm LDLK) từ thuyết minh báo cáo bộ phận. Không lấy tỷ lệ lợi nhuận này trên DT hợp nhất làm biên gộp.',false,'bar',a.years,{labels:D.segments.quarterly.labels,series:[{label:'LNST mẹ gồm LDLK',data:D.segments.quarterly.profit[3]}]});
  const wc=document.createElement('div');wc.className='card ree-card';wc.innerHTML='<details class="dd"><summary>Các công ty sản xuất nước</summary><div class="body">'+table(['Công ty','Sở hữu REE (%)','Công suất m³/ngày'],a.waterCompanies.map(x=>[x.name,x.ownership,x.capacity]))+'<div class="note">Công suất thiết kế, không phải sản lượng tiêu thụ.</div></div></details>';sections.water.append(wc);
- chart(sections.offices,'reeOfficeOcc','Tỷ lệ lấp đầy văn phòng',[{label:'Lấp đầy',data:a.officeOccupancy}],'%','mô hình Bất động sản C7:G7; 2026F H7 không liên kết công thức doanh thu.',false,'line');
- chart(sections.offices,'reeOfficeRevenue','Doanh thu văn phòng',[{label:'Cho thuê văn phòng',data:a.officeRevenue}],'tỷ VND','mô hình Bất động sản C8:G8; văn phòng là tập con mảng BĐS.');
  const of=document.createElement('div');of.className='card ree-card';of.innerHTML='<details class="dd"><summary>Diện tích & giá thuê cơ sở định giá</summary><div class="body">'+table(['Tòa nhà','Diện tích m²','USD/m²/tháng','Lấp đầy (%)'],a.offices.map(x=>[x.name,x.area,x.rent,x.occupancy]))+'<div class="note">Giá thuê và diện tích trong model, không phải cập nhật thị trường mới.</div></div></details>';sections.offices.append(of);
  chart(sections.me,'reeMERevenue','Doanh thu M&E',[{label:'M&E',data:D.segments.revenue[0]}],'tỷ VND','Năm: mô hình IS 30 actual 2021–2025 (số 2025F 3.542 tỷ tại Nước & CĐL không thay cho actual 3.521 tỷ). Quý: doanh thu bộ phận Cơ điện lạnh theo thuyết minh BCTC quý, từ Q1/23.',false,'bar',a.years,D.segments.quarterly?{labels:D.segments.quarterly.labels,series:[{label:'M&E',data:D.segments.quarterly.revenue[0]}]}:undefined);
  if(!p.kqkdDetail){chart(sections.me,'reeMEMargin','Biên LNST mẹ M&E',[{label:'LNST mẹ / DT',data:a.segmentMargins[0]}],'%','mô hình IS 42 / 30; biên LNST, không phải biên gộp.',false,'line');}
@@ -3957,6 +3955,29 @@ function kqkdDetail(){
  const O=R.items[0];
  dchart(of,'reeOfficeMarginQ','Biên LNST văn phòng cho thuê (%)',{q:lv(K.qlabels,[{label:'Văn phòng cho thuê',data:div(O.profit.q,O.revenue.q),ytdRatio:{num:O.profit.q,den:O.revenue.q}}]),y:lv(K.years,[{label:'Văn phòng cho thuê',data:div(O.profit.y,O.revenue.y)}])},
   {kind:'line',unit:'%',ytd:true,note:'LNST văn phòng / doanh thu văn phòng cùng kỳ; lũy kế tính lại từ tổng LNST / tổng doanh thu.'});
+ // ===== Năng lượng theo nguồn: LNST, giá bán bình quân, biên LNST =====
+ const EQ=p.energyQuarterly;
+ if(EQ&&EQ.revenue&&EQ.profit){
+  const pw0=$('reeBusiness_power'),QL=EQ.labels,N=EQ.names;
+  const yrs=[...new Set(QL.map(l=>'20'+l.slice(-2)))].filter(y=>[1,2,3,4].every(q=>QL.includes(`Q${q}/${y.slice(2)}`)));
+  const toY=arr=>yrs.map(y=>{const v=[1,2,3,4].map(q=>arr[QL.indexOf(`Q${q}/${y.slice(2)}`)]);return v.some(x=>x==null)?null:r2(v.reduce((s,x)=>s+x,0))});
+  const vol=n=>{const i=(EQ.volumeNames||[]).indexOf(n);return i<0||!EQ.volume[i]?null:EQ.volume[i]};
+  const other=EQ.profitOther||null;
+  const npSeries=per=>[...N.map((n,i)=>({label:n,data:per==='q'?EQ.profit[i]:toY(EQ.profit[i])})),...(other?[{label:'Khác (chưa phân bổ)',data:per==='q'?other:toY(other)}]:[])];
+  dchart(pw0,'reeEnergyNp','LNST mảng Năng lượng theo nguồn (tỷ VND)',{q:lv(QL,npSeries('q')),y:lv(yrs,npSeries('y'))},
+   {kind:'stack',ytd:true,note:'LNST theo nguồn trong mô hình là LNST toàn bộ của các công ty (chưa trừ lợi ích cổ đông không kiểm soát), nên tổng lớn hơn LNST mẹ mảng Năng lượng trên BCTC. “Khác” là phần LNST mảng chưa phân bổ cho nguồn. Năm chỉ cộng khi đủ 4 quý.'});
+  const priced=N.filter(n=>vol(n));
+  const priceQ=priced.map(n=>{const i=N.indexOf(n),v=vol(n);return {label:n,data:EQ.revenue[i].map((r,k)=>r!=null&&v[k]?r2(r/v[k]*1000):null),ytdRatio:{num:EQ.revenue[i].map(r=>r==null?null:r*1000),den:v}}});
+  const priceY=priced.map(n=>{const i=N.indexOf(n),r=toY(EQ.revenue[i]),v=toY(vol(n));return {label:n,data:r.map((x,k)=>x!=null&&v[k]?r2(x/v[k]*1000):null)}});
+  dchart(pw0,'reeEnergyPrice','Giá bán điện bình quân theo nguồn (đ/kWh)',{q:lv(QL,priceQ),y:lv(yrs,priceY)},
+   {kind:'line',unit:'đ/kWh',ytd:true,note:'Doanh thu nguồn điện ÷ sản lượng cùng nguồn, cùng kỳ (doanh thu tỷ VND, sản lượng triệu kWh). Điện bán lẻ không có sản lượng cùng phạm vi nên không tính. Quý thiếu sản lượng để trống; lũy kế và năm tính lại từ tổng doanh thu / tổng sản lượng.'});
+  const totRev=EQ.revenue[0].map((_,k)=>EQ.revenue.some(r=>r[k]==null)?null:EQ.revenue.reduce((s,r)=>s+r[k],0));
+  const totNp=EQ.profit[0].map((_,k)=>EQ.profit.some(r=>r[k]==null)||(other&&other[k]==null)?null:EQ.profit.reduce((s,r)=>s+r[k],0)+(other?other[k]:0));
+  const mQ=[...N.map((n,i)=>({label:n,data:div(EQ.profit[i],EQ.revenue[i]),ytdRatio:{num:EQ.profit[i],den:EQ.revenue[i]}})),{label:'Toàn mảng Năng lượng',data:div(totNp,totRev),ytdRatio:{num:totNp,den:totRev}}];
+  const mY=[...N.map((n,i)=>({label:n,data:div(toY(EQ.profit[i]),toY(EQ.revenue[i]))})),{label:'Toàn mảng Năng lượng',data:div(toY(totNp),toY(totRev))}];
+  dchart(pw0,'reeEnergyMargin','Biên LNST mảng Năng lượng theo nguồn (%)',{q:lv(QL,mQ),y:lv(yrs,mY)},
+   {kind:'line',unit:'%',ytd:true,note:'LNST toàn bộ / doanh thu cùng nguồn, cùng kỳ (theo mô hình). Toàn mảng gồm cả phần LNST chưa phân bổ. Biên quý của điện gió dao động mạnh theo mùa gió; nên đọc ở chế độ Lũy kế hoặc Năm.'});
+ }
  // ===== Năng lượng: thủy điện theo tháng =====
  const pw=$('reeBusiness_power'),H=K.hydroMonthly;
  const agg=(vals,groups)=>groups.map(g=>g.every(i=>vals[i]!=null)?r2(g.reduce((s,i)=>s+vals[i],0)):null);
@@ -9550,7 +9571,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='ree',BUILD='cb38f30a2a57',URL_JSON='../version.json';
+  const PAGE='ree',BUILD='e0dd79106c36',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
