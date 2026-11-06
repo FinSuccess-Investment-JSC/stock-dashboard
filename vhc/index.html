@@ -7587,7 +7587,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
     })(t.content);
     return t.innerHTML;
   }
-  if (!document.getElementById('fsjCss')) { var st = document.createElement('style'); st.id = 'fsjCss'; st.textContent = '.fsj-body h3,.fsj-ed h3{font-size:18px;color:#243878;margin:10px 0 4px}.fsj-body h4,.fsj-ed h4{font-size:15.5px;color:#243878;margin:8px 0 4px}.fsj-body p,.fsj-ed p{margin:0 0 6px}.fsj-body blockquote,.fsj-ed blockquote{margin:6px 0;padding:4px 12px;border-left:3px solid #27AF95;background:#F8FAFC}.fsj-body ul,.fsj-body ol,.fsj-ed ul,.fsj-ed ol{margin:4px 0 6px;padding-left:22px}.fsj-tb button:hover{border-color:#D6DDE8!important;background:#EEF2F7!important}'; document.head.appendChild(st); }
+  if (!document.getElementById('fsjCss')) { var st = document.createElement('style'); st.id = 'fsjCss'; st.textContent = '.fsj-body h3,.fsj-ed h3{font-size:18px;color:#243878;margin:10px 0 4px}.fsj-body h4,.fsj-ed h4{font-size:15.5px;color:#243878;margin:8px 0 4px}.fsj-body p,.fsj-ed p{margin:0 0 6px}.fsj-body blockquote,.fsj-ed blockquote{margin:6px 0;padding:4px 12px;border-left:3px solid #27AF95;background:#F8FAFC}.fsj-body ul,.fsj-body ol,.fsj-ed ul,.fsj-ed ol{margin:4px 0 6px;padding-left:22px}.fsj-item>summary::-webkit-details-marker{display:none}.fsj-item[open] .fsj-car{transform:rotate(90deg)}.fsj-item>summary:hover{background:#F8FAFC;border-radius:10px}.fsj-tb button:hover{border-color:#D6DDE8!important;background:#EEF2F7!important}'; document.head.appendChild(st); }
   var bodyHtml = function (e) { return e.bodyHtml ? clean(e.bodyHtml) : fmtBody(e.body); };
   var fmtBody = function (s) { return esc(s).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>').replace(/\n/g, '<br>'); };
   var fmtDate = function (iso) { var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ''); return m ? m[3] + '/' + m[2] + '/' + m[1] : (iso || ''); };
@@ -7633,7 +7633,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
     if (want || saved === '1') show(true);
   }
 
-  var filter = 'all', q = '';
+  var filter = 'all', q = '', openIds = {};
   function render() {
     var all = entries(), list = all.filter(function (e) {
       if (filter !== 'all' && e.type !== filter) return false;
@@ -7644,15 +7644,18 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
       + '<input type="search" class="fsj-q" placeholder="Tìm trong nhật ký…" value="' + esc(q) + '" style="margin-left:auto;min-width:180px;padding:6px 10px;border:1px solid #D6DDE8;border-radius:8px;font:inherit;font-size:13px">'
       + '<button type="button" class="fsj-new" style="border:0;border-radius:8px;padding:7px 14px;background:#1D2678;color:#fff;font-weight:600;cursor:pointer">＋ Viết ghi chú</button></div>'
       + '<div class="fsj-form"></div>'
-      + (list.length ? list.map(function (e) {
-        return '<article data-id="' + esc(e.id) + '" style="border-top:1px solid #E3E8F0;padding:14px 2px">'
-          + '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;font-size:12.5px;color:#64748B">'
+      + (list.length ? list.map(function (e, i) {
+        if (!(e.id in openIds)) openIds[e.id] = i === 0 && !q;   // mặc định chỉ mở ghi chú mới nhất
+        var open = q ? true : openIds[e.id];
+        return '<details class="fsj-item" data-id="' + esc(e.id) + '"' + (open ? ' open' : '') + ' style="border:1px solid #E1E6EE;border-radius:10px;margin:10px 0;background:#fff">'
+          + '<summary style="list-style:none;cursor:pointer;padding:12px 14px;display:block">'
+          + '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;font-size:12.5px;color:#64748B"><span class="fsj-car" style="color:#243878;display:inline-block;width:12px;font-size:14px;line-height:1;transition:transform .15s">▸</span>'
           + '<b style="color:#243878">' + fmtDate(e.date) + '</b>'
           + '<span style="border-radius:6px;padding:1px 8px;font-weight:600;' + (e.type === 'rumor' ? 'background:#FFF4D6;color:#8A6100' : 'background:#E6F6F6;color:#1D6F72') + '">' + esc(typeName(e.type)) + '</span>'
           + (e.author ? '<span>' + esc(e.author) + '</span>' : '')
           + '<span class="fsj-adm" style="margin-left:auto;display:none;gap:10px"><a href="#" data-edit="' + esc(e.id) + '">Sửa</a><a href="#" data-del="' + esc(e.id) + '" style="color:#a33a48">Xóa</a></span></div>'
-          + (e.title ? '<div style="font-weight:650;font-size:16px;color:#243878;margin:6px 0 4px">' + esc(e.title) + '</div>' : '')
-          + '<div style="font-size:14.5px;line-height:1.6;color:#334155" class="fsj-body">' + bodyHtml(e) + '</div></article>';
+          + '<div style="font-weight:650;font-size:16px;color:#243878;margin:6px 0 0 20px">' + esc(e.title || (e.body || '').split('\n')[0].slice(0, 90)) + '</div></summary>'
+          + '<div style="font-size:14.5px;line-height:1.6;color:#334155;padding:0 14px 14px 34px;border-top:1px solid #EEF2F7;padding-top:10px" class="fsj-body">' + bodyHtml(e) + '</div></details>';
       }).join('') : '<p style="color:#64748B;margin:8px 0">' + (all.length ? 'Không có ghi chú khớp bộ lọc.' : 'Chưa có ghi chú nào. Analyst bấm “＋ Viết ghi chú” để thêm.') + '</p>')
       + '<p style="font-size:12px;color:#64748B;margin:12px 0 0">Ghi chú của chuyên viên FinSuccess, không phải khuyến nghị đầu tư. Tin đồn chưa được xác minh.</p></div>';
     if (unlocked()) sec.querySelectorAll('.fsj-adm').forEach(function (x) { x.style.display = 'inline-flex'; });
@@ -7745,6 +7748,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
     if (t.hasAttribute('data-edit')) { form(e); sec.scrollIntoView({ behavior: 'smooth' }); }
     else if (window.confirm('Xóa ghi chú này cho mọi người?')) save(Object.assign({}, e, { deleted: true, ts: new Date().toISOString() }));
   });
+  sec.addEventListener('toggle', function (ev) { var d = ev.target; if (d.classList && d.classList.contains('fsj-item') && !q) openIds[d.dataset.id] = d.open; }, true);
   sec.addEventListener('input', function (ev) { if (ev.target.classList.contains('fsj-q')) { q = ev.target.value.toLowerCase(); var pos = ev.target.selectionStart; render(); var n = sec.querySelector('.fsj-q'); n.focus(); n.setSelectionRange(pos, pos); } });
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(function () { mount(0); }, 0); });
@@ -9665,7 +9669,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='vhc',BUILD='0df18f7b0682',URL_JSON='../version.json';
+  const PAGE='vhc',BUILD='38f005022fcd',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
