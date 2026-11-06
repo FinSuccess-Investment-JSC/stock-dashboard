@@ -2825,6 +2825,24 @@ window.PVS_DATA.meta=window.PVS_DATA.meta||{};window.PVS_DATA.meta.companyLogo="
   #projTable tr.total-vnd td{background:#F5FAF2;font-weight:850;color:#0645D1}
   #projTable tr.total-loa td{background:#FFF4DC;font-weight:700;color:#8A5A00}
   #projTable tr.total-incl td{background:#EEF1F8;font-weight:800;color:var(--navy);border-bottom:2px solid var(--navy)}
+  /* Bảng backlog — kiểu ô màu theo giá trị (06/11/2026) */
+  #projTable{border-collapse:separate;border-spacing:0}
+  #projTable th{background:#fff!important;color:#64748B;font-size:12px;font-weight:600;border-bottom:1px solid #E3E8F0}
+  #projTable th:first-child{background:#fff!important}
+  #projTable td{border-bottom:1px solid #F1F5F9;padding:5px 8px}
+  #projTable .year-hist{background:transparent}
+  #projTable .year-current{background:rgba(212,167,44,.12)!important}
+  #projTable tr.project-group td{background:#F1F4FA!important;color:#243878;font-weight:650;font-size:12.5px;letter-spacing:.2px;padding:7px 10px}
+  #projTable tr.loa-row td,#projTable tr.loa-row td:first-child,#projTable tr.pipeline-row td,#projTable tr.pipeline-row td:first-child{background:#fff}
+  #projTable tr.pipeline-row td{color:inherit}
+  #projTable tr.loa-row td.year-current,#projTable tr.pipeline-row td.year-current{background:rgba(212,167,44,.12)!important}
+  #projTable .project-name{font-weight:600;color:#243878;font-size:13.5px}
+  #projTable .bl-st{display:inline-block;margin-top:4px;font-size:11px;padding:1px 7px}
+  .rec-pill{position:relative;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:650;font-variant-numeric:tabular-nums;color:#fff;overflow:hidden}
+  .rec-pill::before{content:"";position:absolute;inset:0;opacity:var(--a,1);background:#243878}
+  .rec-pill.pipeline::before{background:#59C5C8}.rec-pill.loa::before{background:#D4A72C}
+  .rec-pill span{position:relative;text-shadow:0 0 2px rgba(0,0,0,.35)}
+  .rec-pill.pipeline span{color:#0F3B47;text-shadow:none}
   #projTable tr.total-confirmed td:first-child{background:#EAF6E4}
   #projTable tr.total-vnd td:first-child{background:#F5FAF2}
   #projTable tr.total-loa td:first-child{background:#FFF4DC}
@@ -5405,11 +5423,14 @@ const backlogYearLabel=year=>year===2025?'2025':year+'F';
 const formatBacklogVnd=value=>fmt(Math.round(value),0)+' tỷ';
 const formatBacklogUsd=value=>Math.abs(value-Math.round(value))<.05?fmt(value,0):fmt(value,1);
 const yearCellClass=year=>year===2025?' year-hist':year===2026?' year-current':'';
-const backlogStatusMini=project=>project.includeInProjectPlan===false?`<span class="status-mini pipeline">LDLK · không cộng vào doanh thu M&amp;C</span>`:project.statusGroup==='confirmed'?'':`<span class="status-mini ${project.statusGroup}">${project.statusGroup==='loa'?'LOA · ':project.statusGroup==='pipeline'?'Pipeline · ':'Đã hủy · '}${esc(project.statusLabel||'')}</span>`;
+const backlogStatusMini=project=>{const st={confirmed:'signed',loa:'loa',pipeline:'pipeline',cancelled:'cancel'}[project.statusGroup]||'pipeline';const lb=project.includeInProjectPlan===false?'LDLK · không cộng DT M&amp;C':esc(project.statusLabel||({confirmed:'Đã ký',loa:'LOA',pipeline:'Pipeline',cancelled:'Đã hủy'})[project.statusGroup]||'');return lb?`<span class="st-badge ${st} bl-st">${lb}</span>`:'';};
 function backlogRecognitionCell(project,year){
  if(project.statusGroup==='cancelled')return `<td class="rec-year${yearCellClass(year)}"><span class="rec-cum">—</span></td>`;
  const annual=getAnnualRecognitionUsd(project,year);
- return `<td class="rec-year${yearCellClass(year)}"><div class="rec-cell"><div class="rec-usd">${annual>0?(project.valueType==='estimate'?'~':'')+formatBacklogUsd(annual):'—'}</div></div></td>`;
+ if(!(annual>0))return `<td class="rec-year${yearCellClass(year)}"></td>`;
+ const mx=Math.max(1,...D.backlog.projects.flatMap(p=>D.backlog.config.years.map(y=>p.statusGroup==='cancelled'?0:getAnnualRecognitionUsd(p,y)||0)));
+ const st={confirmed:'signed',loa:'loa',pipeline:'pipeline'}[project.statusGroup]||'pipeline';
+ return `<td class="rec-year${yearCellClass(year)}"><div class="rec-pill ${st}" style="--a:${(.35+.65*annual/mx).toFixed(2)}" title="${esc(project.name)} · ${year}: ${formatBacklogUsd(annual)} triệu USD"><span>${project.valueType==='estimate'?'~':''}${formatBacklogUsd(annual)}</span></div></td>`;
 }
 renderProjTable=function(){
  const b=D.backlog,years=b.config.years,shown=b.projects.filter(p=>projFilter==='Tất cả'||p.category===projFilter);
@@ -11865,7 +11886,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='pvs',BUILD='483ec9e032b4',URL_JSON='../version.json';
+  const PAGE='pvs',BUILD='1f2b50c13f6f',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
