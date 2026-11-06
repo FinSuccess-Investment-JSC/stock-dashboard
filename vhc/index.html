@@ -5653,17 +5653,18 @@ function applyWidth(id,cfg){
 }
 // Watermark "FinSuccess" + slogan mờ giữa vùng vẽ của mọi chart trên trang (người dùng chốt 06/11/2026, mẫu chart P/E VN-Index).
 // Vẽ dưới dữ liệu; bỏ qua lúc chụp ảnh chia sẻ (.fs-per-shot — share-image.js tự đặt watermark) và khi in.
-const wmPlugin={id:'fsWatermark',beforeDatasetsDraw(chart){
+const wmPlugin={id:'fsWatermark',
+  // Bỏ đường kẻ ngang trên mọi chart (người dùng chốt 06/11/2026): tắt lưới của trục dọc (y, y1…).
+  beforeUpdate(chart){const o=chart.config.options||(chart.config.options={});o.scales=o.scales||{};
+    const ks=Object.keys(o.scales);if(!ks.some(k=>k[0]==='y'||o.scales[k].axis==='y'))ks.push('y');
+    for(const k of ks){const sc=o.scales[k]||(o.scales[k]={});if(k[0]==='y'||sc.axis==='y'||sc.position==='left'||sc.position==='right'){sc.grid=Object.assign({},sc.grid,{display:false})}}},
+  beforeDatasetsDraw(chart){
   const a=chart.chartArea;if(!a||chart.canvas.closest('.fs-per-shot'))return;
   if(window.matchMedia&&matchMedia('print').matches)return;
   const w=a.right-a.left,h=a.bottom-a.top;if(w<160||h<80)return;
   const dark=document.documentElement.classList.contains('dark')||document.documentElement.dataset.theme==='dark';
   const ctx=chart.ctx,cx=a.left+w/2,cy=a.top+h*0.3,big=Math.min(w*0.13,h*0.22,64),small=Math.max(9,big*0.28);
   ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';
-  // Xóa đường lưới sau watermark (người dùng 06/11/2026): phủ màu nền card lên khung chữ trước khi vẽ.
-  {ctx.font=`800 ${big}px Inter, Arial, sans-serif`;const tw=ctx.measureText('FinSuccess').width+big*0.3,top=cy-small*0.6-big*0.6,bh=big*1.2+(h>140?small*2:0);
-   let el=chart.canvas,bg='';while(el&&el!==document.documentElement){const c=getComputedStyle(el).backgroundColor;if(c&&c!=='transparent'&&!/rgba\([^)]*,\s*0\)/.test(c)){bg=c;break}el=el.parentElement}
-   ctx.fillStyle=bg||(dark?'#161616':'#fff');ctx.fillRect(Math.max(a.left,cx-tw/2),Math.max(a.top,top),Math.min(w,tw),Math.min(h,bh));}
   ctx.fillStyle=dark?'rgba(255,255,255,.06)':'rgba(29,38,120,.06)';
   ctx.font=`800 ${big}px Inter, Arial, sans-serif`;ctx.fillText('FinSuccess',cx,cy-small*0.6);
   if(h>140){ctx.fillStyle=dark?'rgba(255,255,255,.08)':'rgba(29,38,120,.08)';ctx.font=`500 ${small}px Inter, Arial, sans-serif`;
@@ -9461,7 +9462,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='vhc',BUILD='ec02457c08d7',URL_JSON='../version.json';
+  const PAGE='vhc',BUILD='fa034347c88e',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
