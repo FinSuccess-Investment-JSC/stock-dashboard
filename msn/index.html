@@ -7404,6 +7404,30 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
   var TYPES = [['note', 'Short note'], ['meeting', 'Gặp doanh nghiệp'], ['rumor', 'Tin đồn — chưa xác minh'], ['other', 'Khác']];
   var typeName = function (t) { for (var i = 0; i < TYPES.length; i++) if (TYPES[i][0] === t) return TYPES[i][1]; return 'Short note'; };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+  // Nội dung định dạng (bodyHtml) chỉ giữ thẻ/kiểu chữ an toàn; bản cũ chỉ có chữ thường (body).
+  var TAGS = /^(B|STRONG|I|EM|U|S|STRIKE|BR|P|DIV|SPAN|FONT|UL|OL|LI|H3|H4|A|BLOCKQUOTE|SUB|SUP)$/;
+  var CSS = /^(color|background-color|text-align|font-weight|font-style|text-decoration|text-decoration-line|font-size|text-transform)$/;
+  function clean(html) {
+    var t = document.createElement('template'); t.innerHTML = html || '';
+    (function walk(n) {
+      [].slice.call(n.childNodes).forEach(function (c) {
+        if (c.nodeType === 3) return;
+        if (c.nodeType !== 1 || /^(SCRIPT|STYLE|IFRAME|OBJECT|EMBED)$/.test(c.tagName)) { c.remove(); return; }
+        walk(c);
+        if (!TAGS.test(c.tagName)) { while (c.firstChild) c.parentNode.insertBefore(c.firstChild, c); c.remove(); return; }
+        [].slice.call(c.attributes).forEach(function (a) {
+          var k = a.name.toLowerCase();
+          if (k === 'style') { var keep = []; String(a.value).split(';').forEach(function (d) { var i = d.indexOf(':'), p = d.slice(0, i).trim().toLowerCase(), v = d.slice(i + 1).trim(); if (i > 0 && CSS.test(p) && !/url|expression|[<>]/i.test(v)) keep.push(p + ':' + v); }); if (keep.length) c.setAttribute('style', keep.join(';')); else c.removeAttribute('style'); }
+          else if (k === 'href' && c.tagName === 'A' && /^https?:\/\//i.test(a.value)) { c.setAttribute('target', '_blank'); c.setAttribute('rel', 'noopener'); }
+          else if ((k === 'color' || k === 'size') && c.tagName === 'FONT') {}
+          else if (!(c.tagName === 'A' && (k === 'target' || k === 'rel'))) c.removeAttribute(a.name);
+        });
+      });
+    })(t.content);
+    return t.innerHTML;
+  }
+  if (!document.getElementById('fsjCss')) { var st = document.createElement('style'); st.id = 'fsjCss'; st.textContent = '.fsj-body h3,.fsj-ed h3{font-size:18px;color:#243878;margin:10px 0 4px}.fsj-body h4,.fsj-ed h4{font-size:15.5px;color:#243878;margin:8px 0 4px}.fsj-body p,.fsj-ed p{margin:0 0 6px}.fsj-body blockquote,.fsj-ed blockquote{margin:6px 0;padding:4px 12px;border-left:3px solid #27AF95;background:#F8FAFC}.fsj-body ul,.fsj-body ol,.fsj-ed ul,.fsj-ed ol{margin:4px 0 6px;padding-left:22px}.fsj-tb button:hover{border-color:#D6DDE8!important;background:#EEF2F7!important}'; document.head.appendChild(st); }
+  var bodyHtml = function (e) { return e.bodyHtml ? clean(e.bodyHtml) : fmtBody(e.body); };
   var fmtBody = function (s) { return esc(s).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>').replace(/\n/g, '<br>'); };
   var fmtDate = function (iso) { var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ''); return m ? m[3] + '/' + m[2] + '/' + m[1] : (iso || ''); };
   var today = function () { var d = new Date(Date.now() + 7 * 3600e3); return d.toISOString().slice(0, 10); };
@@ -7467,7 +7491,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
           + (e.author ? '<span>' + esc(e.author) + '</span>' : '')
           + '<span class="fsj-adm" style="margin-left:auto;display:none;gap:10px"><a href="#" data-edit="' + esc(e.id) + '">Sửa</a><a href="#" data-del="' + esc(e.id) + '" style="color:#a33a48">Xóa</a></span></div>'
           + (e.title ? '<div style="font-weight:650;font-size:16px;color:#243878;margin:6px 0 4px">' + esc(e.title) + '</div>' : '')
-          + '<div style="font-size:14.5px;line-height:1.6;color:#334155">' + fmtBody(e.body) + '</div></article>';
+          + '<div style="font-size:14.5px;line-height:1.6;color:#334155" class="fsj-body">' + bodyHtml(e) + '</div></article>';
       }).join('') : '<p style="color:#64748B;margin:8px 0">' + (all.length ? 'Không có ghi chú khớp bộ lọc.' : 'Chưa có ghi chú nào. Analyst bấm “＋ Viết ghi chú” để thêm.') + '</p>')
       + '<p style="font-size:12px;color:#64748B;margin:12px 0 0">Ghi chú của chuyên viên FinSuccess, không phải khuyến nghị đầu tư. Tin đồn chưa được xác minh.</p></div>';
     if (unlocked()) sec.querySelectorAll('.fsj-adm').forEach(function (x) { x.style.display = 'inline-flex'; });
@@ -7483,19 +7507,49 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
       + '<label>Loại<select name="type" style="' + inp + '">' + TYPES.map(function (t) { return '<option value="' + t[0] + '"' + (t[0] === e.type ? ' selected' : '') + '>' + t[1] + '</option>'; }).join('') + '</select></label>'
       + '<label>Người viết<input name="author" value="' + esc(e.author) + '" placeholder="Tên analyst" style="' + inp + '"></label></div>'
       + '<label>Tiêu đề<input name="title" value="' + esc(e.title) + '" placeholder="vd. Short note AM ' + fmtDate(today()) + '" style="' + inp + '"></label>'
-      + '<label>Nội dung<textarea name="body" required rows="7" style="' + inp + ';resize:vertical">' + esc(e.body) + '</textarea></label>'
+      + '<div>Nội dung<div class="fsj-tb" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:4px 0;padding:6px;border:1px solid #D6DDE8;border-bottom:0;border-radius:8px 8px 0 0;background:#fff">'
+      + [['undo','↶','Hoàn tác (Ctrl+Z)'],['redo','↷','Làm lại'],['|'],['bold','<b>B</b>','In đậm (Ctrl+B)'],['italic','<i>I</i>','In nghiêng (Ctrl+I)'],['underline','<u>U</u>','Gạch chân (Ctrl+U)'],['strikeThrough','<s>S</s>','Gạch ngang'],['upper','AA','IN HOA vùng chọn'],['lower','aa','chữ thường vùng chọn'],['|'],['h3','H1','Tiêu đề lớn'],['h4','H2','Tiêu đề nhỏ'],['p','¶','Đoạn thường'],['big','A+','Chữ to hơn'],['small','A−','Chữ nhỏ hơn'],['|'],['insertUnorderedList','•','Danh sách chấm'],['insertOrderedList','1.','Danh sách số'],['outdent','⇤','Giảm thụt lề'],['indent','⇥','Tăng thụt lề'],['blockquote','❝','Trích dẫn'],['|'],['justifyLeft','<svg width="14" height="12" viewBox="0 0 14 12" stroke="currentColor" stroke-width="1.6"><line x1="0" y1="1" x2="14" y2="1"/><line x1="0" y1="4" x2="9" y2="4"/><line x1="0" y1="8" x2="14" y2="8"/><line x1="0" y1="11" x2="9" y2="11"/></svg>','Căn trái'],['justifyCenter','<svg width="14" height="12" viewBox="0 0 14 12" stroke="currentColor" stroke-width="1.6"><line x1="0" y1="1" x2="14" y2="1"/><line x1="2" y1="4" x2="11" y2="4"/><line x1="0" y1="8" x2="14" y2="8"/><line x1="2" y1="11" x2="11" y2="11"/></svg>','Căn giữa'],['justifyRight','<svg width="14" height="12" viewBox="0 0 14 12" stroke="currentColor" stroke-width="1.6"><line x1="0" y1="1" x2="14" y2="1"/><line x1="5" y1="4" x2="14" y2="4"/><line x1="0" y1="8" x2="14" y2="8"/><line x1="5" y1="11" x2="14" y2="11"/></svg>','Căn phải'],['|'],['link','🔗','Chèn link'],['removeFormat','⌫','Xóa định dạng']].map(function (b) {
+          return b[0] === '|' ? '<span style="width:1px;height:20px;background:#E3E8F0;margin:0 3px"></span>' : '<button type="button" data-cmd="' + b[0] + '" title="' + b[2] + '" style="min-width:30px;height:30px;border:1px solid transparent;border-radius:6px;background:#F8FAFC;color:#243878;font:inherit;font-size:13px;cursor:pointer">' + b[1] + '</button>';
+        }).join('')
+      + '<label title="Màu chữ" style="display:inline-flex;align-items:center;gap:2px;font-size:13px;color:#243878">A<input type="color" data-color="foreColor" value="#861C52" style="width:26px;height:26px;border:0;padding:0;background:none;cursor:pointer"></label>'
+      + '<label title="Tô nền chữ" style="display:inline-flex;align-items:center;gap:2px;font-size:13px;color:#243878">🖍<input type="color" data-color="hiliteColor" value="#FFD45D" style="width:26px;height:26px;border:0;padding:0;background:none;cursor:pointer"></label>'
+      + ['#1D2678','#2938A8','#27AF95','#861C52','#C0392B','#334155'].map(function (c) { return '<button type="button" data-swatch="' + c + '" title="Màu chữ ' + c + '" style="width:18px;height:18px;border-radius:50%;border:1px solid #fff;box-shadow:0 0 0 1px #D6DDE8;background:' + c + ';cursor:pointer;padding:0"></button>'; }).join('')
+      + '</div><div class="fsj-ed" contenteditable="true" style="' + inp + ';border-radius:0 0 8px 8px;min-height:180px;max-height:520px;overflow:auto;background:#fff;line-height:1.6">' + bodyHtml(e) + '</div></div>'
       + '<div style="display:flex;gap:8px;justify-content:flex-end"><button type="button" class="fsj-cancel" style="border:0;border-radius:8px;padding:8px 14px;background:#e8ebf7;color:#1D2678;font-weight:600;cursor:pointer">Hủy</button>'
       + '<button type="submit" style="border:0;border-radius:8px;padding:8px 14px;background:#1D2678;color:#fff;font-weight:600;cursor:pointer">Đăng cho mọi người</button></div></form>';
     var f = box.querySelector('form');
     box.querySelector('.fsj-cancel').onclick = function () { box.innerHTML = ''; };
     f.onsubmit = function (ev) {
       ev.preventDefault();
-      var x = { id: e.id || ('j' + Date.now().toString(36)), date: f.date.value, type: f.type.value, title: f.title.value.trim(), body: f.body.value.trim(), author: f.author.value.trim(), ts: new Date().toISOString() };
-      if (!x.body) return;
+      var x = { id: e.id || ('j' + Date.now().toString(36)), date: f.date.value, type: f.type.value, title: f.title.value.trim(), body: '', bodyHtml: clean(ed.innerHTML), author: f.author.value.trim(), ts: new Date().toISOString() };
+      x.body = ed.innerText.trim(); if (!x.body) { ed.focus(); return; }
       try { localStorage.setItem('fs_journal_author', x.author); } catch (er) {}
       save(x);
     };
-    f.body.focus();
+    var ed = box.querySelector('.fsj-ed'), saved = null;
+    try { document.execCommand('styleWithCSS', false, true); } catch (er) {}
+    var keepSel = function () { var g = getSelection(); if (g.rangeCount && ed.contains(g.anchorNode)) saved = g.getRangeAt(0).cloneRange(); };
+    var restore = function () { ed.focus(); if (saved) { var g = getSelection(); g.removeAllRanges(); g.addRange(saved); } };
+    ed.addEventListener('keyup', keepSel); ed.addEventListener('mouseup', keepSel); ed.addEventListener('input', keepSel); document.addEventListener('selectionchange', function () { if (document.activeElement === ed) keepSel(); });
+    // Dán từ Word/web: giữ định dạng nhưng lọc thẻ không an toàn.
+    ed.addEventListener('paste', function (ev) { var h = ev.clipboardData && ev.clipboardData.getData('text/html'); if (!h) return; ev.preventDefault(); document.execCommand('insertHTML', false, clean(h.replace(/<!--[\s\S]*?-->/g, ''))); });
+    var tb = box.querySelector('.fsj-tb');
+    tb.addEventListener('mousedown', function (ev) { if (ev.target.closest('button')) ev.preventDefault(); });
+    var caseSel = function (up) { var g = getSelection(); if (!g.rangeCount || g.isCollapsed) return; var t = g.toString(); document.execCommand('insertText', false, up ? t.toLocaleUpperCase('vi') : t.toLocaleLowerCase('vi')); };
+    var size = function (d) { var g = getSelection(); if (!g.rangeCount || g.isCollapsed) return; var n = g.anchorNode.nodeType === 3 ? g.anchorNode.parentNode : g.anchorNode; var cur = parseFloat(getComputedStyle(n).fontSize) || 14.5; var sp = document.createElement('span'); sp.style.fontSize = Math.max(10, Math.min(32, cur + d)) + 'px'; sp.appendChild(g.getRangeAt(0).extractContents()); g.getRangeAt(0).insertNode(sp); };
+    tb.addEventListener('click', function (ev) {
+      var b = ev.target.closest('button'); if (!b) return; restore();
+      var c = b.dataset.cmd, sw = b.dataset.swatch;
+      if (sw) document.execCommand('foreColor', false, sw);
+      else if (c === 'upper' || c === 'lower') caseSel(c === 'upper');
+      else if (c === 'big' || c === 'small') size(c === 'big' ? 2 : -2);
+      else if (c === 'h3' || c === 'h4' || c === 'p' || c === 'blockquote') document.execCommand('formatBlock', false, '<' + c + '>');
+      else if (c === 'link') { var u = window.prompt('Địa chỉ link (https://…)'); if (u && /^https?:\/\//i.test(u)) document.execCommand('createLink', false, u); }
+      else document.execCommand(c, false, null);
+      keepSel();
+    });
+    tb.addEventListener('input', function (ev) { var k = ev.target.dataset.color; if (!k) return; restore(); if (!document.execCommand(k, false, ev.target.value) && k === 'hiliteColor') document.execCommand('backColor', false, ev.target.value); keepSel(); });
+    ed.focus();
   }
 
   function keepLocal(x) { try { var loc = JSON.parse(localStorage.getItem(KEY) || '{}'); loc[x.id] = x; localStorage.setItem(KEY, JSON.stringify(loc)); } catch (e) {} }
@@ -9450,7 +9504,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='msn',BUILD='beebda8499f1',URL_JSON='../version.json';
+  const PAGE='msn',BUILD='01130cdc5c7a',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
