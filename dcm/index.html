@@ -7979,7 +7979,7 @@ html.fs-zoom-lock{overflow:hidden}
     return {bl,P};
   }
   const ST={confirmed:'signed',signed:'signed',loa:'loa',pipeline:'pipeline',cancelled:'cancel',canceled:'cancel'};
-  function gantt(){
+  function gantt(){ return; /* bỏ 06/11/2026: trùng bảng "Dự án — backlog & điểm rơi ghi nhận" */
     const {P}=projects(), tbl=document.getElementById('projTable'); if(!P.length||!tbl||document.getElementById('fsGantt')) return;
     const yrs=[...new Set(P.flatMap(p=>Object.keys(p.annualPlanUsd)))].map(Number).sort((a,b)=>a-b), mx=Math.max(...P.flatMap(p=>Object.values(p.annualPlanUsd).map(Number)));
     const now=new Date().getFullYear();
@@ -9013,7 +9013,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='dcm',BUILD='830a0782f8ee',URL_JSON='../version.json';
+  const PAGE='dcm',BUILD='1c85583c6136',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
