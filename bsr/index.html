@@ -5482,6 +5482,13 @@ let modes={};try{modes=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){
 try{localStorage.removeItem('chart_axis_range_v1')}catch(e){}   // khoảng zoom thủ công của cơ chế cũ
 const direct=new Map();   // chart dựng trực tiếp (không qua mk): id → {chart, base}
 const finite=v=>v!==null&&v!==''&&Number.isFinite(Number(v));
+// Chart các giá trị sát nhau (người dùng chốt 06/11/2026): mọi số dương và (max−min)/max < 25% → mặc định "Vừa dữ liệu"
+// để thấy khác biệt; người dùng bấm "Từ 0" thì lưu lựa chọn đó ('zero'). cfg.axisDefault='fit'|'zero' ép theo chart.
+const autoFit=new Set();
+function tight(cfg){if(cfg.axisDefault)return cfg.axisDefault==='fit';const t=String(cfg.type||'');if(/pie|doughnut|radar|polar/.test(t))return false;
+  const v=[];for(const d of cfg.data?.datasets||[]){if(d.hidden||d.borderDash&&d.borderDash.length&&d.type==='line'&&new Set(d.data).size===1)continue;for(const x of d.data||[]){const n=x&&typeof x==='object'?x.y:x;if(finite(n))v.push(+n);}}
+  if(v.length<3)return false;const lo=Math.min(...v),hi=Math.max(...v);return lo>0&&(hi-lo)/hi<0.25;}
+const modeOf=id=>modes[id]||(autoFit.has(id)?'fit':'zero');
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(modes))}catch(e){}}
 // Hiện số liệu trên chart (bật/tắt theo từng chart, mặc định tắt; lưu chart_value_labels_v1).
 const LKEY='chart_value_labels_v1';
@@ -5610,6 +5617,7 @@ function keepLegendHidden(id,cfg){
   for(const d of cfg.data?.datasets||[])if(d.label in seen)d.hidden=seen[d.label];
 }
 window.configureChartAxes=function(id,cfg){keepLegendHidden(id,cfg);
+  if(cfg&&cfg.data){if(tight(cfg))autoFit.add(id);else autoFit.delete(id);}
   ensurePlugin();
   if(cfg&&cfg.data)applyWidth(id,cfg);
   const list=axes(cfg);if(!list.length)return;
@@ -5618,7 +5626,7 @@ window.configureChartAxes=function(id,cfg){keepLegendHidden(id,cfg);
   Object.defineProperty(cfg,'_axisBase',{value:base,configurable:true});
   o.layout=o.layout||{};const p=o.layout.padding;
   o.layout.padding=typeof p==='number'?{top:Math.max(p,ROOM),right:p,bottom:p,left:p}:{...(p||{}),top:Math.max(Number(p&&p.top)||0,ROOM)};
-  if(modes[id]==='fit')for(const {axis} of list)fit(o.scales[axis]=o.scales[axis]||{});
+  if(modeOf(id)==='fit')for(const {axis} of list)fit(o.scales[axis]=o.scales[axis]||{});
 };
 // "Miền": generic area view offered for every time-series chart, next to Cột / Cột chồng / Thanh / Đường.
 // Stacks only charts that were authored as additive stacks (and only when no value is negative);
@@ -5655,7 +5663,7 @@ window.areaConfig=function(cfg){
   return c;
 };
 function sync(ctl,id){
-  const mode=modes[id]==='fit'?'fit':'zero';
+  const mode=modeOf(id)==='fit'?'fit':'zero';
   for(const b of ctl.querySelectorAll('button'))if(b.dataset.width){if(window.__fsBars&&window.__fsBars[id]===false)b.setAttribute('hidden','');else if(b.removeAttribute)b.removeAttribute('hidden');}else if(b.dataset.values)b.setAttribute('aria-pressed',String(!!labels[id]));else b.setAttribute('aria-pressed',String(b.dataset.mode===mode));
 }
 function stepWidth(id,dir,ctl){
@@ -5704,7 +5712,7 @@ function bindAxisDrag(canvas){
     // Nhấp đúp trong vùng vẽ: bật/tắt Số liệu (cùng trạng thái nút Số liệu, nhấp đúp lần nữa để tắt)
     if(!hit){const ca=chart.chartArea;if(ca&&p.x>=ca.left&&p.x<=ca.right&&p.y>=ca.top&&p.y<=ca.bottom){const box=canvas.closest('.chart'),ctl=box&&box.querySelector(':scope > .axis-mode');if(ctl){e.preventDefault();window.getSelection&&getSelection().removeAllRanges();toggleValues(canvas.id,ctl);}}return;}
     const id=canvas.id,d=direct.get(id);
-    if(d){restore(chart.options.scales[hit.key],d.base[hit.key]);if(modes[id]==='fit')fit(chart.options.scales[hit.key]);chart.update('none');}
+    if(d){restore(chart.options.scales[hit.key],d.base[hit.key]);if(modeOf(id)==='fit')fit(chart.options.scales[hit.key]);chart.update('none');}
     else if(typeof mk==='function'&&typeof chartBase!=='undefined'&&chartBase[id])mk(id,chartBase[id]);
   });
 }
@@ -5716,7 +5724,7 @@ function toggleValues(id,ctl){
   sync(ctl,id);
 }
 function setMode(id,mode,ctl){
-  if(mode==='fit')modes[id]='fit';else delete modes[id];
+  if(autoFit.has(id))modes[id]=mode;else if(mode==='fit')modes[id]='fit';else delete modes[id];
   persist();
   const d=direct.get(id);
   if(d){
@@ -9283,7 +9291,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='bsr',BUILD='4f12ee31d042',URL_JSON='../version.json';
+  const PAGE='bsr',BUILD='f72e7e9aeb26',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
