@@ -8058,7 +8058,7 @@ html.fs-zoom-lock{overflow:hidden}
       b.onclick=()=>{const h=!document.documentElement.classList.contains('fs-tape-off'); set('fs_tape_off_v2',h?'1':'0'); apply(h);};
       apply(get('fs_tape_off_v2')==='1'); document.body.append(b);
     }
-    let raf=0; addEventListener('scroll',()=>{if(raf)return; raf=requestAnimationFrame(()=>{raf=0; document.documentElement.classList.toggle('fs-scrolled',scrollY>160); const tb=document.querySelector('.titleband'); if(tb) document.documentElement.style.setProperty('--fs-title-h',tb.offsetHeight+'px');});},{passive:true});
+    let raf=0; addEventListener('scroll',()=>{if(raf)return; raf=requestAnimationFrame(()=>{raf=0; const H=document.documentElement,on=H.classList.contains('fs-scrolled'),want=on?scrollY>40:scrollY>200; if(want!==on){const h0=H.scrollHeight; H.classList.toggle('fs-scrolled',want); const d=H.scrollHeight-h0; if(d) scrollBy(0,d);} const tb=document.querySelector('.titleband'); if(tb) document.documentElement.style.setProperty('--fs-title-h',tb.offsetHeight+'px');});},{passive:true});
   }
 
   /* 2 KPI → chart */
@@ -9147,7 +9147,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='ree',BUILD='9c83a61bb018',URL_JSON='../version.json';
+  const PAGE='ree',BUILD='c73a89d1852c',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
