@@ -1804,6 +1804,21 @@ nav.tabs>.fs-crumb{position:absolute;left:0;right:0;top:100%;height:30px!importa
 nav.tabs>.fs-crumb:not(.show){opacity:0}
 :root[data-theme=dark] nav.tabs>.fs-crumb{background:rgba(10,10,10,.9)}
 
+/* Bảng Income Statement kiểu bảng tóm tắt tài chính (người dùng chốt 06/11/2026): header navy, cột thực tế navy, cột dự phóng ILO Blue,
+   dải nhóm, dòng tổng nền xanh nhạt chữ navy đậm, dòng tỷ lệ thụt vào, tăng trưởng xanh/đỏ. Dùng class is-sheet. */
+table.is-sheet{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numeric:tabular-nums}
+table.is-sheet thead th{background:#1D2678;color:#fff;font-size:12px;font-weight:700;letter-spacing:0;text-transform:none;padding:9px 10px;white-space:nowrap}
+table.is-sheet thead th.f{background:#2938A8}
+table.is-sheet td{padding:7px 10px;border-bottom:1px solid #E3E8F0;background:#fff;color:#334155;white-space:nowrap}
+table.is-sheet tr.band td{background:#1D2678!important;color:#fff;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:6px 10px}
+table.is-sheet tr.total td{background:#EEF1FB!important;color:#1D2678;font-weight:700}
+table.is-sheet tr.ratio td{color:#64748B;font-style:italic}
+table.is-sheet tr.ratio td:first-child,table.is-sheet tr:not(.total):not(.band):not(.ratio) td:first-child{padding-left:18px}
+table.is-sheet .up{color:#1E8E5A;font-weight:600}table.is-sheet .dn{color:#C0392B;font-weight:600}
+table.is-sheet tbody tr:nth-child(even) td{background:#fff}
+:root[data-theme=dark] table.is-sheet td{background:#161616;color:#F5F5F5;border-color:#2A2A2A}
+:root[data-theme=dark] table.is-sheet tr.total td{background:#1C2553;color:#59C5C8}
+
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet"><style>
 .stock-search{max-width:1440px;margin:16px auto 0;padding:0 24px}
@@ -9118,7 +9133,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='plx',BUILD='8d5309cb8066',URL_JSON='../version.json';
+  const PAGE='plx',BUILD='47904c1abe15',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
