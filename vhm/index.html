@@ -1736,6 +1736,11 @@ html .mkt-toc a.on::before{background:#59C5C8;border-color:#1D2678;width:10px;he
 :root[data-theme=dark] .mkt-toc a.on{color:#59C5C8;background:rgba(89,197,200,.12)}
 :root[data-theme=dark] .mkt-toc a.on::before{background:#59C5C8;border-color:#59C5C8}
 
+/* Bảng tóm tắt tài chính: cố định cột chỉ tiêu khi cuộn ngang (06/11/2026) */
+table.fintbl :is(td,th):first-child{position:sticky;left:0;z-index:2;background-color:#fff;box-shadow:1px 0 0 #E3E8F0,4px 0 6px -4px rgba(15,23,42,.18)}
+table.fintbl thead th:first-child{z-index:4;background-color:var(--navy)}
+table.fintbl tr.h td:first-child{background-color:#F0F1F8}
+
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet"><style>
 .stock-search{max-width:1440px;margin:16px auto 0;padding:0 24px}
@@ -9044,7 +9049,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='vhm',BUILD='ec21bcddf995',URL_JSON='../version.json';
+  const PAGE='vhm',BUILD='05bc81908930',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;

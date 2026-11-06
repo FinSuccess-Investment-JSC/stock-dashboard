@@ -1242,6 +1242,11 @@ html .mkt-toc a.on::before{background:#59C5C8;border-color:#1D2678;width:10px;he
 :root[data-theme=dark] .mkt-toc a:hover{background:#222;color:#F5F5F5}
 :root[data-theme=dark] .mkt-toc a.on{color:#59C5C8;background:rgba(89,197,200,.12)}
 :root[data-theme=dark] .mkt-toc a.on::before{background:#59C5C8;border-color:#59C5C8}
+
+/* Bảng tóm tắt tài chính: cố định cột chỉ tiêu khi cuộn ngang (06/11/2026) */
+table.fintbl :is(td,th):first-child{position:sticky;left:0;z-index:2;background-color:#fff;box-shadow:1px 0 0 #E3E8F0,4px 0 6px -4px rgba(15,23,42,.18)}
+table.fintbl thead th:first-child{z-index:4;background-color:var(--navy)}
+table.fintbl tr.h td:first-child{background-color:#F0F1F8}
 </style>
 <style>
 body{margin:0;background:var(--bg);color:var(--ink)}
