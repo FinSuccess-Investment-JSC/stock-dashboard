@@ -7957,9 +7957,14 @@ window.FS_INCOME_HISTORY_10Y={"MWG":{"2016":{"labels":["Q1/2016","Q2/2016","Q3/2
   // Mục lục luôn nằm dưới thanh tab đang bám, không đè header/ticker.
   function placeToc(){
     const nav=document.querySelector('nav.tabs'); if(!nav) return;
-    document.documentElement.style.setProperty('--mkt-toc-top',Math.max(nav.getBoundingClientRect().bottom,0)+18+'px');
+    // Vị trí cố định = đáy thanh tab khi đã bám đỉnh; không tính lại theo từng lần cuộn (từng làm mục lục rung).
+    const H=document.documentElement, th=parseFloat(getComputedStyle(H).getPropertyValue('--fs-title-h'))||52;
+    const v=Math.round(th+nav.offsetHeight+18)+'px';
+    if(H.style.getPropertyValue('--mkt-toc-top')!==v) H.style.setProperty('--mkt-toc-top',v);
   }
-  addEventListener('scroll',placeToc,{passive:true});
+  addEventListener('resize',placeToc,{passive:true});
+  new MutationObserver(()=>requestAnimationFrame(placeToc)).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
+  setTimeout(placeToc,600);
   let tocT=0; const tocLater=()=>{clearTimeout(tocT); tocT=setTimeout(buildToc,250);};
 
   /* ---------- Crosshair + tooltip theo kỳ trên chart ---------- */
@@ -9908,7 +9913,7 @@ html.fs-zoom-lock{overflow:hidden}
       b.onclick=()=>{const h=!document.documentElement.classList.contains('fs-tape-off'); set('fs_tape_off_v2',h?'1':'0'); apply(h);};
       apply(get('fs_tape_off_v2')==='1'); document.body.append(b);
     }
-    let raf=0; addEventListener('scroll',()=>{if(raf)return; raf=requestAnimationFrame(()=>{raf=0; const H=document.documentElement,on=H.classList.contains('fs-scrolled'),want=on?scrollY>40:scrollY>200; if(want!==on){const h0=H.scrollHeight; H.classList.toggle('fs-scrolled',want); const d=H.scrollHeight-h0; if(d) scrollBy(0,d);} const tb=document.querySelector('.titleband'); if(tb) document.documentElement.style.setProperty('--fs-title-h',tb.offsetHeight+'px');});},{passive:true});
+    let raf=0; addEventListener('scroll',()=>{if(raf)return; raf=requestAnimationFrame(()=>{raf=0; const H=document.documentElement,on=H.classList.contains('fs-scrolled'),want=on?scrollY>3:scrollY>200; if(want!==on){const h0=H.scrollHeight; H.classList.toggle('fs-scrolled',want); const d=H.scrollHeight-h0; if(want&&d) scrollBy(0,d);} const tb=document.querySelector('.titleband'); if(tb) document.documentElement.style.setProperty('--fs-title-h',tb.offsetHeight+'px');});},{passive:true});
   }
 
   /* 2 KPI → chart */
@@ -10997,7 +11002,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='vnm',BUILD='dc009c16321e',URL_JSON='../version.json';
+  const PAGE='vnm',BUILD='467f9f552a33',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
