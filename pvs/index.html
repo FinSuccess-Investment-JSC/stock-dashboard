@@ -2844,6 +2844,12 @@ window.PVS_DATA.meta=window.PVS_DATA.meta||{};window.PVS_DATA.meta.companyLogo="
   .rec-pill{position:relative;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:650;font-variant-numeric:tabular-nums;color:#fff;overflow:hidden}
   .rec-pill::before{content:"";position:absolute;inset:0;opacity:var(--a,1);background:#243878}
   .rec-pill.pipeline::before{background:#59C5C8}.rec-pill.loa::before{background:#D4A72C}
+  .bl-in{position:relative;width:100%;height:100%;border:0;background:transparent;text-align:center;font:inherit;color:inherit;text-shadow:inherit;padding:0 4px;border-radius:5px;cursor:text}
+  .rec-pill.pipeline .bl-in{color:#0F3B47}
+  .bl-in:focus{outline:2px solid #59C5C8;background:rgba(255,255,255,.92);color:#243878;text-shadow:none}
+  .bl-in.empty{height:26px;border:1px dashed transparent;color:#243878}
+  #projTable tr:hover .bl-in.empty{border-color:#D6DDE8}
+  .fs-guest .bl-in{pointer-events:none}
   .rec-pill span{position:relative;text-shadow:0 0 2px rgba(0,0,0,.35)}
   .rec-pill.pipeline span{color:#0F3B47;text-shadow:none}
   #projTable tr.total-confirmed td:first-child{background:#EAF6E4}
@@ -5398,6 +5404,26 @@ function renderCapex(){
 }
 
 // Backlog has one source of truth: the annual project plan in the analyst model.
+// Analyst sửa ô năm trong bảng backlog (06/11/2026): sửa thử trong phiên, "Set làm mặc định" lưu pvs_backlog_plan_v1.
+const PVS_BL_KEY='pvs_backlog_plan_v1',PVS_BL_ORIG={};
+D.backlog.projects.forEach(p=>{PVS_BL_ORIG[p.id]=Object.assign({},p.annualPlanUsd||{});});
+try{const ov=JSON.parse(localStorage.getItem(PVS_BL_KEY)||'null');if(ov)D.backlog.projects.forEach(p=>{if(ov[p.id])p.annualPlanUsd=Object.assign({},ov[p.id]);});}catch(e){}
+function pvsBacklogEdit(el){
+ const p=D.backlog.projects.find(x=>x.id===el.dataset.pid),y=el.dataset.y;if(!p)return;
+ const raw=String(el.value).trim().replace(/[~\s]/g,'').replace(/\./g,'').replace(',','.'),v=raw===''?0:Number(raw);
+ if(!Number.isFinite(v)||v<0){el.value='';return;}
+ p.annualPlanUsd=Object.assign({},p.annualPlanUsd||{});if(v>0)p.annualPlanUsd[y]=Math.round(v*100)/100;else delete p.annualPlanUsd[y];
+ pvsBacklogRefresh();const m=$('pvsBlSaved');if(m)m.textContent='Đang sửa thử — chưa lưu';
+}
+function pvsBacklogRefresh(){renderBacklog();if(D.model&&typeof renderModel==='function')renderModel();}
+function pvsBacklogSetDefault(){
+ const out={};D.backlog.projects.forEach(p=>{out[p.id]=p.annualPlanUsd||{};});
+ try{localStorage.setItem(PVS_BL_KEY,JSON.stringify(out));$('pvsBlSaved').textContent='✓ Đã set mặc định';}catch(e){$('pvsBlSaved').textContent='Không thể lưu mặc định';}
+}
+function pvsBacklogReset(){
+ D.backlog.projects.forEach(p=>{p.annualPlanUsd=Object.assign({},PVS_BL_ORIG[p.id]||{});});
+ try{localStorage.removeItem(PVS_BL_KEY);}catch(e){}pvsBacklogRefresh();const m=$('pvsBlSaved');if(m)m.textContent='Đã về số gốc của model';
+}
 function getAnnualRecognitionUsd(project,year){
  return Number(project.annualPlanUsd?.[year]||0);
 }
@@ -5419,7 +5445,6 @@ function validateBacklogModel(){
   Object.entries(project.annualPlanUsd||{}).forEach(([year,value])=>{if(!Number.isFinite(Number(value))||Number(value)<0)errors.push(`${project.id}: kế hoạch ${year} không hợp lệ`);});
  });
  const plan2026=getAnnualTotalUsd(D.backlog.projects,2026,['confirmed','pipeline']);
- if(Math.abs(plan2026-1373)>1e-9)errors.push(`Tổng kế hoạch 2026 phải là 1.373 triệu USD, hiện là ${plan2026}`);
  return errors;
 }
 const backlogYearLabel=year=>year===2025?'2025':year+'F';
@@ -5430,10 +5455,10 @@ const backlogStatusMini=project=>{const st={confirmed:'signed',loa:'loa',pipelin
 function backlogRecognitionCell(project,year){
  if(project.statusGroup==='cancelled')return `<td class="rec-year${yearCellClass(year)}"><span class="rec-cum">—</span></td>`;
  const annual=getAnnualRecognitionUsd(project,year);
- if(!(annual>0))return `<td class="rec-year${yearCellClass(year)}"></td>`;
+ if(!(annual>0))return `<td class="rec-year${yearCellClass(year)}"><input class="bl-in empty" inputmode="decimal" data-pid="${esc(project.id)}" data-y="${year}" value="" aria-label="${esc(project.name)} ${year} (triệu USD)"></td>`;
  const mx=Math.max(1,...D.backlog.projects.flatMap(p=>D.backlog.config.years.map(y=>p.statusGroup==='cancelled'?0:getAnnualRecognitionUsd(p,y)||0)));
  const st={confirmed:'signed',loa:'loa',pipeline:'pipeline'}[project.statusGroup]||'pipeline';
- return `<td class="rec-year${yearCellClass(year)}"><div class="rec-pill ${st}" style="--a:${(.35+.65*annual/mx).toFixed(2)}" title="${esc(project.name)} · ${year}: ${formatBacklogUsd(annual)} triệu USD"><span>${project.valueType==='estimate'?'~':''}${formatBacklogUsd(annual)}</span></div></td>`;
+ return `<td class="rec-year${yearCellClass(year)}"><div class="rec-pill ${st}" style="--a:${(.35+.65*annual/mx).toFixed(2)}" title="${esc(project.name)} · ${year}: ${formatBacklogUsd(annual)} triệu USD"><input class="bl-in" inputmode="decimal" data-pid="${esc(project.id)}" data-y="${year}" value="${project.valueType==='estimate'?'~':''}${formatBacklogUsd(annual)}" aria-label="${esc(project.name)} ${year} (triệu USD)"></div></td>`;
 }
 renderProjTable=function(){
  const b=D.backlog,years=b.config.years,shown=b.projects.filter(p=>projFilter==='Tất cả'||p.category===projFilter);
@@ -5463,7 +5488,7 @@ renderBacklog=function(){
      '</table></div><div class="src">Theo dõi tiếp: '+sourceLinks(updates.sourcePages)+'. Chỉ cập nhật trạng thái, giá trị và điểm rơi trong bảng backlog sau khi đối chiếu công bố tương ứng.</div>';
  }
  $('blKpi').innerHTML=[
-  ['Kế hoạch dự án thực hiện 2026F',formatBacklogVnd(total2026),'1.373 triệu USD · dùng cho doanh thu M&C'],
+  ['Kế hoạch dự án thực hiện 2026F',formatBacklogVnd(total2026),formatBacklogUsd(getAnnualTotalUsd(b.projects,2026,['confirmed','pipeline']))+' triệu USD · dùng cho doanh thu M&C'],
   ['Trong đó confirmed',formatBacklogVnd(confirmed2026),formatBacklogUsd(getAnnualTotalUsd(b.projects,2026,['confirmed']))+' triệu USD'],
   ['Pipeline / giả định model',formatBacklogVnd(pipeline2026),formatBacklogUsd(getAnnualTotalUsd(b.projects,2026,['pipeline']))+' triệu USD'],
   ['Qatar EPIC-1 (LOA)','~3 tỷ USD*','Chưa cộng vào kế hoạch cơ sở']
@@ -5475,12 +5500,15 @@ renderBacklog=function(){
  title.innerHTML='Dự án — backlog & điểm rơi ghi nhận <span class="info" tabindex="0" data-tip="Giá trị theo từng năm là kế hoạch ghi nhận của model, đơn vị triệu USD. Kế hoạch cơ sở gồm confirmed và pipeline; LOA tách riêng. FSO Lô B không cộng vào doanh thu M&C." aria-label="Giải thích bảng backlog">i</span>';
  const categories=['Tất cả',...new Set(b.projects.map(p=>p.category))];
  $('projFilters').innerHTML=categories.map(category=>`<button class="${category===projFilter?'on':''}" data-category="${esc(category)}">${esc(category)}</button>`).join('')+`<span style="flex:1"></span><label for="pvsUsdVnd" class="note">USD/VND</label><input id="pvsUsdVnd" type="number" min="1" step="100" value="${PVS_USD_VND}" onchange="updatePvsFx(this.value)" style="width:120px;padding:4px 8px"><span class="saved" id="pvsFxSaved"></span><button class="btn ghost sm" onclick="setPvsFxDefault()">Set làm mặc định</button>`;
+ if(!$('pvsBlBar')){const bar=document.createElement('div');bar.id='pvsBlBar';bar.className='row fs-analyst-only';bar.style.cssText='gap:8px;align-items:center;margin:6px 0 4px;font-size:12.5px;color:#64748B';bar.innerHTML='<span>Ô năm sửa được (triệu USD) — tổng, chart backlog và doanh thu M&amp;C trong forecast tính lại ngay.</span><span style="flex:1"></span><span class="saved" id="pvsBlSaved"></span><button class="btn ghost sm" onclick="pvsBacklogReset()">Về số gốc</button><button class="btn ghost sm" id="pvsBlSetDefault" onclick="pvsBacklogSetDefault()">Set làm mặc định</button>';$('projFilters').after(bar);}
+ $('projTable').onchange=e=>{const el=e.target.closest('.bl-in');if(el)pvsBacklogEdit(el);};
+ $('projTable').onkeydown=e=>{if(e.key==='Enter'&&e.target.closest('.bl-in'))e.target.blur();};
  $('projFilters').onclick=e=>{const button=e.target.closest('button[data-category]');if(!button)return;projFilter=button.dataset.category;renderBacklog();};
  renderProjTable();
  const projectPipeline=b.projects.filter(p=>p.statusGroup==='pipeline').map(p=>({name:p.name,type:p.category,window:p.statusLabel,prob:null}));
  $('pipeTable').innerHTML='<tr><th>Dự án</th><th>Loại</th><th>Window / trạng thái</th><th>Xác suất (analyst)</th></tr>'+projectPipeline.concat(b.pipeline||[]).map(p=>`<tr><td>${esc(p.name)}</td><td><span class="pill blue">${esc(p.type)}</span></td><td>${esc(p.window)}</td><td>${p.prob==null?'<span class="pill grey">Chưa vào backlog</span>':`<div class="row"><div class="bar" style="width:120px"><i style="width:${p.prob}%"></i></div><span>${p.prob}%</span></div>`}</td></tr>`).join('');
  const errors=validateBacklogModel();
- $('blSrc').innerHTML='<b>Dùng chung USD/VND: '+fmt(PVS_USD_VND,0)+'.</b> Kế hoạch 2026 = 1.373 triệu USD × '+fmt(PVS_USD_VND,0)+' = '+fmt(Math.round(total2026),0)+' tỷ VND. Chênh nhẹ với 35.695 tỷ trong bảng nguồn do làm tròn tỷ giá/số dự án. Kế hoạch cơ sở gồm confirmed và pipeline; dự án hủy không vào tổng, LOA tách riêng. Nguồn: '+esc(b.src)+'.'+(errors.length?' <span style="color:var(--neg)">Lỗi kiểm tra: '+esc(errors.join('; '))+'</span>':'');
+ $('blSrc').innerHTML='<b>Dùng chung USD/VND: '+fmt(PVS_USD_VND,0)+'.</b> Kế hoạch 2026 = '+formatBacklogUsd(getAnnualTotalUsd(b.projects,2026,['confirmed','pipeline']))+' triệu USD × '+fmt(PVS_USD_VND,0)+' = '+fmt(Math.round(total2026),0)+' tỷ VND. Chênh nhẹ với 35.695 tỷ trong bảng nguồn do làm tròn tỷ giá/số dự án. Kế hoạch cơ sở gồm confirmed và pipeline; dự án hủy không vào tổng, LOA tách riêng. Nguồn: '+esc(b.src)+'.'+(errors.length?' <span style="color:var(--neg)">Lỗi kiểm tra: '+esc(errors.join('; '))+'</span>':'');
 };
 function linkedCapexDA(year){
  const i=year-2026;if(i<0||i>4)return null;
@@ -11890,7 +11918,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='pvs',BUILD='3b6d2db54476',URL_JSON='../version.json';
+  const PAGE='pvs',BUILD='4cfac108d080',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
