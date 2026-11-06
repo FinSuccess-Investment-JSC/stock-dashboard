@@ -8314,6 +8314,9 @@ html.fs-zoom-lock{overflow:hidden}
     notes.push('Vạch vàng = '+months+'/12 tháng đã qua ('+pct(elapsed)+'); vạch xám = 100% forecast cả năm. Thanh đậm khi tiến độ ≥ phần năm đã qua.');
     return {sig,body:'<h3 class="sub">Tiến độ so với forecast '+fyName+' · '+label+'</h3><div class="fp-chart">'+bars('Doanh thu thuần',rev,model.revenue)+bars('LNST cổ đông mẹ',prof,model.profit)+'</div><details class="dd"><summary>Bảng số</summary><div class="tbl-wrap"><table><thead><tr><th>Tỷ VND</th><th class="num">Thực tế '+label+'</th>'+model.col.map(c=>'<th class="num">'+(multi?c.label:'Forecast '+c.label)+'</th><th class="num">% forecast</th>').join('')+'</tr></thead><tbody>'+line('Doanh thu thuần',rev,model.revenue)+line('LNST cổ đông mẹ',prof,model.profit)+'</tbody></table></div></details><div class="note">'+notes.join(' ')+'</div>'};
   }
+  // Dùng chung cho valuation-client.js: cột forecast + dòng DT/LNST của model đang hiển thị.
+  window.FSForecastModel=function(){const root=document.getElementById('fsModel');if(!root)return null;const period=latest();if(!period)return null;
+    const fy=period.quarters.length===4?period.fy+1:period.fy;const m=findModel(root,fy)||findModel(root,period.fy);return m?{fy:m===null?null:fy,period,model:m}:null;};
   let last='',timer=0;
   function update(){
     const root=document.getElementById('fsModel');if(!root)return;
@@ -8338,6 +8341,59 @@ html.fs-zoom-lock{overflow:hidden}
     new MutationObserver(list=>{if(list.some(m=>!(m.target.nodeType===1?m.target:m.target.parentElement)?.closest('#'+BOX)))schedule();}).observe(root,{childList:true,subtree:true,characterData:true});
     root.addEventListener('input',schedule);root.addEventListener('change',schedule);
   }
+  if(document.readyState==='complete')start();else window.addEventListener('load',start);
+})();
+
+/* Tab FinSuccess cho khách (người dùng chốt 06/11/2026, theo mẫu VNM): dự phóng DT/LNST theo kịch bản của model analyst
+   + chart so với dự phóng từng CTCK (đường ngang = bình quân CTCK). Mã chưa có model và chưa có giá mục tiêu: tab hiện
+   "Đội ngũ sẽ cập nhật sau". VNM có khối riêng trong enhancements.js nên bỏ qua. Số đọc từ bảng model đang hiển thị
+   (FSForecastModel của forecast-progress.js), không ghi đè gì. */
+(function(){
+  const d=window.PVS_DATA;if(!d||!d.meta||d.meta.ticker==='VNM')return;
+  const fmt=v=>v==null||!isFinite(v)?'—':Number(v).toLocaleString('vi-VN',{maximumFractionDigits:0});
+  const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const tp=d.myView&&(d.myView.tpAdj||d.myView.tp);
+  function pending(){
+    const val=document.getElementById('val');if(!val||document.getElementById('fsPending'))return;
+    [...val.children].forEach(c=>{if(c.tagName!=='H2')c.style.display='none';});
+    const card=document.createElement('div');card.id='fsPending';card.className='card';card.style.cssText='text-align:center;padding:48px 24px';
+    card.innerHTML='<div style="font-size:34px;line-height:1">⏳</div><h3 class="sub" style="margin:12px 0 6px">Đội ngũ sẽ cập nhật sau</h3><p style="color:#64748B;margin:0">Mô hình dự phóng và định giá '+esc(d.meta.ticker)+' đang được FinSuccess xây dựng.</p>';
+    val.appendChild(card);
+  }
+  function latestBrokers(){const by={};for(const r of d.consensus||[]){if(!r||!r.broker)continue;if(!by[r.broker]||String(r.date)>String(by[r.broker].date))by[r.broker]=r;}return Object.values(by);}
+  function chart(id,cases,field,label){
+    if(typeof mk!=='function'||!document.getElementById(id))return;
+    const dd=s=>String(s||'').slice(0,10).split('-').reverse().slice(0,2).join('/');
+    const rows=latestBrokers().filter(r=>Number.isFinite(r[field])).sort((a,b)=>a[field]-b[field]);
+    const fv=rows.map(r=>r[field]),avg=fv.length?fv.reduce((a,b)=>a+b,0)/fv.length:null;
+    const labels=[...cases.map(c=>cases.length===1?'FinSuccess':'FinSuccess '+c.label),...rows.map(r=>r.broker+' '+dd(r.date))];
+    const vals=[...cases.map(c=>c.v==null?null:Math.round(c.v)),...fv];
+    const base=cases.findIndex(c=>/base|cơ sở/i.test(c.label));
+    const colors=[...cases.map((c,i)=>i===base||cases.length===1?'#1D2678':'#6171C5'),...rows.map(()=>'#B3BDE8')];
+    const ds=[{label:label,data:vals,backgroundColor:colors,borderRadius:3,maxBarThickness:46,order:1}];
+    if(avg!=null)ds.push({type:'line',label:'Bình quân CTCK ('+fv.length+')',data:labels.map(()=>Math.round(avg)),borderColor:'#59C5C8',borderWidth:2,borderDash:[6,4],pointRadius:0,order:0});
+    const cfg={type:'bar',data:{labels,datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:avg!=null,position:'bottom',labels:{filter:i=>i.datasetIndex===1,boxWidth:18}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y)+' tỷ VND'}}},scales:{x:{grid:{display:false},ticks:{autoSkip:false,maxRotation:60,minRotation:40,font:{size:11}}},y:{beginAtZero:true,ticks:{callback:v=>fmt(v)},grid:{color:'#EEF0F6'}}}}};
+    const ex=window.Chart&&Chart.getChart&&Chart.getChart(id);if(ex){ex.data=cfg.data;ex.update('none');}else mk(id,cfg);
+  }
+  let sig='';
+  function render(){
+    const fm=window.FSForecastModel&&window.FSForecastModel();
+    if(!fm){if(!tp)pending();return;}
+    const root=document.getElementById('fsModel');if(!root)return;
+    const m=fm.model,fy=fm.fy||fm.period.fy;
+    const cases=m.col.map((c,i)=>({label:c.label.replace(new RegExp('\\b(20)?'+String(fy).slice(2)+'\\s*[FE]\\b|'+fy+'\\s*[FE]?','i'),'').trim()||'Base',rev:m.revenue&&m.revenue.values[i],np:m.profit&&m.profit.values[i]}));
+    if(cases.length===1)cases[0].label='Model analyst';
+    const s=JSON.stringify(cases);if(s===sig&&document.getElementById('fsClient'))return;sig=s;
+    let box=document.getElementById('fsClient');
+    if(!box){box=document.createElement('div');box.id='fsClient';root.prepend(box);}
+    const tile=c=>'<div style="flex:1;min-width:170px;border:1px solid '+(/base/i.test(c.label)?'#2938A8':'#E3E7F2')+';border-radius:10px;padding:12px 14px;background:'+(/base/i.test(c.label)?'#F4F6FD':'#fff')+'"><div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#5B6478">'+esc(c.label)+'</div><div style="font-size:13px;color:#3A4154;margin-top:6px">Doanh thu '+fy+'E <b>'+fmt(c.rev)+'</b> tỷ</div><div style="font-size:13px;color:#3A4154">LNST cổ đông mẹ '+fy+'E <b>'+fmt(c.np)+'</b> tỷ</div></div>';
+    const hasCons=latestBrokers().some(r=>Number.isFinite(r.revF)||Number.isFinite(r.npF));
+    box.innerHTML='<div class="card"><h3 class="sub">Dự phóng '+fy+'E theo kịch bản</h3>'+(tp?'<p style="margin:0 0 10px;font-size:14px">Giá mục tiêu FinSuccess: <b style="color:#1D2678;font-size:18px">'+fmt(tp)+'đ</b>'+(d.meta.price?' · '+((tp/d.meta.price-1)*100>=0?'+':'')+((tp/d.meta.price-1)*100).toLocaleString('vi-VN',{maximumFractionDigits:1})+'% so giá hiện tại':'')+'</p>':'')+'<div style="display:flex;gap:10px;flex-wrap:wrap">'+cases.map(tile).join('')+'</div><div class="note">Số dự phóng theo model analyst FinSuccess (cột '+esc(m.col.map(c=>c.label).join(', '))+'). Nguồn: Mô hình/giả định analyst FinSuccess.</div></div>'
+      +(hasCons?'<div class="grid g2"><div class="card"><h3 class="sub">Doanh thu '+fy+'E so với CTCK (tỷ VND)</h3><div class="chart"><canvas id="fsCmpRev"></canvas></div><div class="note">CTCK: dự phóng năm của báo cáo mới nhất mỗi công ty; báo cáo không ghi số thì bỏ qua. Đường ngang nét đứt = bình quân các CTCK có số. Nguồn: Mô hình/giả định analyst FinSuccess; PDF báo cáo CTCK.</div></div><div class="card"><h3 class="sub">LNST cổ đông mẹ '+fy+'E so với CTCK (tỷ VND)</h3><div class="chart"><canvas id="fsCmpNp"></canvas></div><div class="note">LNST thuộc cổ đông mẹ theo dự phóng của từng CTCK (báo cáo mới nhất mỗi công ty). Nguồn: Mô hình/giả định analyst FinSuccess; PDF báo cáo CTCK.</div></div></div>':'');
+    if(hasCons){chart('fsCmpRev',cases.map(c=>({label:c.label,v:c.rev})),'revF','Doanh thu '+fy+'E');chart('fsCmpNp',cases.map(c=>({label:c.label,v:c.np})),'npF','LNST mẹ '+fy+'E');}
+    if(typeof applyChartTips==='function')applyChartTips();
+  }
+  function start(){setTimeout(render,600);const root=document.getElementById('fsModel');if(root){let t;root.addEventListener('input',()=>{clearTimeout(t);t=setTimeout(render,300);});}}
   if(document.readyState==='complete')start();else window.addEventListener('load',start);
 })();
 
@@ -9139,7 +9195,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='dgw',BUILD='bffffccbcf45',URL_JSON='../version.json';
+  const PAGE='dgw',BUILD='09e470a4bfaf',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
