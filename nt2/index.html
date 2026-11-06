@@ -8640,10 +8640,36 @@ html.fs-zoom-lock{overflow:hidden}
   const COLORS=[BLUE,GREEN,PURPLE,GOLD];
   const fmtN=v=>v==null?'—':Number(v).toLocaleString('vi-VN',{maximumFractionDigits:Math.abs(v)>=100?0:1});
   const PAL=[BLUE,GREEN,PURPLE,GOLD,'#59C5C8','#B3BDE8','#8D99AE','#2A9D8F','#C9A0DC'];
+
+  // 7e. Cổ tức (đ/CP, % cổ phiếu, tỷ lệ chi trả tiền) & hoàn thành kế hoạch LNST mẹ (người dùng yêu cầu 06/11/2026)
+  const DP=d.dividendPlan;
+  if(DP&&DP.rows&&DP.rows.length){
+    const R=DP.rows, SRCW='Nguồn: NQ ĐHĐCĐ, CBTT cổ tức, BCTC hợp nhất';
+    const DY=R.map(r=>String(r[0]));
+    const out=[];
+    const pay=R.map(r=>r[3]!=null&&r[3]>0&&r[3]<=200?r[3]:null);
+    R.forEach((r,i)=>{if(r[3]!=null&&pay[i]==null)out.push(r[0]+': '+fmtN(r[3])+'%');});
+    add({id:'coreDivHist',pane:'cashflow',skip:/cổ tức (theo năm|lịch sử)|^cổ tức$|lịch sử cổ tức/i,title:'Cổ tức',unit:'đ/CP',kind:'custom',labels:DY,srcLine:SRCW,
+      note:'Cổ tức tiền (đ/CP, trục trái) và cổ tức cổ phiếu/thưởng (% mệnh giá, trục phải) cộng các đợt GDKHQ trong năm. Tỷ lệ chi trả tiền mặt = cổ tức tiền / EPS (LNST mẹ ÷ CP lưu hành gần nhất).'+(out.length?' Bỏ khỏi chart tỷ lệ chi trả ngoại lai (>200%): '+out.join('; ')+'.':''),
+      y:[['Cổ tức tiền (đ/CP)',R.map(r=>r[1])],['Cổ tức cổ phiếu (%)',R.map(r=>r[2]||null),{axis:'y1',unit:'%'}],['Tỷ lệ chi trả tiền mặt (%)',pay,{line:1,axis:'y1',unit:'%',points:1}]],q:[]});
+    // Hoàn thành kế hoạch: năm đủ theo dữ liệu tổng hợp; năm hiện tại = LNST mẹ lũy kế các quý đã công bố ÷ planYYYY.npat (nếu có).
+    const PL=R.filter(r=>r[4]!=null), labs=PL.map(r=>String(r[0])), vals=PL.map(r=>r[4]);
+    const outP=[];vals.forEach((v,i)=>{if(v>400){outP.push(labs[i]+': '+fmtN(v)+'%');vals[i]=null;}});
+    const cols=vals.map(v=>v==null?NAVY:v>=100?NAVY:'#B5473A');
+    const yNow=Math.max(...Object.keys(fs.quarterly).map(l=>+l.slice(3))), plan=d['plan'+yNow];
+    let partial='';
+    if(plan&&plan.npat&&!labs.includes(String(yNow))){
+      const qs=[1,2,3,4].map(q=>fs.quarterly['Q'+q+'/'+yNow]?.parent).filter(v=>v!=null);
+      if(qs.length&&qs.length<4){partial=(qs.length*3)+'T/'+yNow;labs.push(partial);vals.push(qs.reduce((a,b)=>a+b,0)/plan.npat*100);cols.push(GREEN);}
+    }
+    add({id:'corePlan',pane:'kqkd',skip:/hoàn thành kế hoạch|kế hoạch lợi nhuận/i,title:'Hoàn thành kế hoạch lợi nhuận',unit:'%',kind:'custom',labels:labs,srcLine:SRCW,refLine:100,
+      note:'LNST thuộc cổ đông mẹ thực hiện ÷ kế hoạch LNST được ĐHĐCĐ thông qua (kế hoạch chỉ có LNTT thì quy đổi × 0,8). Xanh navy ≥ 100%, đỏ < 100%.'+(partial?' Cột '+partial+' = LNST mẹ lũy kế các quý đã công bố ÷ kế hoạch cả năm, chưa phải cả năm.':'')+(outP.length?' Bỏ khỏi chart năm ngoại lai (>400%): '+outP.join('; ')+'.':''),
+      y:[['Hoàn thành kế hoạch LNST',vals,{colors:cols}]],q:[]});
+  }
   function datasets(spec,rows){
     if(spec.kind==='custom'){let b=0;return rows.map(([label,data,o={}])=>{
-      const line=!!o.line,c=line?(o.axis==='y1'?'#E07A00':NAVY):PAL[b++%PAL.length];
-      return {label,data:data.map(r2),type:line?'line':'bar',borderColor:c,backgroundColor:c,borderWidth:line?2.5:0,pointRadius:line?2.5:0,tension:.15,spanGaps:false,
+      const line=!!o.line,c=line?(o.axis==='y1'?(o.points?GOLD:'#E07A00'):NAVY):(o.colors||PAL[b++%PAL.length]);
+      return {label,data:data.map(r2),type:line?'line':'bar',borderColor:c,backgroundColor:c,borderWidth:line?(o.points?0:2.5):0,pointRadius:line?(o.points?6:2.5):0,pointStyle:o.points?'rectRot':undefined,showLine:o.points?false:undefined,tension:.15,spanGaps:false,
         yAxisID:o.axis||'y',stack:o.stack,order:line?0:1,hidden:!!o.hidden,unit:o.unit||spec.unit,axisUnit:o.axis==='y1'?o.unit:undefined};});}
     return rows.map(([label,data],i)=>{
       const c=spec.kind==='stack'?(label==='Nợ ròng'?NAVY:[BLUE,PURPLE,'#B3BDE8'][i]):COLORS[i%COLORS.length];
@@ -8660,6 +8686,7 @@ html.fs-zoom-lock{overflow:hidden}
       const scales={x:{grid:{display:false},stacked},y};
       const ru=spec.kind==='barline'?'%':spec.kind==='custom'?(spec.y.find(r=>r[2]?.axis==='y1')||[])[2]?.unit:null;
       if(ru)scales.y1={position:'right',beginAtZero:true,stacked:false,grid:{drawOnChartArea:false},ticks:{callback:v=>fmtN(v)+(ru==='%'?'%':' '+ru)}};
+      if(spec.refLine!=null)ds=ds.concat([{label:spec.refLine+'% kế hoạch',data:labels.map(()=>spec.refLine),type:'line',borderColor:GOLD,borderDash:[6,4],borderWidth:1.5,pointRadius:0,yAxisID:'y',order:-1,unit:'%'}]);
       return {type:'bar',data:{labels,datasets:ds},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
         plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmtN(c.raw)+' '+(c.dataset.unit==='%'?'%':c.dataset.unit)}}},scales}};
     };
@@ -8678,11 +8705,11 @@ html.fs-zoom-lock{overflow:hidden}
     bs.insertBefore(row,at);
     for(const s of todo){
       P.layout.subTabs[s.id]=s.pane;
-      const card=document.createElement('div');card.className='card';card.dataset.source=SRC;
-      card.innerHTML='<h3 class="sub">'+esc(s.title)+'</h3><div class="chart tall"><canvas id="'+s.id+'"></canvas></div><div class="note">'+esc(s.note)+' '+SRC+'</div>';
+      const card=document.createElement('div');card.className='card';card.dataset.source=s.srcLine||SRC;
+      card.innerHTML='<h3 class="sub">'+esc(s.title)+'</h3><div class="chart tall"><canvas id="'+s.id+'"></canvas></div><div class="note">'+esc(s.note)+' '+(s.srcLine||SRC)+'</div>';
       row.appendChild(card);
-      const spec={def:'y',noShare:true,y:{labels:YEARS,datasets:datasets(s,s.y)},cfg:cfg(s)};
-      if(s.q.some(([,v])=>v.filter(x=>x!=null).length>=4))spec.q={labels:QL.map(qShort),datasets:datasets(s,s.q)};
+      const spec={def:'y',noShare:true,y:{labels:s.labels||YEARS,datasets:datasets(s,s.y)},cfg:cfg(s)};
+      if(s.q.length&&s.q.some(([,v])=>v.filter(x=>x!=null).length>=4))spec.q={labels:QL.map(qShort),datasets:datasets(s,s.q)};
       if(['bars','barline','stack','custom'].includes(s.kind)&&s.unit==='tỷ VND'){spec.unitLabel='tỷ VND';}
       try{mkTS(s.id,spec);}catch(e){console.error('core-finance',s.id,e);}
     }
@@ -9270,7 +9297,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='nt2',BUILD='55f7eb124e74',URL_JSON='../version.json';
+  const PAGE='nt2',BUILD='689fef1e4df0',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
