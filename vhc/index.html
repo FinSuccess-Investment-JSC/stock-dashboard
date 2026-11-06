@@ -5327,6 +5327,15 @@ window.FS_ANALYST_VAULT={"iter": 600000, "salt": "1J1KSPRXSLtd3z2nYwmUpA==", "iv
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
   window.addEventListener('hashchange', init);
+  // Mở khung inbox với loại yêu cầu chọn sẵn (vd nút "Cập nhật model" trong tab FinSuccess).
+  // Link model lưu sẵn ở PVS_DATA.modelLink thì điền vào ô link.
+  window.FSInbox = { open: function (kind) {
+    openPanel();
+    var s = document.getElementById('fsInKind');
+    if (s && kind && KIND[kind]) { s.value = kind; s.onchange(); }
+    var link = window.PVS_DATA && window.PVS_DATA.modelLink, u = document.getElementById('fsInUrl');
+    if (kind === 'model' && link && u && !u.value) u.value = link;
+  } };
 })();
 
 </script>
@@ -9271,7 +9280,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='vhc',BUILD='4de33a4dd062',URL_JSON='../version.json';
+  const PAGE='vhc',BUILD='c132ba8bc5ea',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
