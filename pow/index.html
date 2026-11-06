@@ -3883,6 +3883,8 @@ document.addEventListener('DOMContentLoaded',()=>{
 <script>
 /* POW forecast: Conso -> AS-Conso -> DCF-Conso / Multiple-Conso. All values VND bn. */
 (()=>{
+// Phiếu 20261104-160853-yenz: bỏ chart Biên LN gộp theo loại nhiên liệu (chưa có số theo quý). Số năm/6T vẫn giữ trong data.js (segments.marginBasis/fuel).
+if(window.PVS_DATA?.segments)delete window.PVS_DATA.segments.marginBasis;
 const D=window.PVS_DATA,p=D.pow,$=id=>document.getElementById(id),clone=x=>JSON.parse(JSON.stringify(x)),fmt=(x,n=1)=>x==null?'—':Number(x).toLocaleString('vi-VN',{maximumFractionDigits:Math.min(n,2)}),key='pow_model_v1';
 // Reprice the latest TTM multiples after live.json updates the market price at build time.
 const finance=p.finance,lastQuarter=finance.quarters.length-1;
@@ -9440,7 +9442,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='pow',BUILD='235aa284ba1f',URL_JSON='../version.json';
+  const PAGE='pow',BUILD='bae84dd3cf44',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
