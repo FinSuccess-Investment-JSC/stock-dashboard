@@ -2837,7 +2837,10 @@ window.PVS_DATA.meta=window.PVS_DATA.meta||{};window.PVS_DATA.meta.companyLogo="
   #projTable tr.pipeline-row td{color:inherit}
   #projTable tr.loa-row td.year-current,#projTable tr.pipeline-row td.year-current{background:rgba(212,167,44,.12)!important}
   #projTable .project-name{font-weight:600;color:#243878;font-size:13.5px}
-  #projTable .bl-st{display:inline-block;margin-top:4px;font-size:11px;padding:1px 7px}
+  #projTable .bl-st{display:inline-block;font-size:11px;padding:2px 8px;white-space:nowrap}
+  #projTable td.bl-stc{min-width:150px}
+  #projTable tr.project-group td{border-top:10px solid #fff;border-left:3px solid #243878;background:#EAEFF8!important;font-size:13px!important;font-weight:700!important;text-transform:none}
+  #projTable .pg-n{font-weight:500;color:#64748B;font-size:11.5px;margin-left:6px}
   .rec-pill{position:relative;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:650;font-variant-numeric:tabular-nums;color:#fff;overflow:hidden}
   .rec-pill::before{content:"";position:absolute;inset:0;opacity:var(--a,1);background:#243878}
   .rec-pill.pipeline::before{background:#59C5C8}.rec-pill.loa::before{background:#D4A72C}
@@ -5434,14 +5437,15 @@ function backlogRecognitionCell(project,year){
 }
 renderProjTable=function(){
  const b=D.backlog,years=b.config.years,shown=b.projects.filter(p=>projFilter==='Tất cả'||p.category===projFilter);
- const categories=[...new Set(shown.map(p=>p.category))],rows=categories.map(category=>`<tr class="project-group"><td colspan="${years.length+3}">${esc(category)}</td></tr>`+shown.filter(p=>p.category===category).map(p=>{
+ const grpOf=p=>/^Lô B|^FSO Lô B/i.test(p.name)?'Lô B':/^Lạc Đà Vàng/i.test(p.name)?'Lạc Đà Vàng':/^Các dự án khác/i.test(p.name)?'Khác':p.category==='DỰ ÁN DẦU KHÍ NGOÀI KHƠI'?'Dầu khí ngoài khơi khác':p.category==='DỰ ÁN CÔNG NGHIỆP'?'Công nghiệp':p.category==='ĐIỆN GIÓ NGOÀI KHƠI'?'Điện gió ngoài khơi':'Khác',GO=['Lô B','Lạc Đà Vàng','Dầu khí ngoài khơi khác','Công nghiệp','Điện gió ngoài khơi','Khác'];
+ const categories=GO.filter(g=>shown.some(p=>grpOf(p)===g)),rows=categories.map(category=>`<tr class="project-group"><td colspan="${years.length+4}">${esc(category)} <span class="pg-n">${shown.filter(p=>grpOf(p)===category).length} dự án</span></td></tr>`+shown.filter(p=>grpOf(p)===category).map(p=>{
   const rowClass=p.statusGroup==='loa'?'loa-row':p.statusGroup==='pipeline'?'pipeline-row':p.statusGroup==='cancelled'?'cancelled-row':'',estimate=p.valueType==='estimate';
   const update=p.updateNote?`<span class="info project-update" tabindex="0" data-tip="${esc(p.updateNote)}" aria-label="${esc(p.updateNote)}">i</span>`:'';
-  return `<tr class="${rowClass}"><td><div class="project-name">${esc(p.name)}${update}${p.sourceUrl?` <a class="src" href="${esc(p.sourceUrl)}" target="_blank" rel="noopener" aria-label="Nguồn dự án">Nguồn</a>`:''}</div>${backlogStatusMini(p)}</td><td class="timeline">${esc(p.timeline||'—')}</td><td class="num"><b>${estimate?'~':''}${fmt(p.valueUsdM,0)}</b></td>${years.map(year=>backlogRecognitionCell(p,year)).join('')}</tr>`;
+  return `<tr class="${rowClass}"><td><div class="project-name">${esc(p.name)}${update}${p.sourceUrl?` <a class="src" href="${esc(p.sourceUrl)}" target="_blank" rel="noopener" aria-label="Nguồn dự án">Nguồn</a>`:''}</div></td><td class="bl-stc">${backlogStatusMini(p)}</td><td class="timeline">${esc(p.timeline||'—')}</td><td class="num"><b>${estimate?'~':''}${fmt(p.valueUsdM,0)}</b></td>${years.map(year=>backlogRecognitionCell(p,year)).join('')}</tr>`;
  }).join('')).join('');
- const totalUsd=(cls,label,groups)=>`<tr class="${cls}"><td>${label}</td><td colspan="2">triệu USD</td>${years.map(year=>`<td class="num${yearCellClass(year)}">${getAnnualTotalUsd(b.projects,year,groups)>0?formatBacklogUsd(getAnnualTotalUsd(b.projects,year,groups)):'—'}</td>`).join('')}</tr>`;
- const totalVnd=(cls,label,groups)=>`<tr class="${cls}"><td>${label}</td><td colspan="2">tỷ VND · FX ${fmt(PVS_USD_VND,0)}</td>${years.map(year=>`<td class="num${yearCellClass(year)}">${getAnnualTotalVnd(b.projects,year,groups)>0?fmt(Math.round(getAnnualTotalVnd(b.projects,year,groups)),0):'—'}</td>`).join('')}</tr>`;
- $('projTable').innerHTML='<tr><th>Dự án</th><th>Thời gian</th><th class="num">Giá trị PVS<br>(triệu USD)</th>'+years.map(year=>`<th class="num${yearCellClass(year)}">${backlogYearLabel(year)}</th>`).join('')+'</tr>'+rows+totalUsd('total-confirmed','SUM KẾ HOẠCH',['confirmed','pipeline'])+totalVnd('total-vnd','tỷ VND',['confirmed','pipeline'])+totalUsd('total-confirmed','Trong đó confirmed',['confirmed'])+totalUsd('total-loa','+ LOA / chưa ký',['loa'])+totalVnd('total-incl','= TỔNG GỒM LOA',['confirmed','pipeline','loa']);
+ const totalUsd=(cls,label,groups)=>`<tr class="${cls}"><td>${label}</td><td colspan="3">triệu USD</td>${years.map(year=>`<td class="num${yearCellClass(year)}">${getAnnualTotalUsd(b.projects,year,groups)>0?formatBacklogUsd(getAnnualTotalUsd(b.projects,year,groups)):'—'}</td>`).join('')}</tr>`;
+ const totalVnd=(cls,label,groups)=>`<tr class="${cls}"><td>${label}</td><td colspan="3">tỷ VND · FX ${fmt(PVS_USD_VND,0)}</td>${years.map(year=>`<td class="num${yearCellClass(year)}">${getAnnualTotalVnd(b.projects,year,groups)>0?fmt(Math.round(getAnnualTotalVnd(b.projects,year,groups)),0):'—'}</td>`).join('')}</tr>`;
+ $('projTable').innerHTML='<tr><th>Dự án</th><th>Trạng thái</th><th>Thời gian</th><th class="num">Giá trị PVS<br>(triệu USD)</th>'+years.map(year=>`<th class="num${yearCellClass(year)}">${backlogYearLabel(year)}</th>`).join('')+'</tr>'+rows+totalUsd('total-confirmed','SUM KẾ HOẠCH',['confirmed','pipeline'])+totalVnd('total-vnd','tỷ VND',['confirmed','pipeline'])+totalUsd('total-confirmed','Trong đó confirmed',['confirmed'])+totalUsd('total-loa','+ LOA / chưa ký',['loa'])+totalVnd('total-incl','= TỔNG GỒM LOA',['confirmed','pipeline','loa']);
 };
 function updatePvsFx(value){
  const next=Number(value);if(!Number.isFinite(next)||next<=0)return;PVS_USD_VND=next;renderBacklog();if($('pvsFso')?.oninput)$('pvsFso').oninput();else renderFso();
@@ -11886,7 +11890,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='pvs',BUILD='1f2b50c13f6f',URL_JSON='../version.json';
+  const PAGE='pvs',BUILD='3b6d2db54476',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
