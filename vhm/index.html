@@ -1801,6 +1801,11 @@ table.is-sheet tbody tr:nth-child(even) td{background:#fff}
 .fp-val{font-variant-numeric:tabular-nums;font-size:13.5px}.fp-val b{color:#1D2678}.fp-val span{color:#64748B;font-size:12px;margin-left:4px}
 :root[data-theme=dark] .fp-track{background:#2A2A2A}:root[data-theme=dark] .fp-name,:root[data-theme=dark] .fp-val b{color:#59C5C8}
 
+/* fisc.vn góc phải dưới mọi card chart (người dùng chốt 06/11/2026, đi cùng watermark trong chart-explore.js) */
+.card:has(canvas):not(:has(details:not([open]) canvas))::after,.viz-block:has(canvas):not(:has(details:not([open]) canvas))::after{content:"fisc.vn";display:block;text-align:right;font:700 12.5px/1 Inter,Arial,sans-serif;color:#2938A8;margin-top:6px;letter-spacing:.2px}
+html[data-theme="dark"] .card:has(canvas)::after,html.dark .card:has(canvas)::after{color:#59C5C8}
+@media print{.card:has(canvas)::after,.viz-block:has(canvas)::after{display:none}}
+
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet"><style>
 .stock-search{max-width:1440px;margin:16px auto 0;padding:0 24px}
@@ -5460,7 +5465,21 @@ function applyWidth(id,cfg){
   const k=widths[id];if(!(k in WSTEPS))return;const st=WSTEPS[k];
   for(const d of cfg.data.datasets||[])if(isBar(cfg,d)){d.barPercentage=st.p;d.categoryPercentage=.9;d.maxBarThickness=st.m||undefined;delete d.barThickness;}
 }
-function ensurePlugin(){if(window.Chart&&!ensurePlugin.done){try{Chart.register(valuePlugin);ensurePlugin.done=true}catch(e){}}}
+// Watermark "FinSuccess" + slogan mờ giữa vùng vẽ của mọi chart trên trang (người dùng chốt 06/11/2026, mẫu chart P/E VN-Index).
+// Vẽ dưới dữ liệu; bỏ qua lúc chụp ảnh chia sẻ (.fs-per-shot — share-image.js tự đặt watermark) và khi in.
+const wmPlugin={id:'fsWatermark',beforeDatasetsDraw(chart){
+  const a=chart.chartArea;if(!a||chart.canvas.closest('.fs-per-shot'))return;
+  if(window.matchMedia&&matchMedia('print').matches)return;
+  const w=a.right-a.left,h=a.bottom-a.top;if(w<160||h<80)return;
+  const dark=document.documentElement.classList.contains('dark')||document.documentElement.dataset.theme==='dark';
+  const ctx=chart.ctx,cx=a.left+w/2,cy=a.top+h/2,big=Math.min(w*0.13,h*0.22,64),small=Math.max(9,big*0.28);
+  ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillStyle=dark?'rgba(255,255,255,.06)':'rgba(29,38,120,.06)';
+  ctx.font=`800 ${big}px Inter, Arial, sans-serif`;ctx.fillText('FinSuccess',cx,cy-small*0.6);
+  if(h>140){ctx.fillStyle=dark?'rgba(255,255,255,.08)':'rgba(29,38,120,.08)';ctx.font=`500 ${small}px Inter, Arial, sans-serif`;
+    if(ctx.letterSpacing!==undefined)ctx.letterSpacing='1.5px';ctx.fillText('Your wealth, Our conviction',cx,cy+big*0.55);}
+  ctx.restore();}};
+function ensurePlugin(){if(window.Chart&&!ensurePlugin.done){try{Chart.register(valuePlugin);Chart.register(wmPlugin);ensurePlugin.done=true}catch(e){}}}
 ensurePlugin();
 function axes(cfg){
   if(!cfg||!cfg.data||['pie','doughnut','polarArea'].includes(cfg.type)||cfg.shareView)return [];
@@ -9252,7 +9271,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='vhm',BUILD='299754879389',URL_JSON='../version.json';
+  const PAGE='vhm',BUILD='9adc7cd71394',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;

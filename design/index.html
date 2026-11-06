@@ -1279,6 +1279,11 @@ table.is-sheet tbody tr:nth-child(even) td{background:#fff}
 .fp-full{position:absolute;top:-4px;bottom:-4px;width:0;border-left:2px dashed #94A3B8}
 .fp-val{font-variant-numeric:tabular-nums;font-size:13.5px}.fp-val b{color:#1D2678}.fp-val span{color:#64748B;font-size:12px;margin-left:4px}
 :root[data-theme=dark] .fp-track{background:#2A2A2A}:root[data-theme=dark] .fp-name,:root[data-theme=dark] .fp-val b{color:#59C5C8}
+
+/* fisc.vn góc phải dưới mọi card chart (người dùng chốt 06/11/2026, đi cùng watermark trong chart-explore.js) */
+.card:has(canvas):not(:has(details:not([open]) canvas))::after,.viz-block:has(canvas):not(:has(details:not([open]) canvas))::after{content:"fisc.vn";display:block;text-align:right;font:700 12.5px/1 Inter,Arial,sans-serif;color:#2938A8;margin-top:6px;letter-spacing:.2px}
+html[data-theme="dark"] .card:has(canvas)::after,html.dark .card:has(canvas)::after{color:#59C5C8}
+@media print{.card:has(canvas)::after,.viz-block:has(canvas)::after{display:none}}
 </style>
 <style>
 body{margin:0;background:var(--bg);color:var(--ink)}
