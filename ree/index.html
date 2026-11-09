@@ -6344,6 +6344,8 @@ window.FS_INCOME_HISTORY_10Y={"MWG": {"2016": {"labels": ["Q1/2016", "Q2/2016", 
     if(!items) return;
     const tape=document.createElement('div'); tape.id='mktTape'; tape.className='mkt-tape';
     tape.innerHTML=`<div class="mkt-track"><div class="mkt-run">${items}${items}</div></div>`;
+    // Tốc độ cố định theo số mã (~4,5s/mã), không để thanh chạy nhanh khi thêm mã.
+    const run=tape.querySelector('.mkt-run'); if(run) run.style.animationDuration=Math.max(70,market.stocks.filter(s=>s.price!=null).length*4.5)+'s';
     nav.before(tape);
   }
 
@@ -9813,7 +9815,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='ree',BUILD='4fa58b1831b3',URL_JSON='../version.json';
+  const PAGE='ree',BUILD='a3b59ff7e9ca',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
