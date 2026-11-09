@@ -4207,6 +4207,13 @@ function business(){
  dispatchDetail(sections.dispatch);
  const tbl=document.createElement('div');tbl.className='card';tbl.innerHTML=`<details class="dd"><summary>Bảng vận hành tháng — thực tế</summary><div class="body">${table(['Tháng',...p.names],p.tracking.GEN.m.labels.map((l,i)=>[l,...p.tracking.GEN.m.values.map(x=>x[i])]))}</div></details>`;sections.dispatch.append(tbl);
  chart(sections.price,'powFMP','Giá điện FMP (đ/kWh)',p.tracking.FMP,['FMP'],'line',false,'Tracking và bản tin PV Power. Quý/năm = bình quân số học tháng khi đủ kỳ; không trọng số theo sản lượng. Tháng 8/2026 là khoảng 1.203 đ/kWh. FMP không phải giá bán của từng nhà máy.');
+ // Giá điện FMP theo tháng T1–T12, mỗi năm một cột (3 năm gần nhất có số).
+ {const lv=p.tracking.FMP.m,yrs=[...new Set(lv.labels.map(l=>l.split('/')[1]))].sort().slice(-3);
+  const card=document.createElement('div');card.className='card';card.id='powFMPMonthCard';
+  card.innerHTML='<h3 class="sub">Giá điện FMP theo tháng (đ/kWh)</h3><div class="chart tall"><canvas id="powFMPMonth"></canvas></div><div class="note">Mỗi năm một cột theo từng tháng T1–T12; tháng chưa có số để trống. FMP không phải giá bán của từng nhà máy. Số tháng từ tracking và bản tin PV Power; T12/2024 là số rất thấp trong nguồn.</div>';
+  sections.price.append(card);
+  const datasets=yrs.map((yy,k)=>({label:'20'+yy,backgroundColor:stackColor(k,yrs.length),borderColor:stackColor(k,yrs.length),borderRadius:4,data:Array.from({length:12},(_,mo)=>{const j=lv.labels.indexOf(`T${mo+1}/${yy}`);return j<0?null:lv.values[0][j]})}));
+  mk('powFMPMonth',{type:'bar',data:{labels:Array.from({length:12},(_,i)=>'T'+(i+1)),datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:10}}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:'#EEF0F6'}}}}});}
  if(p.modelDetail)priceDetail(sections.price);else{chart(sections.price,'powASP','Giá điện bình quân (đ/kWh)',{y:{labels:years,values:a.revenue.map((r,i)=>r.map((x,j)=>x!=null&&a.volume[i][j]?x/a.volume[i][j]*1000:null))}},p.names,'line',false,'Doanh thu nhà máy / sản lượng phát × 1.000. NT3&4 lịch sử thiếu sản lượng, không tính giá từ 0.');
  chart(sections.price,'powSpread','Chênh lệch giá điện–nhiên liệu (đ/kWh)',{y:{labels:years,values:[a.spread.map(x=>x*1000)]}},['Spread'],'line',false,'Conso 56: giá bán bình quân hợp nhất trừ nhiên liệu trên sản lượng. Không phải giá LNG/than hoặc biên gộp từng nhà máy.');}
  const plants=document.createElement('div');plants.className='card';plants.innerHTML='<details class="dd"><summary>Công suất &amp; sở hữu dùng trong mô hình định giá</summary><div class="body">'+table(['Nhà máy','Công suất model (MW)','Sở hữu model (%)'],[['Cà Mau 1&2',1500,100],['Vũng Áng 1',1200,100],['Nhơn Trạch 1',450,100],['Nhơn Trạch 2',750,59.37],['Nhơn Trạch 3&4',1500,100],['Hủa Na',180,80.72],['Đakđrinh',125,95.27],['Nậm Nơn — không cộng riêng SOTP',20,80.72]])+'<div class="note">Công suất và sở hữu dùng trong mô hình định giá SOTP, không phải công suất lắp đặt công bố (xem danh mục nhà máy phía trên). Tổng công suất model 5.725 MW. NT3&4 đã vận hành; bản tin tháng 8 ghi tiếp tục nghiệm thu/thanh toán/quyết toán. Công suất định mức thực tế có thể khác model.</div></div></details>';sections.plants.append(plants);portfolio(sections.plants);
@@ -10200,7 +10207,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='pow',BUILD='2c16abb2098b',URL_JSON='../version.json';
+  const PAGE='pow',BUILD='a8ffa81cc3fb',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
