@@ -4538,29 +4538,6 @@ function depreciationDetail(){
 document.addEventListener('DOMContentLoaded',()=>{try{business();model();applyChartTips()}catch(e){console.error('POW',e);document.documentElement.dataset.powError=e.message}});
 })();
 
-/* pwr-ops: chỉ tiêu vận hành điện, phải thu EVN, chênh lệch tỷ giá & dữ kiện (BCTN/BCTC/ĐHĐCĐ/CBTT) */
-(function(){
-const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const fmt=v=>v==null||!Number.isFinite(+v)?'—':Number(v).toLocaleString('vi-VN',{maximumFractionDigits:2});
-function go(){const O=(window.PVS_DATA||{}).pwrOps,p=document.getElementById('seg');if(!O||!p||p.querySelector('.pwr-ops'))return;
- const h2=document.createElement('h2');h2.className='sec';h2.textContent=O.title;h2.style.marginTop='24px';p.appendChild(h2);
- const h=document.createElement('div');h.className='grid g2 pwr-ops';h.style.marginTop='12px';p.appendChild(h);
- (O.metrics||[]).forEach(m=>{const k=Object.keys(m.values),v=k.map(x=>m.values[x]);const e=document.createElement('div');e.className='card';e.dataset.source=O.source;
-  const note=[m.note,O.caveat].filter(Boolean).join(' ');
-  if(k.length>=3&&typeof mkTS==='function'){
-   e.innerHTML=`<h3 class="sub">${esc(m.label)} (${esc(m.unit)})</h3><div class="chart"><canvas id="${m.id}"></canvas></div><p class="note">${esc(note)}</p>`;h.appendChild(e);
-   mkTS(m.id,{def:'y',unitLabel:m.unit,noShare:true,y:{labels:k,datasets:[{label:m.label,data:v,backgroundColor:'#2938A8',borderColor:'#2938A8'}]},
-    cfg:(labels,datasets)=>({type:'bar',data:{labels,datasets},options:baseOpts({plugins:{legend:{display:false},tooltip:{callbacks:{label:t=>fmt(t.parsed.y)+' '+m.unit}}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,ticks:{callback:x=>fmt(x)}}}})})});
-  }else{
-   e.innerHTML=`<h3 class="sub">${esc(m.label)} (${esc(m.unit)})</h3><div class="tbl-wrap"><table><tr>${k.map(x=>`<th>${esc(x)}</th>`).join('')}</tr><tr>${v.map(x=>`<td style="text-align:right">${fmt(x)}</td>`).join('')}</tr></table></div><p class="note">${esc(note)}</p>`;h.appendChild(e);}
- });
- (O.tables||[]).forEach(t=>{const e=document.createElement('div');e.className='card';e.dataset.source=O.source;e.style.gridColumn='1/-1';
-  e.innerHTML=`<h3 class="sub">${esc(t.title)}</h3><div class="tbl-wrap"><table><tr>${t.cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr>${t.rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</table></div>`;h.appendChild(e);});
- const f=document.createElement('div');f.className='card';f.dataset.source=O.source;f.style.gridColumn='1/-1';
- f.innerHTML=`<h3 class="sub">Dữ kiện đã công bố</h3><div class="tbl-wrap"><table><tr><th>Ngày</th><th>Nhóm</th><th>Dữ kiện</th></tr>${(O.facts||[]).map(r=>`<tr title="${esc(r[3])}"><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td>${esc(r[2])}</td></tr>`).join('')}</table></div><p class="note">${esc(O.gaps||'')}</p>`;h.appendChild(f);}
-document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{try{go();}catch(e){console.error('pwr-ops',e);document.documentElement.dataset.pwrOpsError=e.message;}},0));
-})();
-
 </script>
 
 <script>window.FINANCE_INPUTS = {
@@ -10354,7 +10331,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='pow',BUILD='8810cc1dc2a3',URL_JSON='../version.json';
+  const PAGE='pow',BUILD='ea9d353a688b',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;

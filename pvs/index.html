@@ -1847,6 +1847,7 @@ window.PVS_DATA = {
     }
   ],
   "baseDA": 779.738120599,
+  "timingFactor": 0.5,
   "baseDAYear": 2025,
   "detailedPlanTotal": 27699,
   "latestPlanTotal": 32000,
@@ -2099,6 +2100,12 @@ window.PVS_DATA = {
   ],
   "inputs": {
     "2026F": {
+      "rev_osv": 897.58,
+      "rev_fso": 749.28,
+      "rev_rov": 152,
+      "rev_port": 564.76,
+      "rev_om": 1347.91,
+      "rev_other": 271.2,
       "g_osv": 5,
       "gm_osv": 16,
       "g_fso": 10,
@@ -2124,6 +2131,12 @@ window.PVS_DATA = {
       "nciPct": -4
     },
     "Worst": {
+      "rev_osv": 3123.33,
+      "rev_fso": 2708.44,
+      "rev_rov": 473.29,
+      "rev_port": 2521.59,
+      "rev_om": 5847.17,
+      "rev_other": 1223.56,
       "g_osv": -5,
       "gm_osv": 13,
       "g_fso": 0,
@@ -2149,6 +2162,12 @@ window.PVS_DATA = {
       "nciPct": -4
     },
     "Base": {
+      "rev_osv": 3452.1,
+      "rev_fso": 2708.44,
+      "rev_rov": 473.29,
+      "rev_port": 2521.59,
+      "rev_om": 5847.17,
+      "rev_other": 1070.61,
       "g_osv": 5,
       "gm_osv": 16,
       "g_fso": 10,
@@ -2174,6 +2193,12 @@ window.PVS_DATA = {
       "nciPct": -4
     },
     "Best": {
+      "rev_osv": 3616.49,
+      "rev_fso": 2708.44,
+      "rev_rov": 473.29,
+      "rev_port": 2521.59,
+      "rev_om": 5847.17,
+      "rev_other": 1070.61,
       "g_osv": 10,
       "gm_osv": 18,
       "g_fso": 15,
@@ -2741,7 +2766,7 @@ window.PVS_DATA.valuation=window.PVS_DATA.valuation||{};window.PVS_DATA.valuatio
 
 (function(v){var o=window.PVS_DATA;o=o["model"]=o["model"]||{};o["sotpAsOf"]=v;})({"date":"30/09/2026","parentSrc":"BCTC riêng công ty mẹ Q3/2026 (CBTT 1773/PTSC-BTK 28/10/2026): tiền & TĐT 4.727,94 + HTM ngắn hạn 3.496,60; vay NH 259,13 + DH 1.228,48 tỷ","parentUrl":"https://www.ptsc.com.vn/Data/Sites/1/media/codong/1773%20PTSC-BTK.pdf","consolUrl":"https://www.ptsc.com.vn/Data/Sites/1/media/codong/1774%20PTSC-BTK.pdf"});
 
-(function(v){var o=window.PVS_DATA;o=o["model"]=o["model"]||{};o=o["inputs"]=o["inputs"]||{};o["2026F"]=v;})({"g_osv":78.8,"gm_osv":16.8,"g_fso":-1.4,"gm_fso":5.9,"g_rov":-27.8,"gm_rov":29.7,"g_port":19.7,"gm_port":19.4,"gm_mc":7.7,"g_om":58.8,"gm_om":5.6,"g_other":110.8,"gm_other":8.9,"sgaPct":4.93,"interestAssets":16600,"depositRate":2.5,"fxOther":546,"avgDebt":1500,"debtRate":6,"otherFinCost":24,"netOther":100,"taxRate":15.56,"nciPct":-4,"sgaQ4":7.29});
+(function(v){var o=window.PVS_DATA;o=o["model"]=o["model"]||{};o=o["inputs"]=o["inputs"]||{};o["2026F"]=v;})({"g_osv":78.8,"gm_osv":16.8,"g_fso":-1.4,"gm_fso":5.9,"g_rov":-27.8,"gm_rov":29.7,"g_port":19.7,"gm_port":19.4,"gm_mc":7.7,"g_om":58.8,"gm_om":5.6,"g_other":110.8,"gm_other":8.9,"sgaPct":4.93,"interestAssets":16600,"depositRate":2.5,"fxOther":546,"avgDebt":1500,"debtRate":6,"otherFinCost":24,"netOther":100,"taxRate":15.56,"nciPct":-4,"sgaQ4":7.29,"rev_osv":897.58,"rev_fso":749.28,"rev_rov":152,"rev_port":564.76,"rev_om":1347.91,"rev_other":271.2});
 
 window.PVS_DATA.sourceMeta=Object.assign(window.PVS_DATA.sourceMeta||{},{"consensus":"PDF báo cáo CTCK (website CTCK/edocs), xác minh 2026-10-15","insiderTrades":"CafeF giao dịch cổ đông lớn/nội bộ (tổng hợp CBTT HOSE/HNX), https://cafef.vn/du-lieu/Ajax/PageNew/DataHistory/GDCoDong.ashx?Symbol=PVS&PageIndex=1&PageSize=100, trích 05/11/2026","insiderPrices":"VNDirect finfo stock_prices adClose (giá điều chỉnh, nghìn đ ×1000), https://api-finfo.vndirect.com.vn/v4/stock_prices?q=code:PVS~date:gte:2016-01-01&sort=date:asc&size=5000, trích 05/11/2026","price":"VNDirect finfo","room":"Vietstock Finance","filings":"CafeF › tải báo cáo tài chính","overview":"VNDirect finfo ratios/latest (ROAE_TR_AVG5Q,ROAA_TR_AVG5Q,OPERATING_EBITDA_TR,MARKETCAP,NET_CASH_TO_EQUITY_AQ,BVPS_AQ,OUTSTANDING_SHARES,EPS_TR), trích 2026-11-02","fundamentals":"BCTC hợp nhất Q3/2026 PTSC (tự công bố)"});
 
@@ -5257,7 +5282,7 @@ analystInputStyle.textContent=`
 `;
 document.head.appendChild(analystInputStyle);
 const fmt=(v,d=1)=>v==null||Number.isNaN(v)?'—':Number(v).toLocaleString('vi-VN',{maximumFractionDigits:Math.min(d,2)});
-let PVS_USD_VND=D.config.usdVnd;try{const savedFx=Number(localStorage.getItem(KEY+'_usd_vnd'));if(Number.isFinite(savedFx)&&savedFx>0)PVS_USD_VND=savedFx;}catch(e){}
+let PVS_USD_VND=D.config.usdVnd;try{const savedFx=NaN;if(Number.isFinite(savedFx)&&savedFx>0)PVS_USD_VND=savedFx;}catch(e){}
 const add=(a,b)=>a==null||b==null?null:a+b;
 const sumRows=(rows,i)=>rows.every(r=>r[i]!=null)?rows.reduce((a,r)=>a+r[i],0):null;
 const sourceLinks=links=>links.map(s=>`<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.label)}</a>`).join(' · ');
@@ -5419,7 +5444,7 @@ function fsoProjection(p,fx,margin){
 }
 function renderFso(){
  const box=$('pvsFso');
- const fDefault=D.model?.fso||{baseJv:825.831899710,margin:20,projects:[{name:'Lô B · SEA',value:600,years:23,own:51,start:2027,months:5},{name:'Lạc Đà Vàng · AP',value:416,years:15,own:51,start:2026,months:3}]};let fm=deep(fDefault);try{const saved=JSON.parse(localStorage.getItem(KEY+'_fso_model'));if(saved&&saved.projects?.length===fDefault.projects.length)fm={...fm,...saved};}catch(e){}delete fm.fx;
+ const fDefault=D.model?.fso||{baseJv:825.831899710,margin:20,projects:[{name:'Lô B · SEA',value:600,years:23,own:51,start:2027,months:5},{name:'Lạc Đà Vàng · AP',value:416,years:15,own:51,start:2026,months:3}]};let fm=deep(fDefault);try{const saved=null;if(saved&&saved.projects?.length===fDefault.projects.length)fm={...fm,...saved};}catch(e){}delete fm.fx;
  let currentFso=null;
  box.innerHTML=`<details class="dd"><summary>10. FSO Lô B & Lạc Đà Vàng — kiểm tra phương pháp <span class="hint">bấm để mở/đóng</span></summary><div class="body"><details class="dd"><summary>Hợp đồng, cách tính và điều chỉnh so với hình 4</summary><div class="body"><p><b>Chia giá trị hợp đồng cho số năm chỉ là phép ước tính doanh thu bình quân.</b> Nhân 51% và tỷ giá cho ra doanh thu quy đổi theo phần sở hữu; chỉ tiêu này không phải doanh thu hợp nhất hay lãi liên doanh PVS.</p><p>Lãi liên doanh PVS ≈ (doanh thu JV − OPEX − khấu hao − chi phí lãi vay − thuế ± điều chỉnh) × 51%. Nếu dùng biên LNST đã bao gồm các chi phí này: doanh thu JV × biên LNST × 51%. Khoản lãi trong thuyết minh BCTC đã là phần PVS, không nhân 51% thêm lần nữa.</p><div class="tbl-wrap"><table><tr><th>Dự án / JV</th><th>Thời hạn</th><th>Giá trị công bố</th><th>Cách dùng</th></tr><tr><td>FSO Lô B · PTSC SEA (51%)</td><td>14 năm chắc chắn + tối đa 9 năm gia hạn</td><td>~600 triệu USD, gồm gia hạn</td><td>600/23 ≈ 26,09 triệu USD/năm là bình quân toàn vòng đời có gia hạn; 600/15 không khớp thời hạn. Chưa có giá trị phần chắc chắn riêng để dự báo chính xác.</td></tr><tr><td>FSO Lạc Đà Vàng · PTSC AP (51%)</td><td>10 năm chắc chắn + tối đa 5 năm gia hạn</td><td>Tối đa ~416 triệu USD</td><td>416/15 ≈ 27,73 triệu USD/năm chỉ là giả định bình quân với đủ gia hạn; lịch thuê, phần giá trị chắc chắn và quyền chọn cần hợp đồng chi tiết.</td></tr></table></div><p class="note">Hình 4 ghi Lô B khoảng 34 triệu USD/năm nhưng 600/15 = 40 triệu USD/năm; cần kiểm tra lại công thức ô nguồn. Năm đầu phải nhân số tháng thực tế vận hành. Các khoản phí xây dựng, tài trợ, thuê và O&M có thể có lịch ghi nhận khác nhau; bình quân vòng đời không thay thế lịch doanh thu theo hợp đồng.</p><div class="src">${sourceLinks(fsoSources)}</div></div></details><h4 style="margin-top:18px">Mô phỏng phần đóng góp mới · giả định analyst</h4><p class="note">Tổng LDLK dùng trong IS = nền LDLK kiểm toán 2025 + phần đóng góp mới của hai FSO. Biên LNST 20% là giả định khởi tạo để mô hình chạy, có thể chỉnh; không phải hướng dẫn của doanh nghiệp.</p><div class="row" style="margin:12px 0"><label for="fsoBaseJv">LDLK nền 2025 (tỷ)</label><input id="fsoBaseJv" type="number" min="0" step="1" value="${fm.baseJv}" style="width:145px"><span class="note">USD/VND dùng chung: <b>${fmt(PVS_USD_VND,0)}</b></span><label for="fsoMargin">Biên LNST dự án (%)</label><input id="fsoMargin" type="number" min="-100" max="100" step="1" value="${fm.margin}" style="width:130px"><span class="saved" id="fsoSaved"></span><button class="btn ghost sm" id="fsoSetDefault">Set làm mặc định</button></div><div class="tbl-wrap"><table id="fsoInputs"><tr><th>Dự án</th><th>Tổng HĐ (tr USD)</th><th>Năm phân bổ</th><th>PVS (%)</th><th>Năm vận hành</th><th>Số tháng năm đầu</th></tr>${fm.projects.map((p,i)=>`<tr data-fso="${i}"><td>${p.name}</td>${['value','years','own','start','months'].map(k=>`<td><input aria-label="${p.name} · ${k}" data-field="${k}" type="number" min="${k==='months'?0:1}" ${k==='months'?'max="12"':k==='own'?'max="100"':''} value="${p[k]}" step="1"></td>`).join('')}</tr>`).join('')}</table></div><p id="fsoValidation" role="status" class="note"></p><div class="tbl-wrap"><table id="fsoResults"></table></div><details class="dd" style="margin-top:12px"><summary>Độ nhạy biên LNST & chỉ tiêu cần theo dõi</summary><div class="body"><div class="tbl-wrap"><table id="fsoSensitivity"></table></div><p class="note">Các mức 10% / 20% / 30% chỉ minh họa độ nhạy, không phải biên được doanh nghiệp hướng dẫn. Theo dõi: ngày nghiệm thu/COD (có biên bản → ghi nhận; trễ → giảm tháng khai thác), đơn giá & quyền gia hạn (ký chắc chắn → thêm backlog; chưa ký → chỉ để kịch bản), uptime/OPEX (đạt ngân sách → giữ biên; downtime/vượt ngân sách → giảm biên), dư nợ & lãi vay (tăng chi phí → giảm lãi JV). Cập nhật khi có công bố PTSC/Yinson và BCTC JV.</p></div></details></div></details>`;
  [...box.querySelectorAll('details.dd')].reverse().forEach(d=>{const top=d.parentElement===box;if(top)return;const wrap=document.createElement('div'),summary=d.querySelector('summary'),body=d.querySelector(':scope > .body');if(summary){const h=document.createElement('h4');h.textContent=summary.textContent.trim();wrap.appendChild(h);}[...(body?.children||[])].forEach(ch=>wrap.appendChild(ch));d.replaceWith(wrap);});
@@ -5449,7 +5474,7 @@ function computeCapex(rows,base,factor){
 }
 function renderCapex(){
  const p=D.capexPlan;
- let initialRows=deep(p.rows),initialBase=p.baseDA,initialFactor=.5;try{const saved=JSON.parse(localStorage.getItem(KEY+'_capex_model'));if(saved&&saved.rows?.length===p.rows.length){initialRows=saved.rows;initialBase=saved.base;initialFactor=saved.factor;}}catch(e){}
+ let initialRows=deep(p.rows),initialBase=p.baseDA,initialFactor=p.timingFactor??.5;try{const saved=null;if(saved&&saved.rows?.length===p.rows.length){initialRows=saved.rows;initialBase=saved.base;initialFactor=saved.factor;}}catch(e){}
  let currentCapex=null;
  const inputRows=initialRows.map((r,i)=>{const opts=r.depreciable?'<option value="1">TSCĐ hợp nhất · có KH</option><option value="0">Vốn góp dự án · không KH</option>':'<option value="0">Vốn góp dự án · không KH</option><option value="1">TSCĐ hợp nhất · có KH</option>';return `<tr data-capex="${i}"><td><b>${esc(r.name)}</b><br><span class="note">${esc(r.group)}</span></td><td><input type="number" min="0" step="10" data-total value="${r.total}" aria-label="Tổng vốn ${esc(r.name)}"></td><td><input type="number" min="1" max="5" step="1" data-spend value="${r.spendYears}" aria-label="Số năm giải ngân ${esc(r.name)}"></td><td class="num" data-annual></td><td><input type="number" min="1" step="1" data-life value="${r.life}" aria-label="Đời tài sản ${esc(r.name)}"></td><td><select data-treatment aria-label="Xử lý kế toán ${esc(r.name)}">${opts}</select></td></tr>`;}).join('');
  $('capex').innerHTML=`<h2 class="sec">Kế hoạch CAPEX & khấu hao</h2><div class="grid g4">${[['Kế hoạch chi tiết 2026–2030','27.699 tỷ','Breakdown tháng 5/2025'],['Cập nhật tổng mức 2026–2030','≈ 32.000 tỷ','ĐHĐCĐ 2026 · chưa có breakdown mới'],['Đầu tư thực hiện 2025','2.550 tỷ','PTSC công bố'],['Khấu hao nền 2025','779,738 tỷ','BCTC hợp nhất kiểm toán']].map(([l,v,n])=>`<div class="card kpi"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${n}</div></div>`).join('')}</div><div class="card" style="margin-top:16px"><details class="dd" open><summary>Kết quả verify & công thức</summary><div class="body"><p>${esc(p.note)}</p><p><b>Công thức giải ngân:</b> tổng vốn từng hạng mục ÷ số năm giải ngân. Theo nguồn chi tiết: cảng 3.270 ÷ 5 = 654 tỷ/năm; tàu 4.835 ÷ 5 = 967 tỷ/năm; điện gió Singapore 10.000 ÷ 5 = 2.000 tỷ/năm. Các số 660 và 960 trong ảnh là số làm tròn từ tổng 3.300 và 4.800 tỷ.</p><p><b>Công thức khấu hao:</b> mỗi lô CAPEX tạo TSCĐ ÷ đời tài sản × tỷ lệ thời gian vận hành trong năm. Khấu hao dự phóng = khấu hao nền 2025 kiểm toán + khấu hao lũy kế của các lô mới. Vốn góp vào dự án/JV được tách riêng và mặc định không khấu hao trên BCTC hợp nhất.</p><p>Khấu hao nền <b>${fmt(p.baseDA,3)} tỷ</b> lấy từ BCTC hợp nhất 2025 kiểm toán. Vì chưa có sổ chi tiết tài sản, mô hình giữ nền này không đổi đến 2030; đây là giả định có thể chỉnh, chưa phản ánh tài sản cũ hết khấu hao hoặc thanh lý.</p><div class="src">${sourceLinks([{label:'Vietcap · breakdown kế hoạch tháng 5/2025',url:p.detailedSource},{label:'PSI · cập nhật ĐHĐCĐ 2026 khoảng 32.000 tỷ',url:p.latestSource},{label:'PTSC · BCTC 2025 kiểm toán, nguồn khấu hao nền',url:p.depreciationSource}])}</div></div></details></div><div class="card" style="margin-top:16px"><h3 class="sub">Tổng vốn & giả định phân bổ (tỷ VND)</h3><div class="tbl-wrap"><table id="capexInputs"><tr><th>Hạng mục</th><th>Tổng vốn</th><th>Số năm giải ngân</th><th class="num">Bình quân/năm</th><th>Đời TS</th><th>Xử lý kế toán</th></tr>${inputRows}</table></div><div class="row" style="margin-top:14px"><label for="capexBase">Khấu hao nền 2025</label><input id="capexBase" type="number" min="0" step="1" value="${initialBase}" style="width:140px"><label for="capexTiming">Đưa tài sản vào sử dụng</label><select id="capexTiming" style="width:240px"><option value="0.5">Giữa năm · 50% năm đầu</option><option value="1">Đầu năm · 100% năm đầu</option><option value="0">Cuối năm · 0% năm đầu</option></select><span class="saved" id="capexSaved"></span><button class="btn ghost sm" id="capexSetDefault">Set làm mặc định</button></div><p class="note">Số năm giải ngân tối đa 5 năm trong cửa sổ 2026–2030. Đổi “xử lý kế toán” nếu có bằng chứng hạng mục được PVS hợp nhất thành TSCĐ; thay đổi này sẽ tự cập nhật khấu hao.</p><p id="capexValidation" role="status" class="note"></p></div><div class="grid g2" style="margin-top:16px">${chartCard('capexPlanChart','Nhu cầu vốn phân bổ 2026–2030 (tỷ VND)','Tổng vốn chia đều theo số năm nhập. Bao gồm cả đầu tư TSCĐ và vốn chủ phát triển dự án.')}${chartCard('capexDaChart','Khấu hao dự phóng (tỷ VND)','Khấu hao nền kiểm toán 2025 + khấu hao từng lô CAPEX được phân loại là TSCĐ hợp nhất.')}</div><div class="card" style="margin-top:16px"><details class="dd"><summary>Bảng giải ngân & khấu hao chi tiết</summary><div class="body"><div class="tbl-wrap"><table id="capexOutput"></table></div><p class="note">Kế hoạch 2026 riêng lẻ 2.843 tỷ và tổng đầu tư trung hạn không bắt buộc bằng mức chia đều: giải ngân thực tế phụ thuộc tiến độ dự án. Mô hình chia đều là giả định analyst để tạo đường cơ sở.</p></div></details></div>`;
@@ -5477,7 +5502,9 @@ function renderCapex(){
 // Analyst sửa ô năm trong bảng backlog (06/11/2026): sửa thử trong phiên, "Set làm mặc định" lưu pvs_backlog_plan_v1.
 const PVS_BL_KEY='pvs_backlog_plan_v1',PVS_BL_ORIG={};
 D.backlog.projects.forEach(p=>{PVS_BL_ORIG[p.id]=Object.assign({},p.annualPlanUsd||{});});
-try{const ov=JSON.parse(localStorage.getItem(PVS_BL_KEY)||'null');if(ov)D.backlog.projects.forEach(p=>{if(ov[p.id])p.annualPlanUsd=Object.assign({},ov[p.id]);});}catch(e){}
+// 09/11/2026: lịch backlog lấy từ model Excel (luồng Cập nhật model); bỏ bản sửa đã lưu trên trình duyệt.
+const PVS_MODEL_LOCKED=true;
+try{const ov=PVS_MODEL_LOCKED?null:JSON.parse(localStorage.getItem(PVS_BL_KEY)||'null');if(ov)D.backlog.projects.forEach(p=>{if(ov[p.id])p.annualPlanUsd=Object.assign({},ov[p.id]);});}catch(e){}
 function pvsBacklogEdit(el){
  const p=D.backlog.projects.find(x=>x.id===el.dataset.pid),y=el.dataset.y;if(!p)return;
  const raw=String(el.value).trim().replace(/[~\s]/g,'').replace(/\./g,'').replace(',','.'),v=raw===''?0:Number(raw);
@@ -5583,7 +5610,7 @@ renderBacklog=function(){
 function linkedCapexDA(year){
  const i=year-2026;if(i<0||i>4)return null;
  if(window.pvsCapexForecast&&window.pvsCapexForecast[i]!=null)return window.pvsCapexForecast[i];
- return computeCapex(D.capexPlan.rows,D.capexPlan.baseDA,.5).da[i];
+ return computeCapex(D.capexPlan.rows,D.capexPlan.baseDA,D.capexPlan.timingFactor??.5).da[i];
 }
 function linkedJvProfit(year){
  const i=year-2026;if(i<0||i>4)return null;
@@ -5696,6 +5723,24 @@ const capexTab=document.createElement('button');capexTab.dataset.tab='capex';cap
 const capexSection=document.createElement('section');capexSection.className='tab';capexSection.id='capex';$('bs').after(capexSection);
 const fsoBox=document.createElement('div');fsoBox.id='pvsFso';fsoBox.className='card model-part';$('val').appendChild(fsoBox);
 document.addEventListener('DOMContentLoaded',()=>{renderFso();renderCapex();});
+
+// Khóa ô giả định (người dùng chốt 09/11/2026): forecast PVS nằm ở model Excel của analyst, dashboard chỉ hiển thị.
+// Ô nhập chuyển chỉ đọc, ẩn "Set làm mặc định"/"Về số gốc"; cập nhật số qua phiếu "Cập nhật model" ở Analyst inbox.
+(function(){
+ const MSG='Giả định lấy từ mô hình dự phóng của analyst — chỉ đọc. Cập nhật bằng phiếu “Cập nhật model” trong Analyst inbox.';
+ function lock(){
+  ['modelBlock','pvsFso','capex','backlog'].forEach(id=>{const box=$(id);if(!box)return;
+   box.querySelectorAll('input,select').forEach(el=>{if(el.closest('.no-lock')||el.type==='search'||el.type==='checkbox')return;if(el.tagName==='SELECT'){if(!el.disabled&&(el.dataset.treatment!==undefined||el.id==='capexTiming'))el.disabled=true;return;}
+    if(el.type==='number'||el.classList.contains('bl-in')||el.classList.contains('cell')){if(!el.readOnly){el.readOnly=true;el.tabIndex=-1;el.classList.add('pvs-ro');el.title='Chỉ đọc — sửa trong mô hình dự phóng';}}});
+   box.querySelectorAll('button').forEach(b=>{if(/Set làm mặc định|Về số gốc|Khôi phục/.test(b.textContent)&&!b.hidden)b.hidden=true;});});
+  const bar=$('pvsBlBar');if(bar&&!bar.hidden)bar.hidden=true;
+  const mb=$('modelBlock');if(mb&&!$('pvsModelLockNote')){const n=document.createElement('p');n.id='pvsModelLockNote';n.className='note pvs-lock-note';n.textContent=MSG;mb.prepend(n);}
+ }
+ const st=document.createElement('style');st.textContent='input.pvs-ro{background:transparent!important;border-color:transparent!important;box-shadow:none!important;cursor:default;color:inherit}select:disabled{opacity:1;color:inherit;background:transparent;border-color:transparent;appearance:none}.pvs-lock-note{margin:0 0 12px;padding:8px 12px;border-radius:8px;background:#F8FAFC;border:1px solid #E1E6EE;color:#475569;font-size:13px}';document.head.appendChild(st);
+ const wrap=n=>{const f=window[n];if(typeof f!=='function')return;window[n]=function(){const r=f.apply(this,arguments);lock();return r;};};
+ document.addEventListener('DOMContentLoaded',()=>{setTimeout(()=>{['renderModel','renderBacklog','renderFso','renderCapex'].forEach(wrap);lock();},0);});
+ window.addEventListener('load',()=>setTimeout(lock,300));
+})();
 
 </script>
 
@@ -12372,7 +12417,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='pvs',BUILD='b246d8380fd6',URL_JSON='../version.json';
+  const PAGE='pvs',BUILD='e7a95cd2e4de',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
