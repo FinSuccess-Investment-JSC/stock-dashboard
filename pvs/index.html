@@ -5786,10 +5786,11 @@ try{M=null;}catch(e){}
    box.querySelectorAll('input,select').forEach(el=>{if(el.closest('.no-lock')||el.type==='search'||el.type==='checkbox')return;if(el.tagName==='SELECT'){if(!el.disabled&&(id==='modelBlock'||el.dataset.treatment!==undefined||el.id==='capexTiming'))el.disabled=true;return;}
     if(el.type==='number'||el.classList.contains('bl-in')||el.classList.contains('cell')){if(!el.readOnly){el.readOnly=true;el.tabIndex=-1;el.classList.add('pvs-ro');el.title='Chỉ đọc — sửa trong mô hình dự phóng';}}});
    box.querySelectorAll('button').forEach(b=>{if(/Set làm mặc định|Về số gốc|Khôi phục/.test(b.textContent)&&!b.hidden)b.hidden=true;});});
+  document.querySelectorAll('#modelBlock table').forEach(t=>{const hr=[...t.rows].find(r=>[...r.cells].some(c=>c.tagName==='TH'&&/Mốc lịch sử/.test(c.textContent)));if(!hr)return;const idx=[...hr.cells].findIndex(c=>/Mốc lịch sử/.test(c.textContent));const n=hr.cells.length;[...t.rows].forEach(r=>{if(r.cells.length===n&&r.cells[idx]&&!r.cells[idx].classList.contains('pvs-hide-col'))r.cells[idx].classList.add('pvs-hide-col');});});
   const bar=$('pvsBlBar');if(bar&&!bar.hidden)bar.hidden=true;
   const mb=$('modelBlock');if(mb&&!$('pvsModelLockNote')){const n=document.createElement('p');n.id='pvsModelLockNote';n.className='note pvs-lock-note';n.textContent=MSG;mb.prepend(n);}
  }
- const st=document.createElement('style');st.textContent='input.pvs-ro{background:transparent!important;border-color:transparent!important;box-shadow:none!important;cursor:default;color:inherit}select:disabled{opacity:1;color:inherit;background:transparent;border-color:transparent;appearance:none}.pvs-lock-note{margin:0 0 12px;padding:8px 12px;border-radius:8px;background:#F8FAFC;border:1px solid #E1E6EE;color:#475569;font-size:13px}';document.head.appendChild(st);
+ const st=document.createElement('style');st.textContent='html body table input.pvs-ro[readonly],html body input.pvs-ro[readonly]{background:transparent!important;border-color:transparent!important;box-shadow:none!important;outline:none!important;cursor:default;color:inherit!important;pointer-events:none}html body .pvs-hide-col{display:none!important}input.pvs-ro{background:transparent!important;border-color:transparent!important;box-shadow:none!important;cursor:default;color:inherit}select:disabled{opacity:1;color:inherit;background:transparent;border-color:transparent;appearance:none}.pvs-lock-note{margin:0 0 12px;padding:8px 12px;border-radius:8px;background:#F8FAFC;border:1px solid #E1E6EE;color:#475569;font-size:13px}';document.head.appendChild(st);
  const wrap=n=>{const f=window[n];if(typeof f!=='function')return;window[n]=function(){const r=f.apply(this,arguments);lock();return r;};};
  document.addEventListener('DOMContentLoaded',()=>{setTimeout(()=>{['renderModel','renderBacklog','renderFso','renderCapex'].forEach(wrap);lock();},0);});
  window.addEventListener('load',()=>setTimeout(lock,300));
@@ -12470,7 +12471,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='pvs',BUILD='e46a63effe21',URL_JSON='../version.json';
+  const PAGE='pvs',BUILD='f5d46614b9e3',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
