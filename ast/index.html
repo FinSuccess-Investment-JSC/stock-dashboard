@@ -8914,9 +8914,9 @@ window.fsCmpChart=function(id,o){
    Không đụng ô tìm kiếm, Nhật ký chuyên viên, form ghi chú analyst, khung chia sẻ ảnh, bộ chọn kỳ của chart. */
 (function(){
   const SKIP='#fsJournal,#aJournal,.analyst-journal,.aj-root,[id*="ournal"],.fs-share-modal,#n_tp,.notes-form,[data-no-results-only]';
-  const ASSUME=/giả định|assumption|driver|biến đầu vào|biến định giá|forecast các mảng|nhập giả định|analyst nhập|chi phí, (tài chính|thuế|khấu hao|nci)|chi phí và vốn|qc, tỷ lệ|thuế hiệu dụng|bội số, chi phí vốn|vốn lưu động, capex|sở hữu, vốn hóa|cầu nối ev|giá trị và sở hữu|mảng khác|doanh thu fso|mô hình (thép|dự phóng)|forecast fox|chi phí, thuế và capex/i;
+  const ASSUME=/giả định|assumption|driver|biến đầu vào|forecast các mảng|nhập giả định|analyst nhập|chi phí, (tài chính|thuế|khấu hao|nci)|chi phí và vốn|qc, tỷ lệ|thuế hiệu dụng|vốn lưu động, capex|sở hữu, vốn hóa|cầu nối ev|giá trị và sở hữu|mảng khác|doanh thu fso|mô hình (thép|dự phóng)|forecast fox|chi phí, thuế và capex/i;
   // Khối kết quả định giá (SOTP, cầu nối EV → vốn chủ, giá trị từng cấu phần…) có kèm ô nhập: giữ khối, chỉ khóa ô.
-  const RESULT=/sotp|định giá|cầu nối|giá trị|giá mục tiêu|target price|income statement|kết quả/i;
+  const RESULT=/sotp|định giá|cầu nối|giá trị|giá mục tiêu|target price|income statement|kết quả|bội số|p\/e|p\/b|p\/s|ev\/ebitda|wacc|chi phí vốn|trọng số/i;
   const INPUT='input[type=number],input.cell,input.bl-in,input.gm2,input.gf2,input[type=range],table.analyst-table input,table.analyst-table select';
   const title=c=>{const h=c&&c.querySelector(':scope > h3, :scope > h4, :scope > summary, :scope > .row h3, h3, summary');return h?h.textContent.replace(/\s+/g,' ').trim():''};
   function hide(n){if(n&&!n.hidden){n.hidden=true;n.dataset.resultsOnly='hidden';}}
@@ -8928,18 +8928,22 @@ window.fsCmpChart=function(id,o){
       const ct=title(card),dt=title(det);
       if(card&&!RESULT.test(ct)&&ASSUME.test(ct)&&!card.closest(SKIP)){hide(card);return;}
       if(det&&!det.closest(SKIP)&&!RESULT.test(dt)&&(ASSUME.test(dt)||det.querySelectorAll(INPUT).length>=2)){hide(det);return;}
-      // Ô lẻ trong khối kết quả: hiện như số, không sửa được.
+      // Biến định giá (P/E, P/B, P/S từng mảng, sở hữu, khác… trong khối định giá): analyst vẫn sửa + Set làm mặc định
+      // (người dùng chốt 09/11/2026); chế độ Khách hiện như số thường (CSS html.fs-guest .ro-guest).
+      if(RESULT.test(ct)||RESULT.test(dt)){el.dataset.resultsOnly='val';el.classList.add('ro-guest');return;}
+      // Ô lẻ còn lại trong khối kết quả: hiện như số, không sửa được.
       el.dataset.resultsOnly='ro';
       if(el.tagName==='SELECT'){el.disabled=true;el.classList.add('ro-plain');return;}
       el.readOnly=true;el.tabIndex=-1;el.classList.add('ro-plain');
     });
-    document.querySelectorAll('button').forEach(b=>{if(!b.hidden&&!b.closest(SKIP)&&/Set làm mặc định|Về số gốc|Khôi phục mặc định/.test(b.textContent))hide(b);});
+    document.querySelectorAll('button').forEach(b=>{if(b.hidden||b.closest(SKIP)||!/Set làm mặc định|Về số gốc|Khôi phục mặc định/.test(b.textContent))return;const c=b.closest('.card'),d=b.closest('details');
+      if(RESULT.test(title(c))||RESULT.test(title(d))||(c&&c.querySelector('.ro-guest'))){b.classList.add('ro-guest-btn');return;}hide(b);});
     // Cột "Mốc lịch sử" (driver-history.js) của các bảng driver còn hiện.
     document.querySelectorAll('table').forEach(t=>{if(t.closest(SKIP)||t.dataset.roCol)return;const hr=[...t.rows].find(r=>[...r.cells].some(c=>c.tagName==='TH'&&/Mốc lịch sử/.test(c.textContent)));if(!hr)return;
       const i=[...hr.cells].findIndex(c=>/Mốc lịch sử/.test(c.textContent)),n=hr.cells.length;t.dataset.roCol='1';[...t.rows].forEach(r=>{if(r.cells.length===n&&r.cells[i])r.cells[i].classList.add('ro-hide-col');});});
   }
   const st=document.createElement('style');
-  st.textContent='html body input.ro-plain[readonly],html body table input.ro-plain[readonly]{background:transparent!important;border-color:transparent!important;box-shadow:none!important;outline:none!important;color:inherit!important;cursor:default;pointer-events:none}html body select.ro-plain:disabled{opacity:1;color:inherit;background:transparent!important;border-color:transparent!important;appearance:none;pointer-events:none}html body .ro-hide-col{display:none!important}@media print{[data-results-only=hidden]{display:none!important}}';
+  st.textContent='html body input.ro-plain[readonly],html body table input.ro-plain[readonly]{background:transparent!important;border-color:transparent!important;box-shadow:none!important;outline:none!important;color:inherit!important;cursor:default;pointer-events:none}html body select.ro-plain:disabled{opacity:1;color:inherit;background:transparent!important;border-color:transparent!important;appearance:none;pointer-events:none}html body .ro-hide-col{display:none!important}html.fs-guest body input.ro-guest{background:transparent!important;border-color:transparent!important;box-shadow:none!important;color:inherit!important;pointer-events:none}html.fs-guest body .ro-guest-btn{display:none!important}@media print{[data-results-only=hidden]{display:none!important}}';
   (document.head||document.documentElement).appendChild(st);
   const run=()=>{try{sweep()}catch(e){console.error('results-only',e)}};
   window.addEventListener('load',()=>{run();setTimeout(run,800);setTimeout(run,2500);setTimeout(run,6000);});
@@ -9524,7 +9528,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='ast',BUILD='765f882af646',URL_JSON='../version.json';
+  const PAGE='ast',BUILD='a030afe1f5c9',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
