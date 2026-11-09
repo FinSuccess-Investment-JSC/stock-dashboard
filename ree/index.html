@@ -3926,7 +3926,6 @@ function finance(){const host=$('bs'),f=p.finance,series=(k,label,sign=1)=>({lab
  chart(host,'reeAfterCapex','CFO sau chi đầu tư TSCĐ',[{label:'CFO − chi TSCĐ',data:f.cfo.a.map((x,i)=>x-f.capex.a[i])}],'tỷ VND','BCTC hợp nhất dòng 146 + 170. Đây không phải FCFF; chưa trừ đầu tư tài chính hay cổ tức.',false,'bar',f.years,[{label:'CFO − chi TSCĐ',data:f.cfo.q.map((x,i)=>x-f.capex.q[i])}]);
  chart(host,'reeJV','Đóng góp LDLK vào LNTT',[series('jvRatio','Lãi LDLK / LNTT')],'%','BCTC hợp nhất dòng 130 / 137; công ty liên kết đóng góp lợi nhuận nhưng không hợp nhất doanh thu. Đã nằm trong LNST.',false,'line',f.years,[qs('jvRatio','Lãi LDLK / LNTT')]);
  chart(host,'reeParentCash','Tiền và nợ tại công ty mẹ',[series('parentCash','Tiền mẹ'),series('parentInvest','ĐTTC ngắn hạn mẹ'),series('parentDebt','Nợ mẹ',-1)],'tỷ VND','BCTC riêng công ty mẹ — chờ nhập từ BCTC riêng. Số dư riêng, không thay bằng tiền hợp nhất. Quý riêng lấy mô hình làm tròn.',true,'bar',f.years,[qs('parentCash','Tiền mẹ'),qs('parentInvest','ĐTTC ngắn hạn mẹ'),qs('parentDebt','Nợ mẹ',-1)]);
- chart(host,'reeParentReceipts','Lãi & cổ tức thực nhận tại mẹ',[series('parentReceipts','Lãi & cổ tức đã nhận')],'tỷ VND','BCTC riêng công ty mẹ dòng tiền lãi & cổ tức nhận; gồm lãi cho vay, không chỉ cổ tức. Q4 = cả năm − Q1–Q3; số quý mô hình làm tròn.',false,'bar',f.years,[qs('parentReceipts','Lãi & cổ tức đã nhận')]);
  const details=document.createElement('details');details.className='dd';details.innerHTML='<summary>Đầu tư dở dang & cổ đông không kiểm soát</summary>';host.append(details);chart(details,'reeCWIP','XDCB dở dang',[series('cwip','XDCB dở dang')],'tỷ VND','BCTC hợp nhất dòng 54; số dư cuối kỳ, không phải CAPEX trong kỳ.',false,'bar',f.years,[qs('cwip','XDCB dở dang')]);chart(details,'reeNCI','Vốn thuộc CĐ không kiểm soát',[series('nci','NCI trên bảng cân đối')],'tỷ VND','BCTC hợp nhất dòng 116; NCI vốn chủ khác phần LNST NCI trên P&L.',false,'bar',f.years,[qs('nci','NCI trên bảng cân đối')]);
 }
 function segYoY(M){const Q=D.segments.quarterly,P=M.p,anchor=M.anchor();if(!Q||!Q.labels||!Q[M.key]||!anchor)return;
@@ -9871,7 +9870,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='ree',BUILD='b727c2653a1a',URL_JSON='../version.json';
+  const PAGE='ree',BUILD='6b374292fe59',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
