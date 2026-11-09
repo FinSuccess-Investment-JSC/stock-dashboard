@@ -5780,13 +5780,14 @@ document.addEventListener('DOMContentLoaded',()=>{renderFso();renderCapex();});
 if(typeof loadModel==='function')loadModel=function(){return null;};
 try{M=null;}catch(e){}
 (function(){
- const MSG='Giả định lấy từ mô hình dự phóng của analyst — chỉ đọc. Cập nhật bằng phiếu “Cập nhật model” trong Analyst inbox.';
+ const MSG='Kết quả dự phóng theo mô hình dự phóng của analyst. Cập nhật giả định bằng phiếu “Cập nhật model” trong Analyst inbox.';
  function lock(){
   ['modelBlock','pvsFso','capex','backlog'].forEach(id=>{const box=$(id);if(!box)return;
    box.querySelectorAll('input,select').forEach(el=>{if(el.closest('.no-lock')||el.type==='search'||el.type==='checkbox')return;if(el.tagName==='SELECT'){if(!el.disabled&&(id==='modelBlock'||el.dataset.treatment!==undefined||el.id==='capexTiming'))el.disabled=true;return;}
     if(el.type==='number'||el.classList.contains('bl-in')||el.classList.contains('cell')){if(!el.readOnly){el.readOnly=true;el.tabIndex=-1;el.classList.add('pvs-ro');el.title='Chỉ đọc — sửa trong mô hình dự phóng';}}});
    box.querySelectorAll('button').forEach(b=>{if(/Set làm mặc định|Về số gốc|Khôi phục/.test(b.textContent)&&!b.hidden)b.hidden=true;});});
   document.querySelectorAll('#modelBlock table').forEach(t=>{const hr=[...t.rows].find(r=>[...r.cells].some(c=>c.tagName==='TH'&&/Mốc lịch sử/.test(c.textContent)));if(!hr)return;const idx=[...hr.cells].findIndex(c=>/Mốc lịch sử/.test(c.textContent));const n=hr.cells.length;[...t.rows].forEach(r=>{if(r.cells.length===n&&r.cells[idx]&&!r.cells[idx].classList.contains('pvs-hide-col'))r.cells[idx].classList.add('pvs-hide-col');});});
+  ['modelDriversCard','pvsMarginHistory','modelMcCard','pvsISAssumptions','pvsFso'].forEach(id=>{const e=$(id);if(!e)return;const c=e.classList.contains('card')?e:(e.closest('.card')&&e.closest('.card').querySelectorAll('h3,summary').length<=2?e.closest('.card'):e);if(!c.hidden)c.hidden=true;});
   const bar=$('pvsBlBar');if(bar&&!bar.hidden)bar.hidden=true;
   const mb=$('modelBlock');if(mb&&!$('pvsModelLockNote')){const n=document.createElement('p');n.id='pvsModelLockNote';n.className='note pvs-lock-note';n.textContent=MSG;mb.prepend(n);}
  }
@@ -12471,7 +12472,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='pvs',BUILD='f5d46614b9e3',URL_JSON='../version.json';
+  const PAGE='pvs',BUILD='6aac473598ac',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
