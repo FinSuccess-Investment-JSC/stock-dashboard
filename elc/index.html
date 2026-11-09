@@ -5697,16 +5697,17 @@ window.FS_INCOME_HISTORY_10Y={"MWG": {"2016": {"labels": ["Q1/2016", "Q2/2016", 
 
 </script>
 <script>
-// Tab Tài chính chia 5 sub-tab: KQKD · Bảng cân đối · Dòng tiền · Bảng tóm tắt · Định giá.
+// Tab Tài chính chia 6 sub-tab: KQKD · Bảng cân đối · Dòng tiền · Cổ tức & Kế hoạch · Bảng tóm tắt · Định giá.
 // Chạy sau khi mọi chart và financial-layout đã dựng xong, nên chỉ sắp xếp lại DOM có sẵn.
 (function(){
-  const GROUPS=[['kqkd','KQKD'],['balance','Bảng cân đối'],['cashflow','Dòng tiền'],['summary','Bảng tóm tắt'],['valuation','Định giá']];
+  const GROUPS=[['kqkd','KQKD'],['balance','Bảng cân đối'],['cashflow','Dòng tiền'],['dividend','Cổ tức & Kế hoạch'],['summary','Bảng tóm tắt'],['valuation','Định giá']];
   const KEY='fin_subtab_v1';
   // Khối dùng chung có id ổn định; phân nhóm theo id trước, đoán theo tiêu đề sau.
   const BY_ID={incomeHistory10y:'kqkd',isBridgeCard:'summary',finTableCard:'summary',multiplesRow:'valuation'};
   // Thứ tự quan trọng: cụm hẹp trước cụm rộng, vì một tiêu đề có thể chứa nhiều từ khoá.
   const RULES=[
     ['valuation',/bội số|p\/e|p\/b|ev\/ebitda|định giá/i],
+    ['dividend',/lịch sử cổ tức|^\s*cổ tức\s*$|hoàn thành kế hoạch|kế hoạch lợi nhuận/i],
     ['summary',/bóc tách|waterfall|sankey|tóm tắt|từ doanh thu/i],
     ['cashflow',/\bcfo\b|dòng tiền|chi đầu tư|capex|\bfcf\b|lưu chuyển tiền|chuyển đổi tiền/i],
     ['balance',/tiền mặt|tiền ròng|cấu phần tiền|nợ vay|nợ ròng|vay ngắn|vay dài|vốn lưu động|tồn kho|phải thu|cân đối|vốn bị khóa|tài trợ|chu kỳ vốn|đòn bẩy/i],
@@ -8807,7 +8808,7 @@ window.fsCmpChart=function(id,o){
     const out=[];
     const pay=R.map(r=>r[3]!=null&&r[3]>0&&r[3]<=200?r[3]:null);
     R.forEach((r,i)=>{if(r[3]!=null&&pay[i]==null)out.push(r[0]+': '+fmtN(r[3])+'%');});
-    add({id:'coreDivHist',pane:'cashflow',skip:/cổ tức (theo năm|lịch sử)|^cổ tức$|lịch sử cổ tức/i,title:'Cổ tức',unit:'đ/CP',kind:'custom',labels:DY,srcLine:SRCW,
+    add({id:'coreDivHist',pane:'dividend',skip:/cổ tức (theo năm|lịch sử)|^cổ tức$|lịch sử cổ tức/i,title:'Cổ tức',unit:'đ/CP',kind:'custom',labels:DY,srcLine:SRCW,
       note:'Cổ tức tiền (đ/CP, trục trái) và cổ tức cổ phiếu/thưởng (% mệnh giá, trục phải) cộng các đợt GDKHQ trong năm. Tỷ lệ chi trả tiền mặt = cổ tức tiền / EPS (LNST mẹ ÷ CP lưu hành gần nhất).'+(out.length?' Bỏ khỏi chart tỷ lệ chi trả ngoại lai (>200%): '+out.join('; ')+'.':''),
       y:[['Cổ tức tiền (đ/CP)',R.map(r=>r[1])],['Cổ tức cổ phiếu (%)',R.map(r=>r[2]||null),{axis:'y1',unit:'%'}],['Tỷ lệ chi trả tiền mặt (%)',pay,{line:1,axis:'y1',unit:'%',points:1}]],q:[]});
     // Hoàn thành kế hoạch: năm đủ theo dữ liệu tổng hợp; năm hiện tại = LNST mẹ lũy kế các quý đã công bố ÷ planYYYY.npat (nếu có).
@@ -8820,7 +8821,7 @@ window.fsCmpChart=function(id,o){
       const qs=[1,2,3,4].map(q=>fs.quarterly['Q'+q+'/'+yNow]?.parent).filter(v=>v!=null);
       if(qs.length&&qs.length<4){partial=(qs.length*3)+'T/'+yNow;labs.push(partial);vals.push(qs.reduce((a,b)=>a+b,0)/plan.npat*100);cols.push(GREEN);}
     }
-    add({id:'corePlan',pane:'kqkd',skip:/hoàn thành kế hoạch|kế hoạch lợi nhuận/i,title:'Hoàn thành kế hoạch lợi nhuận',unit:'%',kind:'custom',labels:labs,srcLine:SRCW,refLine:100,
+    add({id:'corePlan',pane:'dividend',skip:/hoàn thành kế hoạch|kế hoạch lợi nhuận/i,title:'Hoàn thành kế hoạch lợi nhuận',unit:'%',kind:'custom',labels:labs,srcLine:SRCW,refLine:100,
       note:'LNST thuộc cổ đông mẹ thực hiện ÷ kế hoạch LNST được ĐHĐCĐ thông qua (kế hoạch chỉ có LNTT thì quy đổi × 0,8). Xanh navy ≥ 100%, đỏ < 100%.'+(partial?' Cột '+partial+' = LNST mẹ lũy kế các quý đã công bố ÷ kế hoạch cả năm, chưa phải cả năm.':'')+(outP.length?' Bỏ khỏi chart năm ngoại lai (>400%): '+outP.join('; ')+'.':''),
       y:[['Hoàn thành kế hoạch LNST',vals,{colors:cols}]],q:[]});
   }
@@ -9448,7 +9449,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='elc',BUILD='77e8211ab52b',URL_JSON='../version.json';
+  const PAGE='elc',BUILD='3f8705214bb5',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
