@@ -5910,7 +5910,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG": {"2016": {"labels": ["Q1/2016", "Q2/2016", 
     // đưa vào đúng pane, nếu không nó nằm ngoài mọi pane và hiện ở cả 5 sub-tab.
     const adopt=()=>{
       for(const el of [...bs.children]){
-        if(el===nav||el===title||el===kpi||el.classList.contains('fin-pane')||el.tagName==='SCRIPT'||el.tagName==='STYLE')continue;
+        if(el===nav||el===title||el===kpi||el.classList.contains('fin-pane')||el.classList.contains('fs-next')||el.classList.contains('tb')||el.tagName==='SCRIPT'||el.tagName==='STYLE')continue;
         let group=classify(el,overrides);if(!panes[group])group='balance';
         const pane=panes[group];
         if(!pane.isConnected){
@@ -9017,18 +9017,18 @@ const cardOf=id=>{const el=$(id);return el?el.closest('.card'):null};
 function groups(pane,wrapId,defs,ref){
  styles();const wrap=document.createElement('div');wrap.id=wrapId;wrap.className='fs-kqkd-groups';
  const secs=defs.map(g=>{const s=document.createElement('section');s.className='pow-kg';
-  s.innerHTML=`<div class="pow-kg-h"><h2 class="sec"><span class="pow-kg-n">${g.n}</span>${g.t}<button type="button" class="pow-kg-tog" aria-expanded="true">Thu gọn</button></h2><p class="pow-kg-q">${g.q}</p></div><div class="grid g2 pow-kg-main"></div><div class="grid g2 pow-kg-sup"></div><div class="grid g2 pow-kg-extra"></div><details class="dd pow-kg-more"><summary>Xem thêm</summary><div class="body"><div class="grid g2"></div></div></details>`;
+  s.innerHTML=`<div class="pow-kg-h"><h2 class="sec"><span class="pow-kg-n">${g.n}</span> ${g.t}<button type="button" class="pow-kg-tog" aria-expanded="true">Thu gọn</button></h2><p class="pow-kg-q">${g.q}</p></div><div class="grid g2 pow-kg-main"></div><div class="grid g2 pow-kg-sup"></div><div class="grid g2 pow-kg-extra"></div><details class="dd pow-kg-more"><summary>Xem thêm</summary><div class="body"><div class="grid g2"></div></div></details>`;
   wrap.append(s);return s});
  pane.prepend(wrap);
  defs.forEach((g,i)=>{const s=secs[i],put=(sel,list)=>(list||[]).filter(Boolean).forEach(c=>s.querySelector(sel).append(c));
   put('.pow-kg-main',g.main);put('.pow-kg-sup',g.sup);put('.pow-kg-extra',g.extra);put('.pow-kg-more .grid',g.more);
   ['.pow-kg-main','.pow-kg-sup','.pow-kg-extra'].forEach(sel=>{const b=s.querySelector(sel),c=[...b.children].filter(x=>x.classList.contains('card'));if(!b.children.length)b.remove();else if(c.length===1)c[0].style.gridColumn='1/-1'});
   const m=s.querySelector('.pow-kg-more'),k=m.querySelectorAll('.card').length;if(!k)m.remove();else m.querySelector('summary').textContent=`Xem thêm (${k})`});
- if(ref){const r=document.createElement('section');r.className='pow-kg';r.innerHTML=`<div class="pow-kg-h"><h2 class="sec"><span class="pow-kg-n">▤</span>${ref.t}</h2></div><details class="dd"><summary>Mở dữ liệu tham chiếu</summary><div class="body"><div class="grid g2"></div></div></details>`;
+ if(ref){const r=document.createElement('section');r.className='pow-kg';r.innerHTML=`<div class="pow-kg-h"><h2 class="sec"><span class="pow-kg-n" aria-hidden="true">▤</span> ${ref.t}</h2></div><details class="dd"><summary>Mở dữ liệu tham chiếu</summary><div class="body"><div class="grid g2"></div></div></details>`;
   wrap.append(r);const g=r.querySelector('.grid');(ref.cards||[]).filter(Boolean).forEach(c=>g.append(c));if(ref.build)ref.build(g);}
  const left=[...pane.children].filter(el=>el!==wrap&&!el.matches('.fs-next,.tb'));
  let own=null;left.forEach(el=>{if(!el.querySelector('canvas,table')){el.hidden=true;return}
-  if(!own){own=document.createElement('section');own.className='pow-kg';own.innerHTML='<div class="pow-kg-h"><h2 class="sec"><span class="pow-kg-n">04</span>Chỉ tiêu riêng của doanh nghiệp</h2></div><div class="fs-kq-own"></div>';const r=wrap.querySelector('.pow-kg:last-child');ref?wrap.insertBefore(own,r):wrap.append(own)}
+  if(!own){own=document.createElement('section');own.className='pow-kg';own.innerHTML='<div class="pow-kg-h"><h2 class="sec"><span class="pow-kg-n">04</span> Chỉ tiêu riêng của doanh nghiệp</h2></div><div class="fs-kq-own"></div>';const r=wrap.querySelector('.pow-kg:last-child');ref?wrap.insertBefore(own,r):wrap.append(own)}
   own.querySelector('.fs-kq-own').append(el)});
  wrap.addEventListener('click',e=>{const t=e.target.closest('.pow-kg-tog');if(t){const s=t.closest('.pow-kg'),c=s.classList.toggle('collapsed');t.textContent=c?'Mở rộng':'Thu gọn';t.setAttribute('aria-expanded',String(!c));if(!c)resizeAll();return}
   if(e.target.closest('[data-gantt]')){document.querySelector('#finSubnav [data-pane="kqkd"]')?.click();setTimeout(()=>$('nt2GanttCard')?.scrollIntoView({behavior:'smooth',block:'start'}),120)}});
@@ -9672,7 +9672,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='bmp',BUILD='b625414eddf4',URL_JSON='../version.json';
+  const PAGE='bmp',BUILD='6a41f44e2306',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
