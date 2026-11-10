@@ -1533,6 +1533,7 @@ html.fs-embed .titleband{position:sticky;top:0;z-index:60;box-shadow:0 1px 0 #E3
 html.fs-embed:not([data-theme=dark]) .titleband{background:#fff!important}
 html.fs-embed[data-theme=dark] .titleband{background:#0A0A0A!important}
 html.fs-embed nav.tabs{position:sticky;top:var(--fs-title-h,40px);z-index:59}
+html.fs-embed .stock-search .options{z-index:70}
 @media(min-width:701px){
 html.fs-embed .titleband .in{padding-top:7px!important;padding-bottom:7px!important;gap:10px;min-height:0;flex-wrap:nowrap}
 html.fs-embed .titleband :is(.co-logo,.logo-co,img){height:24px;max-height:24px;margin-right:0;padding:2px 3px}
@@ -9560,7 +9561,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='anv',BUILD='7f4263a637b5',URL_JSON='../version.json';
+  const PAGE='anv',BUILD='a6e12539293d',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
