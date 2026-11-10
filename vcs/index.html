@@ -8968,6 +8968,60 @@ window.fsCmpChart=function(id,o){
   else setTimeout(tick, 50);
 })();
 
+// KQKD theo nhóm câu hỏi (flow như POW/NT2, người dùng chốt 10/11/2026) cho mã chưa có bố cục riêng.
+// Chỉ dời DOM các chart đã dựng trong sub-tab KQKD: 01 tăng trưởng · 02 biên & chi phí · 03 lợi nhuận &
+// chất lượng lợi nhuận (cơ cấu LNTT, tài chính ròng, bóc tách KQKD) · dữ liệu tham chiếu (ROE/ROA, bảng KQKD).
+// Áp mọi mã trừ SKIP. Card nào mã không có thì bỏ qua.
+(function(){
+// Mã có bố cục KQKD riêng (người dùng chốt 10/11/2026) giữ nguyên.
+const SKIP=['POW','NT2','CTD','REE','BWE','HDG','FPT'];
+const D=window.PVS_DATA;if(!D||!D.meta||SKIP.indexOf(D.meta.ticker)>=0)return;
+const $=id=>document.getElementById(id);
+const resizeAll=()=>{if(window.Chart&&Chart.instances)Object.values(Chart.instances).forEach(c=>{try{c.resize()}catch(e){}})};
+function styles(){if($('fsKqkdFlowStyle'))return;const s=document.createElement('style');s.id='fsKqkdFlowStyle';s.textContent=`
+.fs-kqkd-groups .pow-kg{padding:4px 0 26px;border-top:1px solid var(--line);margin-top:8px}.fs-kqkd-groups .pow-kg:first-child{border-top:0}
+.pow-kg-h{margin:0 0 12px}.pow-kg-n{display:inline-block;font:600 12px/1 Inter,system-ui;color:#fff;background:#1D2678;border-radius:6px;padding:5px 7px;margin-right:10px;vertical-align:3px}
+.pow-kg-q{margin:-8px 0 0;color:var(--muted);font-size:14px}.pow-kg-more{margin-top:12px}.pow-kg-more>summary{font-weight:600}
+.pow-kg-tog{all:unset;cursor:pointer;font-size:12px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 10px;margin-left:10px;vertical-align:4px}
+.pow-kg.collapsed>:not(.pow-kg-h){display:none}.pow-kg-link{all:unset;cursor:pointer;color:var(--blue);font-weight:600;font-size:13px}
+:root[data-theme=dark] .pow-kg-n{background:#2938A8}`;document.head.append(s);}
+const cardOf=id=>{const el=$(id);return el?el.closest('.card'):null};
+function groups(pane,wrapId,defs,ref){
+ styles();const wrap=document.createElement('div');wrap.id=wrapId;wrap.className='fs-kqkd-groups';
+ const secs=defs.map(g=>{const s=document.createElement('section');s.className='pow-kg';
+  s.innerHTML=`<div class="pow-kg-h"><h2 class="sec"><span class="pow-kg-n">${g.n}</span>${g.t}<button type="button" class="pow-kg-tog" aria-expanded="true">Thu gọn</button></h2><p class="pow-kg-q">${g.q}</p></div><div class="grid g2 pow-kg-main"></div><div class="grid g2 pow-kg-sup"></div><div class="grid g2 pow-kg-extra"></div><details class="dd pow-kg-more"><summary>Xem thêm</summary><div class="body"><div class="grid g2"></div></div></details>`;
+  wrap.append(s);return s});
+ pane.prepend(wrap);
+ defs.forEach((g,i)=>{const s=secs[i],put=(sel,list)=>(list||[]).filter(Boolean).forEach(c=>s.querySelector(sel).append(c));
+  put('.pow-kg-main',g.main);put('.pow-kg-sup',g.sup);put('.pow-kg-extra',g.extra);put('.pow-kg-more .grid',g.more);
+  ['.pow-kg-main','.pow-kg-sup','.pow-kg-extra'].forEach(sel=>{const b=s.querySelector(sel),c=[...b.children].filter(x=>x.classList.contains('card'));if(!b.children.length)b.remove();else if(c.length===1)c[0].style.gridColumn='1/-1'});
+  const m=s.querySelector('.pow-kg-more'),k=m.querySelectorAll('.card').length;if(!k)m.remove();else m.querySelector('summary').textContent=`Xem thêm (${k})`});
+ if(ref){const r=document.createElement('section');r.className='pow-kg';r.innerHTML=`<div class="pow-kg-h"><h2 class="sec"><span class="pow-kg-n">▤</span>${ref.t}</h2></div><details class="dd"><summary>Mở dữ liệu tham chiếu</summary><div class="body"><div class="grid g2"></div></div></details>`;
+  wrap.append(r);const g=r.querySelector('.grid');(ref.cards||[]).filter(Boolean).forEach(c=>g.append(c));if(ref.build)ref.build(g);}
+ const left=[...pane.children].filter(el=>el!==wrap&&!el.matches('.fs-next,.tb'));
+ let own=null;left.forEach(el=>{if(!el.querySelector('canvas,table')){el.hidden=true;return}
+  if(!own){own=document.createElement('section');own.className='pow-kg';own.innerHTML='<div class="pow-kg-h"><h2 class="sec"><span class="pow-kg-n">04</span>Chỉ tiêu riêng của doanh nghiệp</h2></div><div class="fs-kq-own"></div>';const r=wrap.querySelector('.pow-kg:last-child');ref?wrap.insertBefore(own,r):wrap.append(own)}
+  own.querySelector('.fs-kq-own').append(el)});
+ wrap.addEventListener('click',e=>{const t=e.target.closest('.pow-kg-tog');if(t){const s=t.closest('.pow-kg'),c=s.classList.toggle('collapsed');t.textContent=c?'Mở rộng':'Thu gọn';t.setAttribute('aria-expanded',String(!c));if(!c)resizeAll();return}
+  if(e.target.closest('[data-gantt]')){document.querySelector('#finSubnav [data-pane="kqkd"]')?.click();setTimeout(()=>$('nt2GanttCard')?.scrollIntoView({behavior:'smooth',block:'start'}),120)}});
+ wrap.querySelectorAll('details').forEach(d=>d.addEventListener('toggle',resizeAll));
+ return wrap;
+}
+
+function build(){
+ const pane=document.querySelector('#bs .fin-pane[data-pane="kqkd"]');if(!pane||!$('income10Revenue'))return false;if($('fsKqkdFlow'))return true;
+ const ih=[...document.querySelectorAll('#incomeHistory10y .card')].find(c=>/Bảng KQKD theo kỳ/.test(c.textContent));
+ groups(pane,'fsKqkdFlow',[
+  {n:'01',t:'Động lực tăng trưởng',q:'Doanh thu tăng/giảm bao nhiêu và tốc độ có đang đổi chiều?',main:[cardOf('income10Revenue')]},
+  {n:'02',t:'Biên lợi nhuận & chi phí',q:'Biên thay đổi do giá vốn hay do chi phí bán hàng, quản lý?',main:[cardOf('income10Margin')],sup:[cardOf('gasFinanceMargin'),cardOf('coreSga')],more:[cardOf('gasGnaProv')]},
+  {n:'03',t:'Lợi nhuận & chất lượng lợi nhuận',q:'Lợi nhuận đến từ hoạt động chính hay từ tài chính, liên doanh, khoản khác?',main:[cardOf('income10Profit')],sup:[cardOf('corePbt'),cardOf('coreFin')],extra:[$('isBridgeCard')]}],
+  {t:'Dữ liệu tham chiếu',cards:[cardOf('coreRoe'),ih]});
+ resizeAll();if(typeof applyChartTips==='function')applyChartTips();return true;
+}
+function start(){let n=0;const t=setInterval(()=>{n++;let ok=false;try{ok=build()}catch(e){console.error('kqkd-flow',e);document.documentElement.dataset.kqkdFlowError=e.message;ok=true}if(ok||n>60)clearInterval(t)},250)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+})();
+
 /* Chỉ hiện kết quả dự phóng, không hiện giả định (người dùng chốt 09/11/2026, áp cho mọi mã sau PVS/GAS).
    Forecast nằm ở model Excel của analyst; dashboard chỉ hiển thị kết quả. Lớp này chạy sau khi các mô hình dựng xong:
    - khối có tiêu đề giả định/driver/biến/chi phí-thuế… hoặc mục <details> chứa ô nhập → ẩn;
@@ -9590,7 +9644,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='vcs',BUILD='d12e34d60c5b',URL_JSON='../version.json';
+  const PAGE='vcs',BUILD='ddcbc0c33cd5',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
