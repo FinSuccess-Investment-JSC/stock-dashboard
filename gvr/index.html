@@ -8822,6 +8822,22 @@ window.fsCmpChart=function(id,o){
   add({id:'coreFunding',pane:'balance',skip:/cơ cấu nguồn vốn|nguồn vốn - quý/i,title:'Cơ cấu nguồn vốn (tỷ VND)',unit:'tỷ VND',kind:'custom',
     note:'Số dư cuối kỳ, cột chồng cộng thành tổng nguồn vốn. Nợ phải trả khác gồm thuế, chi phí phải trả, phải trả khác, dự phòng. VCSH khác gồm thặng dư vốn, quỹ, cổ phiếu quỹ và lợi ích CĐ không kiểm soát.',
     y:fundRows(AR),q:fundRows(QR)});
+  // 5b2. Tài sản dài hạn & vốn chủ sở hữu (người dùng chốt 10/11/2026: nhóm 3 và 5 của sub-tab Bảng cân đối
+  // phải có chart cho mọi mã). VCSH VNDirect gồm CĐ không kiểm soát (nợ phải trả + VCSH = tổng tài sản).
+  const ltRows=rows=>{const g=k=>rows.map(r=>r?.[k]??null);return [
+    ['Tài sản cố định',g('fixed'),{stack:'s'}],['XDCB dở dang',g('cip'),{stack:'s'}],['Đầu tư tài chính dài hạn',g('ltInvest'),{stack:'s'}],
+    ['% tổng tài sản',rows.map(r=>r&&ok(r.totalAssets)&&r.totalAssets>0&&(r.fixed!=null||r.cip!=null)?r2(((r.fixed||0)+(r.cip||0)+(r.ltInvest||0))/r.totalAssets*100):null),{line:1,axis:'y1',unit:'%'}]];};
+  add({id:'coreLtAssets',pane:'balance',// Chỉ bỏ qua khi trang đã có chart số dư TSCĐ/XDCB; chart CAPEX, khấu hao, dòng tiền đầu tư không tính.
+    skip:{test:h=>h.split(' || ').some(t=>/tài sản cố định|xdcb|xây dựng cơ bản|tscđ (&|,|và)/i.test(t)&&!/capex|đầu tư|khấu hao|dòng tiền|chi mua|\bcfo\b|cổ tức/i.test(t))},title:'TSCĐ, XDCB dở dang & đầu tư dài hạn (tỷ VND) · % tổng tài sản',unit:'tỷ VND',kind:'custom',
+    note:'Số dư cuối kỳ. TSCĐ = giá trị còn lại (hữu hình, vô hình, thuê tài chính). Đầu tư tài chính dài hạn gồm đầu tư vào công ty liên doanh, liên kết và đầu tư góp vốn khác. Đường (trục phải): tổng ba khoản ÷ tổng tài sản.',
+    y:ltRows(AR),q:ltRows(QR)});
+  const eqRows=rows=>{const g=k=>rows.map(r=>r?.[k]??null);return [
+    ['Vốn góp chủ sở hữu',g('charter'),{stack:'s'}],['LNST chưa phân phối',g('retained'),{stack:'s'}],
+    ['VCSH khác',rows.map(r=>r&&ok(r.equity)?rest(r.equity,r.charter,r.retained,r.nci):null),{stack:'s'}],
+    ['Lợi ích CĐ không kiểm soát',g('nci'),{stack:'s'}]];};
+  add({id:'coreEquity',pane:'balance',skip:/cơ cấu vốn chủ|vốn chủ sở hữu \(tỷ|vốn điều lệ, /i,title:'Vốn chủ sở hữu: vốn góp, LNST chưa phân phối & CĐ không kiểm soát (tỷ VND)',unit:'tỷ VND',kind:'custom',
+    note:'Số dư cuối kỳ, cột chồng cộng thành tổng vốn chủ sở hữu (gồm lợi ích cổ đông không kiểm soát). VCSH khác = tổng VCSH − vốn góp − LNST chưa phân phối − CĐ không kiểm soát (thặng dư vốn, quỹ, cổ phiếu quỹ, chênh lệch tỷ giá…).',
+    y:eqRows(AR),q:eqRows(QR)});
   // 5c. Phải thu & tồn kho (số dư) · chu kỳ tiền mặt
   const wcBal=(rows,prevs,ns)=>{const w=wc(rows,prevs,ns);return [['Phải thu khách hàng',rows.map(r=>r?.ar??null)],['Hàng tồn kho',rows.map(r=>r?.inventory??null)],['Trả trước người bán',rows.map(r=>r?.prepaySupplier??null)],['Chu kỳ tiền mặt (CCC)',w[3][1],{line:1,axis:'y1',unit:'ngày'}]];};
   add({id:'coreWcBal',pane:'balance',skip:/(tồn kho|phải thu).{0,30}(tỷ|số dư)|hàng tồn kho \(|cơ cấu tồn kho/i,title:'Phải thu, tồn kho (tỷ VND) · chu kỳ tiền mặt (ngày)',unit:'tỷ VND',kind:'custom',
@@ -8966,15 +8982,18 @@ window.fsCmpChart=function(id,o){
       var t = title(c); return t && BAL.test(t) && !KEEP.test(t) && c.querySelector('canvas,table');
     });
     if (!cards.length) return 0;
-    var pane = bs.querySelector('.fin-pane[data-pane="balance"]');
+    var flow = document.querySelector('#fsBsFlow .fs-bs-g2'); // Bảng cân đối đã xếp nhóm → vào nhóm vốn lưu động
+    var pane = flow || bs.querySelector('.fin-pane[data-pane="balance"]');
     var row = document.getElementById('segBalanceMoved');
+    if (row && flow && !flow.contains(row)) flow.appendChild(row);
     if (!row) {
       row = document.createElement('div'); row.id = 'segBalanceMoved'; row.className = 'grid g2'; row.style.marginTop = '16px';
       if (pane) pane.appendChild(row);
       else { var mr = document.getElementById('multiplesRow'); bs.insertBefore(row, mr && mr.parentNode === bs ? mr : null); }
     }
     cards.forEach(function (c) {
-      var from = c.parentNode; c.style.gridColumn = ''; row.appendChild(c);
+      var from = c.parentNode; c.style.gridColumn = '';
+      if (window.fsBsPlace) window.fsBsPlace(c); else row.appendChild(c);
       // Hàng/khối trong #seg chỉ còn tiêu đề thì ẩn luôn tiêu đề.
       if (from && from !== seg && !from.querySelector('.card,canvas,table')) {
         from.style.display = 'none';
@@ -9008,6 +9027,7 @@ function styles(){if($('fsKqkdFlowStyle'))return;const s=document.createElement(
 .pow-kg-q{margin:-8px 0 0;color:var(--muted);font-size:14px}.pow-kg-more{margin-top:12px}.pow-kg-more>summary{font-weight:600}
 .pow-kg-tog{all:unset;cursor:pointer;font-size:12px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 10px;margin-left:10px;vertical-align:4px}
 .pow-kg.collapsed>:not(.pow-kg-h){display:none}.pow-kg-link{all:unset;cursor:pointer;color:var(--blue);font-weight:600;font-size:13px}
+.fs-kqkd-groups .grid{align-items:start}.fs-kq-own{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:16px;align-items:start;margin-top:16px}
 :root[data-theme=dark] .pow-kg-n{background:#2938A8}`;document.head.append(s);}
 const cardOf=id=>{const el=$(id);return el?el.closest('.card'):null};
 function groups(pane,wrapId,defs,ref){
@@ -9051,13 +9071,62 @@ function build(){
  const sga=[cardOf('coreSga')||null,...sgaOwn].filter(Boolean),fin=[cardOf('coreFin')||null,...finOwn].filter(Boolean);
  if(!sga.length)sga.push(one('coreSga'));if(!fin.length)fin.push(one('coreFin'));
  groups(pane,'fsKqkdFlow',[
-  {n:'1',t:'Tổng quan doanh thu & lợi nhuận',q:'Doanh thu, các tầng lợi nhuận, lợi nhuận đến từ đâu và biên lợi nhuận.',main:[cardOf('income10Revenue'),cardOf('income10Profit')],sup:[cardOf('corePbt'),cardOf('income10Margin'),cardOf('gasFinanceMargin')],extra:[$('isBridgeCard')]},
+  {n:'1',t:'Tổng quan doanh thu & lợi nhuận',q:'Doanh thu, các tầng lợi nhuận, lợi nhuận đến từ đâu và biên lợi nhuận.',main:[cardOf('income10Revenue')],sup:[cardOf('income10Profit'),cardOf('corePbt')],extra:[cardOf('income10Margin'),cardOf('gasFinanceMargin'),$('isBridgeCard')]},
   {n:'2',t:'Chi phí',q:'Chi phí sau lợi nhuận gộp: bán hàng, quản lý, tài chính và lãi vay.',main:sga,sup:fin},
   {n:'3',t:'Hiệu quả sinh lời',q:'ROE và ROA.',main:[one('coreRoe')]}],
   {t:'Bảng KQKD theo kỳ',cards:[ih]});
  tmp.remove();resizeAll();if(typeof applyChartTips==='function')applyChartTips();return true;
 }
-function start(){let n=0;const t=setInterval(()=>{n++;let ok=false;try{ok=build()}catch(e){console.error('kqkd-flow',e);document.documentElement.dataset.kqkdFlowError=e.message;ok=true}if(ok||n>60)clearInterval(t)},250)}
+// ===== Bảng cân đối theo trình tự báo cáo (người dùng chốt 10/11/2026) =====
+// 1 Tổng quan cơ cấu · 2 Tài sản ngắn hạn & vốn lưu động (tiền → phải thu → tồn kho → trả trước/phải trả → vòng quay)
+// · 3 Tài sản dài hạn · 4 Nợ vay & thanh khoản · 5 Vốn chủ sở hữu. Xếp chart theo tiêu đề; nhóm không có chart thì ẩn.
+const BS_RULES=[
+ [4,/(tiền|nợ|dư nợ).{0,18}\bvay\b|nợ vay|nợ ròng|đòn bẩy|vay ngắn|vay dài|vay ngân hàng|trái phiếu|đáo hạn|tiền ròng|tiền mặt ròng|thanh khoản|\/ ?ebitda/i],
+ [1,/cơ cấu tài sản|cơ cấu nguồn vốn|nguồn tài trợ|quy mô tài sản/i],
+ [5,/vốn chủ|vcsh|chưa phân phối|không kiểm soát|cđkks|vốn điều lệ/i],
+ [3,/tscđ|tài sản cố định|xdcb|xây dựng cơ bản|dở dang dài hạn|liên doanh|liên kết|ldlk|bđs đầu tư|bất động sản đầu tư|khấu hao|nguyên giá|giàn|đội tàu|tài sản dài hạn|đầu tư dài hạn/i]];
+// Thứ tự kiểm: cụm hẹp trước ("người mua trả tiền trước" có chữ "tiền"), hạng là vị trí hiển thị.
+const BS2=[[4,/vòng quay|chu kỳ|\(lần\)|\bccc\b|\bdso\b|\bdio\b|\bdpo\b/i],[3,/trả (tiền )?trước|phải trả|ứng trước|khách ứng/i],[1,/phải thu|nợ khó đòi|dự thu/i],[2,/tồn kho|hàng hóa|dở dang/i],[0,/tiền|tiền gửi|đầu tư tài chính ngắn/i]];
+function bsBuild(){
+ const pane=document.querySelector('#bs .fin-pane[data-pane="balance"]');if(!pane)return false;if($('fsBsFlow'))return true;
+ styles();
+ const DEF=[[1,'Tổng quan quy mô & cơ cấu','Tài sản nằm ở đâu và được tài trợ bằng nguồn nào?'],[2,'Tài sản ngắn hạn & vốn lưu động','Tiền, phải thu, tồn kho, khoản trả trước / phải trả và vòng quay vốn lưu động.'],[3,'Tài sản dài hạn','TSCĐ, xây dựng dở dang, đầu tư liên doanh liên kết.'],[4,'Nợ vay & thanh khoản','Tiền, nợ vay, nợ ròng và đòn bẩy.'],[5,'Vốn chủ sở hữu','Vốn chủ sở hữu và lợi ích cổ đông không kiểm soát.']];
+ const wrap=document.createElement('div');wrap.id='fsBsFlow';wrap.className='fs-kqkd-groups';
+ const sec={};DEF.forEach(([k,t,q])=>{const s=document.createElement('section');s.className='pow-kg'+(k===2?' fs-bs-g2':'');s.hidden=true;
+  s.innerHTML='<div class="pow-kg-h"><h2 class="sec"><span class="pow-kg-n">'+k+'</span> '+t+'</h2><p class="pow-kg-q">'+q+'</p></div><div class="grid g2"></div>';wrap.append(s);sec[k]=s});
+ const ref=document.createElement('section');ref.className='pow-kg';ref.hidden=true;
+ ref.innerHTML='<div class="pow-kg-h"><h2 class="sec"><span class="pow-kg-n" aria-hidden="true">▤</span> Bảng số dư chi tiết</h2></div><details class="dd"><summary>Mở bảng</summary><div class="body"><div class="grid g2"></div></div></details>';wrap.append(ref);
+ pane.prepend(wrap);
+ const tt=c=>{const h=c.querySelector('h3,h2,.sub');return h?h.textContent:''};
+ const IS=/thu nhập tài chính|chi phí tài chính|doanh thu tài chính|lntt|lợi nhuận trước thuế|cơ cấu lợi nhuận|biên lợi nhuận|chi phí bán hàng|^\s*lnst|lãi liên doanh|lãi,? lỗ|lãi\/lỗ/i;
+ const toKq=(c,k)=>{const sec2=[...document.querySelectorAll('#fsKqkdFlow > .pow-kg')][k];if(!sec2)return false;let o=sec2.querySelector('.fs-kq-own');if(!o){o=document.createElement('div');o.className='fs-kq-own';sec2.append(o)}o.append(c);return true};
+ const renum=()=>{let i=0;DEF.forEach(([k])=>{sec[k].hidden=!sec[k].querySelector('.card');if(!sec[k].hidden)sec[k].querySelector('.pow-kg-n').textContent=String(++i);const cs=[...sec[k].querySelectorAll(':scope > .grid > .card')];cs.forEach(c=>c.style.gridColumn=cs.length===1?'1/-1':'')});ref.hidden=!ref.querySelector('.card')};
+ const place=c=>{
+  if(c.querySelector('canvas')){const t=tt(c);
+   if(IS.test(t)&&!/vay|nợ|phải thu|tồn kho|vốn chủ/i.test(t)&&toKq(c,FIN.test(t)||SGA.test(t)?1:0))return;
+   let g=2;for(const [k,re] of BS_RULES)if(re.test(t)){g=k;break}
+   let r=9;if(g===2)for(const [k,re] of BS2)if(re.test(t)){r=k;break}
+   c.dataset.bsr=r;c.style.gridColumn='';const grid=sec[g].querySelector('.grid');
+   const after=[...grid.children].find(x=>+(x.dataset.bsr||9)>r);grid.insertBefore(c,after||null);
+  }else if(c.querySelector('table'))ref.querySelector('.grid').append(c);
+ };
+ const sweep=()=>{
+  // Khung chứa nhiều card (vd <details class="card"> "Chỉ tiêu đối chiếu") → xếp từng card con, khung rỗng thì ẩn.
+  const top=[...pane.querySelectorAll('.card')].filter(c=>!c.parentElement.closest('.card')&&!c.matches('.tb')&&!wrap.contains(c));
+  const cards=[];top.forEach(c=>{const kids=[...c.querySelectorAll('.card')].filter(k=>k.parentElement.closest('.card')===c);if(kids.length){cards.push(...kids);c.hidden=true}else cards.push(c)});
+  if(!cards.length)return;cards.forEach(place);
+  [...pane.children].forEach(el=>{if(el!==wrap&&!el.matches('.fs-next,.tb')&&!el.querySelector('.card,canvas,table'))el.hidden=true});
+  renum();resizeAll();if(typeof applyChartTips==='function')applyChartTips();
+ };
+ window.fsBsPlace=c=>{place(c);renum();resizeAll()};
+ // Chiều ngược lại: chart số dư/vòng quay lọt vào KQKD → Bảng cân đối.
+ document.querySelectorAll('#fsKqkdFlow .fs-kq-own .card').forEach(c=>{if(c.parentElement.closest('.card'))return;const t=tt(c);if(/phải thu|tồn kho|vòng quay|nợ vay|nợ ròng|\bccc\b|vốn lưu động/i.test(t))place(c)});
+ // Chart số dư TSCĐ / XDCB dở dang đặt ở sub-tab khác (vd Dòng tiền) → nhóm Tài sản dài hạn.
+ document.querySelectorAll('#bs .fin-pane:not([data-pane="balance"]) .card').forEach(c=>{if(c.parentElement.closest('.card')||!c.querySelector('canvas'))return;const t=tt(c);if(/(xdcb|xây dựng cơ bản) dở dang|tài sản cố định/i.test(t)&&!/capex|chi đầu tư|khấu hao|chi mua|dòng tiền/i.test(t))place(c)});
+ sweep();new MutationObserver(()=>{clearTimeout(bsBuild.t);bsBuild.t=setTimeout(sweep,60)}).observe(pane,{childList:true});
+ return true;
+}
+function start(){let n=0;const t=setInterval(()=>{n++;let ok=false;try{ok=build()&&bsBuild()}catch(e){console.error('kqkd-flow',e);document.documentElement.dataset.kqkdFlowError=e.message;ok=true}if(ok||n>60)clearInterval(t)},250)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();
 
@@ -9683,7 +9752,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='gvr',BUILD='9d298d2d15d0',URL_JSON='../version.json';
+  const PAGE='gvr',BUILD='9d7dbba98f2a',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
