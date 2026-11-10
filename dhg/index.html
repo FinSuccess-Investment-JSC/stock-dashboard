@@ -7396,11 +7396,15 @@ window.FS_INCOME_HISTORY_10Y={"MWG": {"2016": {"labels": ["Q1/2016", "Q2/2016", 
 // {ticker, entries:[{id,date,type,title,body,author,ts}]}, build nhúng thành PVS_DATA.journal.
 // Ghi/sửa/xóa: mở khóa bằng mật khẩu analyst (analyst-gate.js) → PUT file qua GitHub API → data-update
 // build + publish sau vài phút; trên máy đang ghi, note hiện ngay.
+// Từ 10/11/2026 cùng engine dựng thêm mục "Catalyst & điểm cần theo dõi" cuối tab Catalyst & Sự kiện
+// (<MÃ>/catalyst-notes.json → PVS_DATA.catalystNotes), cùng định dạng soạn thảo.
 (function () {
-  var D = window.PVS_DATA; if (!D || !D.meta || !D.meta.ticker) return;
-  if (document.getElementById('fsAnalystJournal')) return;
-  var TK = D.meta.ticker, KEY = 'fs_journal_local:' + TK;
-  var TYPES = [['note', 'Short note'], ['meeting', 'Gặp doanh nghiệp'], ['rumor', 'Tin đồn — chưa xác minh'], ['other', 'Khác']];
+  var D0 = window.PVS_DATA; if (!D0 || !D0.meta || !D0.meta.ticker) return;
+  function make(C) {
+  var D = window.PVS_DATA;
+  if (document.getElementById(C.id)) return;
+  var TK = D.meta.ticker, KEY = C.localKey + TK;
+  var TYPES = C.types;
   var typeName = function (t) { for (var i = 0; i < TYPES.length; i++) if (TYPES[i][0] === t) return TYPES[i][1]; return 'Short note'; };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
   // Nội dung định dạng (bodyHtml) chỉ giữ thẻ/kiểu chữ an toàn; bản cũ chỉ có chữ thường (body).
@@ -7434,7 +7438,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG": {"2016": {"labels": ["Q1/2016", "Q2/2016", 
   // Bản đã publish + bản vừa ghi trên máy này (chưa kịp build), bản ghi mới hơn thắng.
   function entries() {
     var map = {};
-    ((D.journal && D.journal.entries) || []).forEach(function (e) { map[e.id] = e; });
+    ((D[C.dataKey] && D[C.dataKey].entries) || []).forEach(function (e) { map[e.id] = e; });
     try { var loc = JSON.parse(localStorage.getItem(KEY) || '{}'); Object.keys(loc).forEach(function (id) { var e = loc[id], p = map[id]; if (!p || (e.ts || '') > (p.ts || '')) map[id] = e; }); } catch (e) {}
     return Object.keys(map).map(function (k) { return map[k]; }).filter(function (e) { return !e.deleted; })
       .sort(function (a, b) { return (b.date + b.ts).localeCompare(a.date + a.ts); });
@@ -7443,7 +7447,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG": {"2016": {"labels": ["Q1/2016", "Q2/2016", 
   // Sub-tab "3 · Nhật ký chuyên viên" trong tab 💎 FinSuccess (người dùng chốt 06/11/2026). #fsNav do
   // buildFinSuccessTab dựng lúc DOMContentLoaded nên chờ tới khi có; setSubTab gốc chỉ biết 2 pane nên
   // lớp này tự ẩn/hiện pane của mình.
-  var sec = document.createElement('div'); sec.className = 'subpane'; sec.id = 'fsAnalystJournal'; sec.style.display = 'none';
+  var sec = document.createElement('div'); sec.className = C.cls; sec.id = C.id; if (C.mount === 'journal') sec.style.display = 'none';
   var SUB = 'fs_journal_sub_v1';
   function show(on) {
     sec.style.display = on ? '' : 'none';
@@ -7451,9 +7455,9 @@ window.FS_INCOME_HISTORY_10Y={"MWG": {"2016": {"labels": ["Q1/2016", "Q2/2016", 
     document.querySelectorAll('#fsNav button').forEach(function (b) { b.classList.toggle('on', on ? b.dataset.j === '1' : b.classList.contains('on') && b.dataset.j !== '1'); });
     try { localStorage.setItem(SUB, on ? '1' : ''); } catch (e) {}
   }
-  function mount(tries) {
+  function mountJournal(tries) {
     var nav = document.getElementById('fsNav');
-    if (!nav) { if (tries < 60) setTimeout(function () { mount(tries + 1); }, 100); return; }
+    if (!nav) { if (tries < 60) setTimeout(function () { mountJournal(tries + 1); }, 100); return; }
     var btn = document.createElement('button'); btn.type = 'button'; btn.dataset.j = '1'; btn.textContent = '3 · Nhật ký chuyên viên';
     nav.appendChild(btn);
     var relabel = function () { var n = [].filter.call(nav.querySelectorAll('button[data-s]'), function (b) { return b.style.display !== 'none'; }).length; btn.textContent = (n + 1) + ' · Nhật ký chuyên viên'; };
@@ -7479,8 +7483,8 @@ window.FS_INCOME_HISTORY_10Y={"MWG": {"2016": {"labels": ["Q1/2016", "Q2/2016", 
     });
     sec.innerHTML = '<div class="card"><div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px">'
       + [['all', 'Tất cả']].concat(TYPES).map(function (t) { return '<button type="button" class="chip fsj-f' + (filter === t[0] ? ' active' : '') + '" data-f="' + t[0] + '" style="border:1px solid #D6DDE8;border-radius:999px;padding:5px 12px;font:inherit;font-size:13px;cursor:pointer;background:' + (filter === t[0] ? '#1D2678;color:#fff' : '#fff;color:#334155') + '">' + esc(t[0] === 'rumor' ? 'Tin đồn' : t[1]) + '</button>'; }).join('')
-      + '<input type="search" class="fsj-q" placeholder="Tìm trong nhật ký…" value="' + esc(q) + '" style="margin-left:auto;min-width:180px;padding:6px 10px;border:1px solid #D6DDE8;border-radius:8px;font:inherit;font-size:13px">'
-      + '<button type="button" class="fsj-new" style="border:0;border-radius:8px;padding:7px 14px;background:#1D2678;color:#fff;font-weight:600;cursor:pointer">＋ Viết ghi chú</button></div>'
+      + '<input type="search" class="fsj-q" placeholder="' + C.search + '" value="' + esc(q) + '" style="margin-left:auto;min-width:180px;padding:6px 10px;border:1px solid #D6DDE8;border-radius:8px;font:inherit;font-size:13px">'
+      + '<button type="button" class="fsj-new" style="border:0;border-radius:8px;padding:7px 14px;background:#1D2678;color:#fff;font-weight:600;cursor:pointer">' + C.newLabel + '</button></div>'
       + '<div class="fsj-form"></div>'
       + (list.length ? list.map(function (e, i) {
         if (!(e.id in openIds)) openIds[e.id] = i === 0 && !q;   // mặc định chỉ mở ghi chú mới nhất
@@ -7489,26 +7493,26 @@ window.FS_INCOME_HISTORY_10Y={"MWG": {"2016": {"labels": ["Q1/2016", "Q2/2016", 
           + '<summary style="list-style:none;cursor:pointer;padding:12px 14px;display:block">'
           + '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;font-size:12.5px;color:#64748B"><span class="fsj-car" style="color:#243878;display:inline-block;width:12px;font-size:14px;line-height:1;transition:transform .15s">▸</span>'
           + '<b style="color:#243878">' + fmtDate(e.date) + '</b>'
-          + '<span style="border-radius:6px;padding:1px 8px;font-weight:600;' + (e.type === 'rumor' ? 'background:#FFF4D6;color:#8A6100' : 'background:#E6F6F6;color:#1D6F72') + '">' + esc(typeName(e.type)) + '</span>'
+          + '<span style="border-radius:6px;padding:1px 8px;font-weight:600;' + (e.type === 'rumor' || e.type === 'risk' ? 'background:#FFF4D6;color:#8A6100' : 'background:#E6F6F6;color:#1D6F72') + '">' + esc(typeName(e.type)) + '</span>'
           + (e.author ? '<span>' + esc(e.author) + '</span>' : '')
           + '<span class="fsj-adm" style="margin-left:auto;display:none;gap:10px"><a href="#" data-edit="' + esc(e.id) + '">Sửa</a><a href="#" data-del="' + esc(e.id) + '" style="color:#a33a48">Xóa</a></span></div>'
           + '<div style="font-weight:650;font-size:16px;color:#243878;margin:6px 0 0 20px">' + esc(e.title || (e.body || '').split('\n')[0].slice(0, 90)) + '</div></summary>'
           + '<div style="font-size:14.5px;line-height:1.6;color:#334155;padding:0 14px 14px 34px;border-top:1px solid #EEF2F7;padding-top:10px" class="fsj-body">' + bodyHtml(e) + '</div></details>';
-      }).join('') : '<p style="color:#64748B;margin:8px 0">' + (all.length ? 'Không có ghi chú khớp bộ lọc.' : 'Chưa có ghi chú nào. Analyst bấm “＋ Viết ghi chú” để thêm.') + '</p>')
-      + '<p style="font-size:12px;color:#64748B;margin:12px 0 0">Ghi chú của chuyên viên FinSuccess, không phải khuyến nghị đầu tư. Tin đồn chưa được xác minh.</p></div>';
+      }).join('') : '<p style="color:#64748B;margin:8px 0">' + (all.length ? 'Không có ghi chú khớp bộ lọc.' : C.empty) + '</p>')
+      + '<p style="font-size:12px;color:#64748B;margin:12px 0 0">' + C.foot + '</p></div>';
     if (unlocked()) sec.querySelectorAll('.fsj-adm').forEach(function (x) { x.style.display = 'inline-flex'; });
   }
   function unlocked() { try { return !!localStorage.getItem('fs_analyst_token'); } catch (e) { return false; } }
 
   function form(e) {
-    e = e || { id: '', date: today(), type: 'note', title: '', body: '', author: (localStorage.getItem('fs_journal_author') || '') };
+    e = e || { id: '', date: today(), type: TYPES[0][0], title: '', body: '', author: (localStorage.getItem('fs_journal_author') || '') };
     var box = sec.querySelector('.fsj-form'), inp = 'width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #D6DDE8;border-radius:8px;font:inherit;font-size:14px';
     box.innerHTML = '<form style="background:#F8FAFC;border:1px solid #E1E6EE;border-radius:10px;padding:14px;margin-bottom:12px;display:grid;gap:10px">'
       + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">'
       + '<label>Ngày<input name="date" type="date" required value="' + esc(e.date) + '" style="' + inp + '"></label>'
       + '<label>Loại<select name="type" style="' + inp + '">' + TYPES.map(function (t) { return '<option value="' + t[0] + '"' + (t[0] === e.type ? ' selected' : '') + '>' + t[1] + '</option>'; }).join('') + '</select></label>'
       + '<label>Người viết<input name="author" value="' + esc(e.author) + '" placeholder="Tên analyst" style="' + inp + '"></label></div>'
-      + '<label>Tiêu đề<input name="title" value="' + esc(e.title) + '" placeholder="vd. Short note AM ' + fmtDate(today()) + '" style="' + inp + '"></label>'
+      + '<label>Tiêu đề<input name="title" value="' + esc(e.title) + '" placeholder="' + C.titlePh + '" style="' + inp + '"></label>'
       + '<div>Nội dung<div class="fsj-tb" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:4px 0;padding:6px;border:1px solid #D6DDE8;border-bottom:0;border-radius:8px 8px 0 0;background:#fff">'
       + [['undo','↶','Hoàn tác (Ctrl+Z)'],['redo','↷','Làm lại'],['|'],['bold','<b>B</b>','In đậm (Ctrl+B)'],['italic','<i>I</i>','In nghiêng (Ctrl+I)'],['underline','<u>U</u>','Gạch chân (Ctrl+U)'],['strikeThrough','<s>S</s>','Gạch ngang'],['upper','AA','IN HOA vùng chọn'],['lower','aa','chữ thường vùng chọn'],['|'],['h3','H1','Tiêu đề lớn'],['h4','H2','Tiêu đề nhỏ'],['p','¶','Đoạn thường'],['big','A+','Chữ to hơn'],['small','A−','Chữ nhỏ hơn'],['|'],['insertUnorderedList','•','Danh sách chấm'],['insertOrderedList','1.','Danh sách số'],['outdent','⇤','Giảm thụt lề'],['indent','⇥','Tăng thụt lề'],['blockquote','❝','Trích dẫn'],['|'],['justifyLeft','<svg width="14" height="12" viewBox="0 0 14 12" stroke="currentColor" stroke-width="1.6"><line x1="0" y1="1" x2="14" y2="1"/><line x1="0" y1="4" x2="9" y2="4"/><line x1="0" y1="8" x2="14" y2="8"/><line x1="0" y1="11" x2="9" y2="11"/></svg>','Căn trái'],['justifyCenter','<svg width="14" height="12" viewBox="0 0 14 12" stroke="currentColor" stroke-width="1.6"><line x1="0" y1="1" x2="14" y2="1"/><line x1="2" y1="4" x2="11" y2="4"/><line x1="0" y1="8" x2="14" y2="8"/><line x1="2" y1="11" x2="11" y2="11"/></svg>','Căn giữa'],['justifyRight','<svg width="14" height="12" viewBox="0 0 14 12" stroke="currentColor" stroke-width="1.6"><line x1="0" y1="1" x2="14" y2="1"/><line x1="5" y1="4" x2="14" y2="4"/><line x1="0" y1="8" x2="14" y2="8"/><line x1="5" y1="11" x2="14" y2="11"/></svg>','Căn phải'],['|'],['link','🔗','Chèn link'],['removeFormat','⌫','Xóa định dạng']].map(function (b) {
           return b[0] === '|' ? '<span style="width:1px;height:20px;background:#E3E8F0;margin:0 3px"></span>' : '<button type="button" data-cmd="' + b[0] + '" title="' + b[2] + '" style="min-width:30px;height:30px;border:1px solid transparent;border-radius:6px;background:#F8FAFC;color:#243878;font:inherit;font-size:13px;cursor:pointer">' + b[1] + '</button>';
@@ -7523,7 +7527,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG": {"2016": {"labels": ["Q1/2016", "Q2/2016", 
     box.querySelector('.fsj-cancel').onclick = function () { box.innerHTML = ''; };
     f.onsubmit = function (ev) {
       ev.preventDefault();
-      var x = { id: e.id || ('j' + Date.now().toString(36)), date: f.date.value, type: f.type.value, title: f.title.value.trim(), body: '', bodyHtml: clean(ed.innerHTML), author: f.author.value.trim(), ts: new Date().toISOString() };
+      var x = { id: e.id || (C.idPrefix + Date.now().toString(36)), date: f.date.value, type: f.type.value, title: f.title.value.trim(), body: '', bodyHtml: clean(ed.innerHTML), author: f.author.value.trim(), ts: new Date().toISOString() };
       x.body = ed.innerText.trim(); if (!x.body) { ed.focus(); return; }
       try { localStorage.setItem('fs_journal_author', x.author); } catch (er) {}
       save(x);
@@ -7559,14 +7563,14 @@ window.FS_INCOME_HISTORY_10Y={"MWG": {"2016": {"labels": ["Q1/2016", "Q2/2016", 
     var R = window.fsAnalystRepo, api = window.fsAnalystApi, toast = window.fsAnalystToast || function () {};
     if (!R || !api) return;
     keepLocal(x); render();
-    var path = '/repos/' + R.repo + '/contents/' + encodeURIComponent(TK) + '/journal.json';
+    var path = '/repos/' + R.repo + '/contents/' + encodeURIComponent(TK) + '/' + C.file;
     toast('Đang đăng ghi chú…');
     api('GET', path + '?ref=' + R.branch).then(function (cur) {
       var doc = cur ? JSON.parse(R.b64decode(cur.content)) : { ticker: TK, entries: [] };
       doc.ticker = TK; doc.entries = (doc.entries || []).filter(function (e) { return e.id !== x.id; });
       if (!x.deleted) doc.entries.push(x);
       doc.entries.sort(function (a, b) { return (b.date + b.ts).localeCompare(a.date + a.ts); });
-      return api('PUT', path, { message: 'Nhật ký chuyên viên ' + TK + ': ' + (x.deleted ? 'xóa ' : '') + (x.title || x.date), content: R.b64encode(JSON.stringify(doc, null, 1) + '\n'), branch: R.branch, sha: cur ? cur.sha : undefined });
+      return api('PUT', path, { message: C.commit + ' ' + TK + ': ' + (x.deleted ? 'xóa ' : '') + (x.title || x.date), content: R.b64encode(JSON.stringify(doc, null, 1) + '\n'), branch: R.branch, sha: cur ? cur.sha : undefined });
     }).then(function () {
       toast('Đã đăng. Website cập nhật cho mọi người sau khoảng 2–3 phút.');
     }).catch(function (e) {
@@ -7589,8 +7593,28 @@ window.FS_INCOME_HISTORY_10Y={"MWG": {"2016": {"labels": ["Q1/2016", "Q2/2016", 
   sec.addEventListener('toggle', function (ev) { var d = ev.target; if (d.classList && d.classList.contains('fsj-item') && !q) openIds[d.dataset.id] = d.open; }, true);
   sec.addEventListener('input', function (ev) { if (ev.target.classList.contains('fsj-q')) { q = ev.target.value.toLowerCase(); var pos = ev.target.selectionStart; render(); var n = sec.querySelector('.fsj-q'); n.focus(); n.setSelectionRange(pos, pos); } });
 
+  var mount = C.mount === 'journal' ? mountJournal : function (tries) {
+    var host = document.getElementById(C.mount);
+    if (!host) { if (tries < 60) setTimeout(function () { mount(tries + 1); }, 100); return; }
+    var h = document.createElement('h2'); h.className = 'sec'; h.textContent = C.heading;
+    var wrap = document.createElement('div'); wrap.style.marginTop = '24px'; wrap.appendChild(h); wrap.appendChild(sec);
+    var src = document.getElementById('evSourceNote');
+    host.insertBefore(wrap, src && src.parentNode === host ? src.nextSibling : null);
+    render();
+  };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(function () { mount(0); }, 0); });
   else mount(0);
+  }
+  make({ id: 'fsAnalystJournal', cls: 'subpane', mount: 'journal', dataKey: 'journal', file: 'journal.json', localKey: 'fs_journal_local:', idPrefix: 'j',
+    types: [['note', 'Short note'], ['meeting', 'Gặp doanh nghiệp'], ['rumor', 'Tin đồn — chưa xác minh'], ['other', 'Khác']],
+    search: 'Tìm trong nhật ký…', newLabel: '＋ Viết ghi chú', empty: 'Chưa có ghi chú nào. Analyst bấm “＋ Viết ghi chú” để thêm.',
+    foot: 'Ghi chú của chuyên viên FinSuccess, không phải khuyến nghị đầu tư. Tin đồn chưa được xác minh.', titlePh: 'vd. Short note AM ' + fmtD(), commit: 'Nhật ký chuyên viên' });
+  make({ id: 'fsCatalystJournal', cls: 'fs-catalyst-notes', mount: 'events', dataKey: 'catalystNotes', file: 'catalyst-notes.json', localKey: 'fs_catalyst_local:', idPrefix: 'c',
+    heading: 'Catalyst & điểm cần theo dõi — góc nhìn chuyên viên',
+    types: [['catalyst', 'Catalyst'], ['watch', 'Điểm cần theo dõi'], ['risk', 'Rủi ro'], ['other', 'Khác']],
+    search: 'Tìm catalyst…', newLabel: '＋ Viết catalyst', empty: 'Chưa có catalyst nào. Analyst bấm “＋ Viết catalyst” để thêm.',
+    foot: 'Nhận định của chuyên viên FinSuccess, không phải khuyến nghị đầu tư.', titlePh: 'vd. Quyết định LNG cho NĐ Quảng Trạch II', commit: 'Catalyst chuyên viên' });
+  function fmtD() { var d = new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10).split('-'); return d[2] + '/' + d[1] + '/' + d[0]; }
 })();
 
 /* Ghép chart (người dùng chốt 26/10/2026): nút "Ghép chart" cạnh tiêu đề mỗi tab/tab con có từ 2 chart theo kỳ.
@@ -8927,6 +8951,47 @@ window.fsCmpChart=function(id,o){
   };
 })();
 
+// Số dư bảng cân đối (phải thu, tồn kho, người mua trả trước, số ngày phải thu/tồn kho, CCC, nợ vay…)
+// thuộc tab Tài chính › Bảng cân đối, không thuộc Mảng kinh doanh (người dùng chốt 10/11/2026).
+// Nhiều mã dựng các card này trong #seg bằng enhancements.js riêng; lớp này chuyển từng card chart/bảng
+// có tiêu đề khớp sang #bs. Không đổi dữ liệu hay chart, chỉ dời DOM. Card chủ yếu là kinh doanh
+// (khách hàng lớn, dự phòng, công ty con) giữ nguyên ở #seg.
+(function () {
+  var BAL = /phải thu|tồn kho|người mua trả|khách ứng trước|trả trước người bán|vốn lưu động|chu kỳ tiền|\bCCC\b|\bDSO\b|nợ vay|vay ngắn|vay dài|nợ ròng|tiền ròng|đòn bẩy/i;
+  var KEEP = /khách hàng lớn|dự phòng|FOX|theo khách hàng|dữ kiện/i;
+  function title(c) { var h = c.querySelector('h3,h4'); return h ? h.textContent : ''; }
+  function run() {
+    var seg = document.getElementById('seg'), bs = document.getElementById('bs');
+    if (!seg || !bs) return 0;
+    var cards = [].filter.call(seg.querySelectorAll('.card'), function (c) {
+      if (c.parentNode.closest && c.parentNode.closest('.card')) return false;
+      var t = title(c); return t && BAL.test(t) && !KEEP.test(t) && c.querySelector('canvas,table');
+    });
+    if (!cards.length) return 0;
+    var pane = bs.querySelector('.fin-pane[data-pane="balance"]');
+    var row = document.getElementById('segBalanceMoved');
+    if (!row) {
+      row = document.createElement('div'); row.id = 'segBalanceMoved'; row.className = 'grid g2'; row.style.marginTop = '16px';
+      if (pane) pane.appendChild(row);
+      else { var mr = document.getElementById('multiplesRow'); bs.insertBefore(row, mr && mr.parentNode === bs ? mr : null); }
+    }
+    cards.forEach(function (c) {
+      var from = c.parentNode; c.style.gridColumn = ''; row.appendChild(c);
+      // Hàng/khối trong #seg chỉ còn tiêu đề thì ẩn luôn tiêu đề.
+      if (from && from !== seg && !from.querySelector('.card,canvas,table')) {
+        from.style.display = 'none';
+        var p = from.previousElementSibling; if (p && /^H[23]$/.test(p.tagName) && from.nextElementSibling !== null && !p.nextElementSibling.querySelector('.card')) p.style.display = 'none';
+      }
+    });
+    window.dispatchEvent(new Event('resize'));
+    return cards.length;
+  }
+  var n = 0;
+  function tick() { run(); if (++n < 12) setTimeout(tick, 400); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(tick, 50); });
+  else setTimeout(tick, 50);
+})();
+
 /* Chỉ hiện kết quả dự phóng, không hiện giả định (người dùng chốt 09/11/2026, áp cho mọi mã sau PVS/GAS).
    Forecast nằm ở model Excel của analyst; dashboard chỉ hiển thị kết quả. Lớp này chạy sau khi các mô hình dựng xong:
    - khối có tiêu đề giả định/driver/biến/chi phí-thuế… hoặc mục <details> chứa ô nhập → ẩn;
@@ -9549,7 +9614,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='dhg',BUILD='aca3fcff6a0b',URL_JSON='../version.json';
+  const PAGE='dhg',BUILD='fbfe20aadb0c',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
