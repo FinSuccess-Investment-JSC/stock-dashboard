@@ -5453,11 +5453,11 @@ const wmPlugin={id:'fsWatermark',
   const a=chart.chartArea;if(!a)return;
   if(window.matchMedia&&matchMedia('print').matches)return;
   if(window.__fsShot)return; // ảnh chia sẻ: share-image.js vẽ watermark lên trên (09/11/2026)
-  const w=a.right-a.left,h=a.bottom-a.top;if(w<160||h<80)return;
+  const w=a.right-a.left,h=a.bottom-a.top;if(w<120||h<36)return; // chart thấp (vd so với CTCK) vẫn có watermark (10/11/2026)
   const dark=document.documentElement.classList.contains('dark')||document.documentElement.dataset.theme==='dark';
-  const ctx=chart.ctx,cx=a.left+w/2,cy=a.top+h*0.3,big=Math.min(w*0.13,h*0.22,64),small=Math.max(9,big*0.28);
+  const ctx=chart.ctx,cx=a.left+w/2,cy=a.top+h*(h<140?0.5:0.3),big=Math.max(14,Math.min(w*0.13,h*(h<140?0.42:0.22),64)),small=Math.max(9,big*0.28);
   ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';
-  ctx.fillStyle=dark?'rgba(255,255,255,.06)':'rgba(29,38,120,.06)';
+  ctx.fillStyle=dark?'rgba(255,255,255,.08)':'rgba(29,38,120,.09)';
   ctx.font=`800 ${big}px Inter, Arial, sans-serif`;ctx.fillText('FinSuccess',cx,cy-small*0.6);
   if(h>140){ctx.fillStyle=dark?'rgba(255,255,255,.08)':'rgba(29,38,120,.08)';ctx.font=`500 ${small}px Inter, Arial, sans-serif`;
     if(ctx.letterSpacing!==undefined)ctx.letterSpacing='1.5px';ctx.fillText('Your wealth, Our conviction',cx,cy+big*0.55);}
@@ -9525,7 +9525,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='foc',BUILD='b58c32a7fceb',URL_JSON='../version.json';
+  const PAGE='foc',BUILD='2a0a9dd4d99a',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
