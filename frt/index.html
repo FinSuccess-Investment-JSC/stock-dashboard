@@ -9016,6 +9016,18 @@ window.fsCmpChart=function(id,o){
     bs.insertBefore(row,at);
     for(const s of todo){
       P.layout.subTabs[s.id]=s.pane;
+      make(s,row);
+    }
+    if(typeof applyChartTips==='function')applyChartTips();
+  };
+  // Dựng riêng một chart chung khi khối khác cần mà trang chưa có (kqkd-flow.js: nhóm Chi phí phải có
+  // CPBH & CPQL và DT/CP tài chính dù trang có chart cùng tên ở sub-tab khác). Trả về card hoặc null.
+  window.fsCoreFinanceOne=function(id,host){
+    if(document.getElementById(id))return document.getElementById(id).closest('.card');
+    const s=specs.find(x=>x.id===id);if(!s||typeof mkTS!=='function'||!s.y.some(([,v])=>v.filter(x=>x!=null).length>=3))return null;
+    const c=make(s,host);if(typeof applyChartTips==='function')applyChartTips();return c;
+  };
+  function make(s,row){
       const card=document.createElement('div');card.className='card';card.dataset.source=s.srcLine||SRC;
       card.innerHTML='<h3 class="sub">'+esc(s.title)+'</h3><div class="chart tall"><canvas id="'+s.id+'"></canvas></div><div class="note">'+esc(s.note)+' '+(s.srcLine||SRC)+'</div>';
       row.appendChild(card);
@@ -9023,8 +9035,7 @@ window.fsCmpChart=function(id,o){
       if(s.q.length&&s.q.some(([,v])=>v.filter(x=>x!=null).length>=4))spec.q={labels:QL.map(qShort),datasets:datasets(s,s.q)};
       if(['bars','barline','stack','custom'].includes(s.kind)&&s.unit==='tỷ VND'){spec.unitLabel='tỷ VND';}
       try{mkTS(s.id,spec);}catch(e){console.error('core-finance',s.id,e);}
-    }
-    if(typeof applyChartTips==='function')applyChartTips();
+      return card;
   };
 })();
 
@@ -9078,6 +9089,8 @@ window.fsCmpChart=function(id,o){
 const SKIP=['POW','NT2','CTD','REE','BWE','HDG','FPT'];
 const D=window.PVS_DATA;if(!D||!D.meta||SKIP.indexOf(D.meta.ticker)>=0)return;
 const $=id=>document.getElementById(id);
+const SGA=/chi phí bán hàng|cp bán hàng|cpbh|sg&a|quản lý doanh nghiệp|cpql|chi phí hoạt động/i,FIN=/thu nhập tài chính|doanh thu tài chính|dttc|chi phí tài chính|lãi vay|lợi nhuận tài chính/i;
+
 const resizeAll=()=>{if(window.Chart&&Chart.instances)Object.values(Chart.instances).forEach(c=>{try{c.resize()}catch(e){}})};
 function styles(){if($('fsKqkdFlowStyle'))return;const s=document.createElement('style');s.id='fsKqkdFlowStyle';s.textContent=`
 .fs-kqkd-groups .pow-kg{padding:4px 0 26px;border-top:1px solid var(--line);margin-top:8px}.fs-kqkd-groups .pow-kg:first-child{border-top:0}
@@ -9102,6 +9115,9 @@ function groups(pane,wrapId,defs,ref){
  const left=[...pane.children].filter(el=>el!==wrap&&!el.matches('.fs-next,.tb'));
  const g2=wrap.querySelectorAll('.pow-kg')[1];let own=null;
  left.forEach(el=>{if(!el.querySelector('canvas,table')){el.hidden=true;return}
+  // Chart riêng của mã: biên/doanh thu/lợi nhuận → nhóm 1, còn lại → cuối nhóm 2.
+  const g1=wrap.querySelectorAll('.pow-kg')[0],isTop=/biên|doanh thu|lợi nhuận|kqkd|lnst|lntt/i.test((el.querySelector('h3,h2,.sub')||{}).textContent||'')&&!SGA.test((el.querySelector('h3,h2,.sub')||{}).textContent||'')&&!FIN.test((el.querySelector('h3,h2,.sub')||{}).textContent||'');
+  if(isTop&&g1){let o=g1.querySelector('.fs-kq-own');if(!o){o=document.createElement('div');o.className='fs-kq-own';g1.append(o)}o.append(el);return}
   if(!own){own=document.createElement('div');own.className='fs-kq-own';(g2||wrap).append(own)}own.append(el)});
  wrap.addEventListener('click',e=>{const t=e.target.closest('.pow-kg-tog');if(t){const s=t.closest('.pow-kg'),c=s.classList.toggle('collapsed');t.textContent=c?'Mở rộng':'Thu gọn';t.setAttribute('aria-expanded',String(!c));if(!c)resizeAll();return}
   if(e.target.closest('[data-gantt]')){document.querySelector('#finSubnav [data-pane="kqkd"]')?.click();setTimeout(()=>$('nt2GanttCard')?.scrollIntoView({behavior:'smooth',block:'start'}),120)}});
@@ -9115,12 +9131,21 @@ function build(){
  // Dự phòng là số dư bảng cân đối → sub-tab Bảng cân đối (người dùng chốt 10/11/2026).
  const bal=document.querySelector('#bs .fin-pane[data-pane="balance"]'),prov=cardOf('gasGnaProv');
  if(bal&&prov){let r=$('fsKqProvRow');if(!r){r=document.createElement('div');r.id='fsKqProvRow';r.className='grid g2';bal.append(r)}r.append(prov)}
+ // Nhóm Chi phí luôn có CPBH & CPQL và DT/CP tài chính: dùng chart riêng của mã trong sub-tab KQKD nếu có,
+ // thiếu thì dựng chart chung (core-finance.js). Chỉ thêm, không xóa chart nào.
+ const tt=c=>{const h=c&&c.querySelector('h3,h2,.sub');return h?h.textContent:''};
+ const mine=[...pane.querySelectorAll('.card')].filter(c=>c.querySelector('canvas')&&!/^(income10|core)/.test((c.querySelector('canvas')||{}).id||''));
+ const sgaOwn=mine.filter(c=>SGA.test(tt(c))),finOwn=mine.filter(c=>!SGA.test(tt(c))&&FIN.test(tt(c)));
+ const tmp=document.createElement('div');tmp.hidden=true;document.body.append(tmp);
+ const one=id=>cardOf(id)||(window.fsCoreFinanceOne?window.fsCoreFinanceOne(id,tmp):null);
+ const sga=[cardOf('coreSga')||null,...sgaOwn].filter(Boolean),fin=[cardOf('coreFin')||null,...finOwn].filter(Boolean);
+ if(!sga.length)sga.push(one('coreSga'));if(!fin.length)fin.push(one('coreFin'));
  groups(pane,'fsKqkdFlow',[
   {n:'1',t:'Tổng quan doanh thu & lợi nhuận',q:'Doanh thu, các tầng lợi nhuận, lợi nhuận đến từ đâu và biên lợi nhuận.',main:[cardOf('income10Revenue'),cardOf('income10Profit')],sup:[cardOf('corePbt'),cardOf('income10Margin'),cardOf('gasFinanceMargin')],extra:[$('isBridgeCard')]},
-  {n:'2',t:'Chi phí',q:'Chi phí sau lợi nhuận gộp: bán hàng, quản lý, tài chính và lãi vay.',main:[cardOf('coreSga')],sup:[cardOf('coreFin')]},
-  {n:'3',t:'Hiệu quả sinh lời',q:'ROE và ROA.',main:[cardOf('coreRoe')]}],
+  {n:'2',t:'Chi phí',q:'Chi phí sau lợi nhuận gộp: bán hàng, quản lý, tài chính và lãi vay.',main:sga,sup:fin},
+  {n:'3',t:'Hiệu quả sinh lời',q:'ROE và ROA.',main:[one('coreRoe')]}],
   {t:'Bảng KQKD theo kỳ',cards:[ih]});
- resizeAll();if(typeof applyChartTips==='function')applyChartTips();return true;
+ tmp.remove();resizeAll();if(typeof applyChartTips==='function')applyChartTips();return true;
 }
 function start(){let n=0;const t=setInterval(()=>{n++;let ok=false;try{ok=build()}catch(e){console.error('kqkd-flow',e);document.documentElement.dataset.kqkdFlowError=e.message;ok=true}if(ok||n>60)clearInterval(t)},250)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
@@ -9748,7 +9773,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='frt',BUILD='35c4ad1488ff',URL_JSON='../version.json';
+  const PAGE='frt',BUILD='08469dddf77f',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
