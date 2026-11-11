@@ -8029,7 +8029,34 @@ td.fsa-focus,th.fsa-focus{outline:2px solid ${TURQ};outline-offset:-2px}
   function prevYearLabel(L,labels){const s=String(L);const m=s.match(/(\d{4}|\d{2})(?!.*\d)/);if(!m)return -1;const y=m[1].length===4?String(+m[1]-1):String(+m[1]-1).padStart(2,'0');const k=s.slice(0,m.index)+y+s.slice(m.index+m[1].length);return labels.indexOf(k)}
   function popName(ch){const L=String((ch.data.labels||[]).slice(-1)[0]||'');return /^T\d{1,2}\//.test(L)?'MoM — %Δ tháng trước':/^Q\d/.test(L)?'QoQ — %Δ quý trước':'%Δ kỳ trước'}
   function modeItems(ch){const mode=ch.$fsMode||'val';return Object.entries(MODES).map(([m,t])=>({t:m==='pop'?popName(ch):t,on:m===mode,f:()=>transform(ch,m)}))}
-  window.FSAnalytics={modeMenu:(ch,e)=>{if(xScale(ch))openMenu(e,[{h:'Cách tính'},...modeItems(ch)])},hasX:ch=>!!xScale(ch)};
+  /* ---------- Đường tăng trưởng phủ lên chart (giữ nguyên chart gốc, thêm line % trục phải) ---------- */
+  const GROW={};// canvasId -> {pop:1,yoy:1}
+  const GNAME={pop:null,yoy:'YoY'};
+  function popShort(ch){const n=popName(ch);return n.startsWith('MoM')?'MoM':n.startsWith('QoQ')?'QoQ':'%Δ kỳ trước'}
+  function growthOf(o,L,m){return o.map((v,i)=>{const j=m==='pop'?i-1:prevYearLabel(L[i],L);const p=j>=0?o[j]:null;return v!=null&&p!=null&&p!==0?(v-p)/Math.abs(p)*100:null})}
+  function applyGrowth(ch){
+    const id=ch.canvas.id,on=GROW[id]||{};const L=ch.data.labels||[];
+    ch.data.datasets=ch.data.datasets.filter(d=>!d.$fsGrowth);
+    const keys=Object.keys(on).filter(k=>on[k]);
+    if(!keys.length){if(ch.options.scales)delete ch.options.scales.fsPct;ch.update();return}
+    const base=ch.data.datasets.filter((d,k)=>(d.type||ch.config.type)==='bar'||(d.type||ch.config.type)==='line').filter(d=>!d.borderDash||!d.borderDash.length).filter(d=>d.data.every(v=>v==null||typeof v==='number'));
+    if(!base.length){toast('Chart này không tính tăng trưởng được');return}
+    const stacked=Object.values(ch.options.scales||{}).some(s=>s&&s.stacked);
+    const src=stacked||base.length>3?[{label:'Tổng',data:L.map((_,i)=>{const vs=base.map(d=>d.data[i]);return vs.some(v=>v==null)?null:vs.reduce((a,b)=>a+b,0)})}]:base.map(d=>({label:d.label,data:d.data}));
+    const COLS=['#D4A72C','#861C52','#59C5C8','#2938A8'];let c=0;
+    keys.forEach(m=>src.forEach(sd=>{const col=COLS[c++%COLS.length];
+      ch.data.datasets.push({$fsGrowth:m,type:'line',label:(src.length>1||sd.label!=='Tổng'?sd.label+' · ':'')+(m==='pop'?popShort(ch):'YoY')+' (%)',data:growthOf(sd.data,L,m),yAxisID:'fsPct',borderColor:col,backgroundColor:col,borderWidth:2,pointRadius:2.5,tension:.25,spanGaps:false,borderDash:m==='pop'?[5,3]:[],order:-1,stack:'fsg_'+m+c})}));
+    const sc=ch.options.scales=ch.options.scales||{};
+    sc.fsPct={position:'right',stacked:false,grid:{drawOnChartArea:false},ticks:{callback:v=>fmt(v)+'%'},title:{display:true,text:'Tăng trưởng (%)'}};
+    const pl=ch.options.plugins=ch.options.plugins||{},tt=pl.tooltip=pl.tooltip||{},cb=tt.callbacks=tt.callbacks||{};
+    if(!cb.$fsGw){const orig=cb.label;cb.label=function(c){if(c.dataset.$fsGrowth)return `${c.dataset.label}: ${c.parsed.y==null?'—':fmt(c.parsed.y)+'%'}`;return orig?orig.call(this,c):`${c.dataset.label||''}: ${fmt(c.parsed.y)}`};cb.label.$fsGw=1;cb.$fsGw=1}
+    ch.update();
+  }
+  function growthMenu(ch,e){const id=ch.canvas.id||(ch.canvas.id='fsc'+Math.random().toString(36).slice(2,8));const on=GROW[id]=GROW[id]||{};
+    const t=m=>({t:(on[m]?'✓ ':'')+(m==='pop'?popName(ch):'YoY — %Δ cùng kỳ năm trước'),on:!!on[m],f:()=>{on[m]=!on[m];applyGrowth(ch)}});
+    openMenu(e,[{h:'Thêm đường tăng trưởng (trục % phải)'},t('pop'),t('yoy'),...(on.pop||on.yoy?['-',{t:'Bỏ đường tăng trưởng',f:()=>{GROW[id]={};applyGrowth(ch)}}]:[])])}
+  function reapply(ch){const on=GROW[ch.canvas.id];if(on&&(on.pop||on.yoy)&&!ch.data.datasets.some(d=>d.$fsGrowth))applyGrowth(ch)}
+  window.FSAnalytics={modeMenu:(ch,e)=>{if(xScale(ch))growthMenu(ch,e)},hasX:ch=>!!xScale(ch),reapply};
   function transform(ch,mode){
     const ok=ch.data.datasets.every(d=>!d.data.length||d.data.every(v=>v==null||typeof v==='number'));
     if(!ok){toast('Chart này không đổi phép tính được');return}
@@ -8191,7 +8218,7 @@ td.fsa-focus,th.fsa-focus{outline:2px solid ${TURQ};outline-offset:-2px}
   let stT=0;addEventListener('scroll',()=>{clearTimeout(stT);stT=setTimeout(()=>{const s=store.get(SKEY,{});s[location.hash||'#']=Math.round(scrollY);store.set(SKEY,s)},250)},{passive:true});
   function restoreScroll(){const s=store.get(SKEY,{}),y=s[location.hash||'#'];if(y>200&&scrollY<50)scrollTo({top:y,behavior:'instant'})}
 
-  function scan(){charts().forEach(ch=>{bindCanvas(ch.canvas);if(ch.$fsMode&&ch.$fsMode!=='val'&&ch.data.datasets[0]&&!ch.data.datasets[0].$fsOrig)ch.$fsMode='val'});enhanceTables()}
+  function scan(){charts().forEach(ch=>{bindCanvas(ch.canvas);reapply(ch);if(ch.$fsMode&&ch.$fsMode!=='val'&&ch.data.datasets[0]&&!ch.data.datasets[0].$fsOrig)ch.$fsMode='val'});enhanceTables()}
   function init(){
     const st=document.createElement('style');st.textContent=css;document.head.append(st);
     if(window.Chart&&Chart.register)Chart.register(plugin);
@@ -8286,7 +8313,8 @@ html.fs-zoom-lock{overflow:hidden}
         b.onclick=e=>{e.stopPropagation();zoom(card)};tb.append(b)}
       if(canCmp&&!tb.querySelector('[data-cmp]')){const b=document.createElement('button');b.type='button';b.dataset.cmp='1';b.className='fs-ic';b.innerHTML='<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2v12h12"/><path d="M4.5 11l2.5-3 2 1.5"/><path d="M12 3v5M9.5 5.5h5"/></svg>';b.title='So sánh với chỉ tiêu khác (ghép vào cùng chart)';b.setAttribute('aria-label','So sánh với chỉ tiêu khác');
         b.onclick=e=>{e.stopPropagation();const f=compareFn(cv);if(!f||!f(cv.id,card))b.disabled=true};tb.prepend(b)}
-      if(window.FSAnalytics&&!tb.querySelector('[data-calc]')){const ch0=window.Chart&&Chart.getChart(cv);if(ch0&&FSAnalytics.hasX(ch0)&&ch0.config.type!=='doughnut'&&ch0.config.type!=='pie'){const b=document.createElement('button');b.type='button';b.dataset.calc='1';b.className='fs-ic';b.innerHTML='<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3.5 12.5l9-9"/><circle cx="4.5" cy="4.5" r="1.8"/><circle cx="11.5" cy="11.5" r="1.8"/></svg>';b.title='Cách tính: Giá trị / MoM–QoQ / YoY / Rebase 100';b.setAttribute('aria-label','Cách tính: giá trị, tăng trưởng kỳ trước, cùng kỳ');
+      if(window.FSAnalytics){const c1=window.Chart&&Chart.getChart(cv);if(c1)FSAnalytics.reapply(c1)}
+      if(window.FSAnalytics&&!tb.querySelector('[data-calc]')){const ch0=window.Chart&&Chart.getChart(cv);if(ch0&&FSAnalytics.hasX(ch0)&&ch0.config.type!=='doughnut'&&ch0.config.type!=='pie'){const b=document.createElement('button');b.type='button';b.dataset.calc='1';b.className='fs-ic';b.innerHTML='<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3.5 12.5l9-9"/><circle cx="4.5" cy="4.5" r="1.8"/><circle cx="11.5" cy="11.5" r="1.8"/></svg>';b.title='Thêm đường tăng trưởng MoM/QoQ, YoY (trục % phải)';b.setAttribute('aria-label','Thêm đường tăng trưởng');
         b.onclick=e=>{e.stopPropagation();const c=Chart.getChart(card.querySelector('canvas'));if(c)FSAnalytics.modeMenu(c,e)};tb.prepend(b)}}
       if((hasCtl||hasAxis)&&!tb.querySelector('[data-cust]')){const b=document.createElement('button');b.type='button';b.dataset.cust='1';b.className='fs-ic';b.innerHTML='<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 4h7M13 4h1M2 8h2M8 8h6M2 12h8M14 12h0"/><circle cx="11" cy="4" r="1.6"/><circle cx="6" cy="8" r="1.6"/><circle cx="12" cy="12" r="1.6"/></svg>';b.setAttribute('aria-label','Tùy chỉnh chart');b.title='Tùy chỉnh: loại chart, trục giá trị (Từ 0 / Vừa dữ liệu), độ rộng cột. Nhấp đúp vào chart để hiện số.';b.setAttribute('aria-pressed','false');
         b.onclick=e=>{e.stopPropagation();const on=!card.classList.contains('fs-cust-on');closePops();card.classList.toggle('fs-cust-on',on);b.setAttribute('aria-pressed',String(on));if(on){const c=card.querySelector(':scope>h3.sub>.ctl');const top=c&&c.offsetParent?54+c.offsetHeight+6:54;card.style.setProperty('--fs-cust-ax',top+'px')}};tb.append(b)}
@@ -9239,15 +9267,18 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     msg.textContent=all?`Đã đổi ${ok}/${all} chart`+(ok<all?' (chart còn lại không có chu kỳ này)':''):'Mục này chưa có chart theo kỳ';
   }
   function add(sec){
-    if(sec.querySelector(':scope > .fs-perall'))return;
-    const box=document.createElement('div');box.className='fs-perall';
-    box.innerHTML='<span class="lbl">Chu kỳ cả mục</span>'+PER.map(([k,t])=>`<button type="button" data-p="${k}">${t}</button>`).join('')+'<span class="msg"></span>';
-    const msg=box.querySelector('.msg');
-    box.onclick=e=>{const b=e.target.closest('button[data-p]');if(!b)return;box.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));apply(sec,b.dataset.p,msg);};
-    sec.prepend(box);
+    let box=sec.querySelector('.fs-perall');
+    if(!box){box=document.createElement('div');box.className='fs-perall';
+      box.innerHTML='<span class="lbl">Chu kỳ cả mục</span>'+PER.map(([k,t])=>`<button type="button" data-p="${k}">${t}</button>`).join('')+'<span class="msg"></span>';
+      const msg=box.querySelector('.msg');
+      box.onclick=e=>{const b=e.target.closest('button[data-p]');if(!b)return;box.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));apply(sec,b.dataset.p,msg);};}
+    // Đặt trong thanh sub-tab nếu có (finance-subtabs.js dồn phần tử khác vào pane) (áp cho sub-tab đang mở), không thì đầu tab.
+    const nav=sec.querySelector('.fin-subnav')||[...sec.querySelectorAll('.subnav')].find(n=>n.parentElement===sec);
+    if(nav){if(box.parentElement!==nav){nav.appendChild(box);box.classList.add('in-nav');}}else if(sec.firstElementChild!==box)sec.prepend(box);
   }
-  function scan(){document.querySelectorAll('section.tab').forEach(sec=>{if(sec.id==='notes'||sec.id==='cons'&&!charts(sec).length)return;add(sec);});
-    document.querySelectorAll('.fs-perall').forEach(b=>{const n=charts(b.parentElement).length;b.style.display=n?'':'none';});}
+  function scan(){document.querySelectorAll('section.tab').forEach(sec=>{if(sec.id==='notes'||sec.querySelector('section.tab'))return;add(sec);
+      const b=sec.querySelector('.fs-perall'),n=[...sec.querySelectorAll('canvas')].filter(cv=>cv.id&&TSREG[cv.id]&&!/^fsCombo/.test(cv.id)).length;b.style.display=n?'':'none';
+      if(b.dataset.lastPane!==location.hash+(sec.querySelector('.fin-subnav .on,.subnav .on')||{}).textContent){b.dataset.lastPane=location.hash+(sec.querySelector('.fin-subnav .on,.subnav .on')||{}).textContent;b.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.querySelector('.msg').textContent='';}});}
   const css=document.createElement('style');css.textContent=`.fs-perall{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 12px;font-size:12.5px}
 .fs-perall .lbl{font-weight:600;color:#64748B;letter-spacing:.3px;margin-right:2px}
 .fs-perall button{border:1px solid #D6DDE8;background:#fff;color:#243878;border-radius:8px;padding:5px 12px;font:600 12.5px Inter,Arial,sans-serif;cursor:pointer}
@@ -9255,10 +9286,15 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 .fs-perall .msg{color:#64748B;margin-left:6px}
 html[data-theme=dark] .fs-perall button{background:#161616;border-color:#2A2A2A;color:#F5F5F5}
 html[data-theme=dark] .fs-perall button.on{background:#2938A8;color:#fff}
+
+.fs-perall.in-nav{margin:0 0 0 10px;padding:0 4px 0 12px;border-left:1px solid #D6DDE8;gap:4px}
+.fin-subnav .fs-perall button,.subnav .fs-perall button{border:1px solid #D6DDE8!important;background:#fff!important;color:#243878!important;border-radius:999px!important;padding:3px 10px!important;font-size:12px!important;box-shadow:none!important}
+html body .fin-subnav .fs-perall.in-nav button.on,html body .subnav .fs-perall.in-nav button.on{background:#1D2678!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:#1D2678!important}
+.fs-perall .msg{font-size:11.5px}
 @media print{.fs-perall{display:none!important}}`;document.head.appendChild(css);
   const run=()=>{scan();setTimeout(scan,1500);};
   if(document.readyState==='complete')run();else addEventListener('load',run);
-  document.addEventListener('click',e=>{if(e.target.closest('.subnav button,nav button,[data-tab],.tabs button'))setTimeout(scan,300);});
+  addEventListener('hashchange',()=>setTimeout(scan,300));document.addEventListener('click',e=>{if(e.target.closest('.subnav button,.fin-subnav button,nav button,[data-tab],.tabs button'))setTimeout(scan,300);});
 })();
 
 
@@ -9838,7 +9874,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='fcn',BUILD='675b98bb7201',URL_JSON='../version.json';
+  const PAGE='fcn',BUILD='29090d512355',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
