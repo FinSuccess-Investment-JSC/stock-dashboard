@@ -9319,8 +9319,13 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     const nav=sec.querySelector('.fin-subnav')||[...sec.querySelectorAll('.subnav')].find(n=>n.parentElement===sec);
     if(nav){box.classList.remove('in-nav');if(nav.nextElementSibling!==box)nav.after(box);}else if(sec.firstElementChild!==box)sec.prepend(box);
   }
-  function scan(){document.querySelectorAll('section.tab').forEach(sec=>{if(sec.id==='notes'||sec.querySelector('section.tab'))return;add(sec);
-      const b=sec.querySelector('.fs-perall'),n=[...sec.querySelectorAll('canvas')].filter(cv=>cv.id&&TSREG[cv.id]&&!/^fsCombo/.test(cv.id)).length;b.style.display=n?'':'none';
+  function scan(){document.querySelectorAll('section.tab').forEach(sec=>{if(sec.id==='notes'||sec.querySelector('section.tab'))return;
+      // Chỉ đếm chart không nằm trong khối bị ẩn cứng (vd #tab3Backlog/#tab3Stores của mã không dùng); không có chart thì KHÔNG chèn hàng,
+      // vì index.html coi tab Backlog/Vận hành có chữ là có nội dung và sẽ hiện tab rỗng (lỗi 11/11/2026).
+      const vis=cv=>{for(let e=cv.parentElement;e&&e!==sec;e=e.parentElement)if(e.style&&e.style.display==='none')return false;return true;};
+      const n=[...sec.querySelectorAll('canvas')].filter(cv=>cv.id&&TSREG[cv.id]&&!/^fsCombo/.test(cv.id)&&vis(cv)).length;
+      if(!n&&!sec.querySelector('.fs-perall'))return;add(sec);
+      const b=sec.querySelector('.fs-perall');b.style.display=n?'':'none';
       if(b.dataset.lastPane!==location.hash+(sec.querySelector('.fin-subnav .on,.subnav .on')||{}).textContent){b.dataset.lastPane=location.hash+(sec.querySelector('.fin-subnav .on,.subnav .on')||{}).textContent;b.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.querySelector('.msg').textContent='';}});}
   const css=document.createElement('style');css.textContent=`.fs-perall{display:flex;width:fit-content;max-width:100%;align-items:center;gap:6px;flex-wrap:wrap;margin:-6px 0 16px;padding:6px 10px;background:#E6F6F6;border:1px solid #BFE6E7;border-radius:10px;font-size:12.5px}
 .fs-perall .lbl{font-weight:600;color:#243878;letter-spacing:.3px;margin-right:2px}
@@ -9914,7 +9919,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='kdh',BUILD='ef3efdce581f',URL_JSON='../version.json';
+  const PAGE='kdh',BUILD='8b8b40291976',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
