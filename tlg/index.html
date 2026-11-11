@@ -5480,7 +5480,9 @@ const wmPlugin={id:'fsWatermark',
   if(h>140){ctx.fillStyle=dark?'rgba(255,255,255,.08)':'rgba(29,38,120,.08)';ctx.font=`500 ${small}px Inter, Arial, sans-serif`;
     if(ctx.letterSpacing!==undefined)ctx.letterSpacing='1.5px';ctx.fillText('Your wealth, Our conviction',cx,cy+big*0.55);}
   ctx.restore();}};
-function ensurePlugin(){if(window.Chart&&!ensurePlugin.done){try{Chart.register(valuePlugin);Chart.register(wmPlugin);ensurePlugin.done=true}catch(e){}}}
+// Trục giá trị không còn chuỗi nào hiện (tắt ở chú giải) thì ẩn trục; bật lại chuỗi thì trục hiện lại.
+const axisAutoHide={id:'fsAxisAutoHide',beforeLayout(c){if(/pie|doughnut|radar|polarArea/.test(c.config.type||''))return;const sc=c.options.scales||{};const ids=Object.keys(sc);if(ids.length<3&&!ids.some(k=>k!=='x'&&k!=='y'))return;const use={};c.data.datasets.forEach((d,i)=>{const ax=c.options.indexAxis==='y'?(d.xAxisID||'x'):(d.yAxisID||'y');(use[ax]=use[ax]||[]).push(i)});const base=c.$fsDisp=c.$fsDisp||{};const cs=(c.config.options&&c.config.options.scales)||{};for(const k of Object.keys(use)){const o=cs[k];if(!o)continue;if(!(k in base))base[k]=o.display;const vis=use[k].some(i=>c.isDatasetVisible(i));const want=vis?base[k]:false;if(o.display!==want){o.display=want;if(sc[k])sc[k].display=want;}}}};
+function ensurePlugin(){if(window.Chart&&!ensurePlugin.done){try{Chart.register(valuePlugin);Chart.register(wmPlugin);Chart.register(axisAutoHide);ensurePlugin.done=true}catch(e){}}}
 ensurePlugin();
 function axes(cfg){
   if(!cfg||!cfg.data||['pie','doughnut','polarArea'].includes(cfg.type)||cfg.shareView)return [];
@@ -7992,6 +7994,9 @@ td.fsa-focus,th.fsa-focus{outline:2px solid ${TURQ};outline-offset:-2px}
   /* ---------- Đổi phép tính: Giá trị / %Δ kỳ trước / YoY / Rebase 100 ---------- */
   const MODES={val:'Giá trị',pop:'%Δ kỳ trước',yoy:'%Δ cùng kỳ (YoY)',rebase:'Rebase 100'};
   function prevYearLabel(L,labels){const s=String(L);const m=s.match(/(\d{4}|\d{2})(?!.*\d)/);if(!m)return -1;const y=m[1].length===4?String(+m[1]-1):String(+m[1]-1).padStart(2,'0');const k=s.slice(0,m.index)+y+s.slice(m.index+m[1].length);return labels.indexOf(k)}
+  function popName(ch){const L=String((ch.data.labels||[]).slice(-1)[0]||'');return /^T\d{1,2}\//.test(L)?'MoM — %Δ tháng trước':/^Q\d/.test(L)?'QoQ — %Δ quý trước':'%Δ kỳ trước'}
+  function modeItems(ch){const mode=ch.$fsMode||'val';return Object.entries(MODES).map(([m,t])=>({t:m==='pop'?popName(ch):t,on:m===mode,f:()=>transform(ch,m)}))}
+  window.FSAnalytics={modeMenu:(ch,e)=>{if(xScale(ch))openMenu(e,[{h:'Cách tính'},...modeItems(ch)])},hasX:ch=>!!xScale(ch)};
   function transform(ch,mode){
     const ok=ch.data.datasets.every(d=>!d.data.length||d.data.every(v=>v==null||typeof v==='number'));
     if(!ok){toast('Chart này không đổi phép tính được');return}
@@ -8013,7 +8018,7 @@ td.fsa-focus,th.fsa-focus{outline:2px solid ${TURQ};outline-offset:-2px}
     const mode=ch.$fsMode||'val';
     if(mode==='val'){if(bar)bar.remove();return}
     if(!bar){bar=document.createElement('div');bar.className='fsa-chips';bar.dataset.for=ch.canvas.id;(ch.canvas.closest('.chart')||ch.canvas).before(bar)}
-    bar.innerHTML='';const c=document.createElement('span');c.className='fsa-chip';c.textContent='Đang xem: '+MODES[mode];
+    bar.innerHTML='';const c=document.createElement('span');c.className='fsa-chip';c.textContent='Đang xem: '+(mode==='pop'?popName(ch):MODES[mode]);
     const x=document.createElement('button');x.type='button';x.textContent='×';x.setAttribute('aria-label','Về giá trị gốc');x.onclick=()=>transform(ch,'val');c.append(x);bar.append(c);
   }
 
@@ -8047,7 +8052,7 @@ td.fsa-focus,th.fsa-focus{outline:2px solid ${TURQ};outline-offset:-2px}
       const mode=ch.$fsMode||'val',zoomed=xScale(ch)&&ch.options.scales[xScale(ch).id]&&ch.options.scales[xScale(ch).id].min!=null;
       openMenu(e,[
         ...(L!=null?[{h:String(L)},{t:'Chép giá trị tại kỳ này',f:()=>copyText(String(L)+'\n'+vals.join('\n'),'Đã chép giá trị '+L)},{t:'Ghi chú tại kỳ này',k:'Alt+bấm',f:()=>askNote(ch,i,e)},{t:'So sánh từ kỳ này',k:'Shift+bấm',f:()=>compare(ch,i)},'-']:[]),
-        ...(xScale(ch)?[{h:'Cách tính'},...Object.entries(MODES).map(([m,t])=>({t,on:m===mode,f:()=>transform(ch,m)})),'-',
+        ...(xScale(ch)?[{h:'Cách tính'},...modeItems(ch),'-',
           {t:'Mốc sự kiện',on:!!evOn[cv.id],f:()=>{if(!cv.id)return;evOn[cv.id]=!evOn[cv.id];if(!evOn[cv.id])delete evOn[cv.id];store.set('fs_chart_events_v1',evOn);ch.update('none');if(evOn[cv.id]&&!eventsFor(ch).length)toast('Không có sự kiện nào rơi vào các kỳ của chart này')}},
           ...(zoomed?[{t:'↺ Về toàn bộ kỳ',f:()=>resetZoom(ch)}]:[]),'-']:[]),
         {t:'Xuất CSV',f:()=>download((code()?code()+'-':'')+title+'.csv',toCSV(chartCSV(ch)))},
@@ -8248,6 +8253,8 @@ html.fs-zoom-lock{overflow:hidden}
         b.onclick=e=>{e.stopPropagation();zoom(card)};tb.append(b)}
       if(canCmp&&!tb.querySelector('[data-cmp]')){const b=document.createElement('button');b.type='button';b.dataset.cmp='1';b.className='fs-ic';b.innerHTML='<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2v12h12"/><path d="M4.5 11l2.5-3 2 1.5"/><path d="M12 3v5M9.5 5.5h5"/></svg>';b.title='So sánh với chỉ tiêu khác (ghép vào cùng chart)';b.setAttribute('aria-label','So sánh với chỉ tiêu khác');
         b.onclick=e=>{e.stopPropagation();const f=compareFn(cv);if(!f||!f(cv.id,card))b.disabled=true};tb.prepend(b)}
+      if(window.FSAnalytics&&!tb.querySelector('[data-calc]')){const ch0=window.Chart&&Chart.getChart(cv);if(ch0&&FSAnalytics.hasX(ch0)&&ch0.config.type!=='doughnut'&&ch0.config.type!=='pie'){const b=document.createElement('button');b.type='button';b.dataset.calc='1';b.className='fs-ic';b.innerHTML='<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3.5 12.5l9-9"/><circle cx="4.5" cy="4.5" r="1.8"/><circle cx="11.5" cy="11.5" r="1.8"/></svg>';b.title='Cách tính: Giá trị / MoM–QoQ / YoY / Rebase 100';b.setAttribute('aria-label','Cách tính: giá trị, tăng trưởng kỳ trước, cùng kỳ');
+        b.onclick=e=>{e.stopPropagation();const c=Chart.getChart(card.querySelector('canvas'));if(c)FSAnalytics.modeMenu(c,e)};tb.prepend(b)}}
       if((hasCtl||hasAxis)&&!tb.querySelector('[data-cust]')){const b=document.createElement('button');b.type='button';b.dataset.cust='1';b.className='fs-ic';b.innerHTML='<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 4h7M13 4h1M2 8h2M8 8h6M2 12h8M14 12h0"/><circle cx="11" cy="4" r="1.6"/><circle cx="6" cy="8" r="1.6"/><circle cx="12" cy="12" r="1.6"/></svg>';b.setAttribute('aria-label','Tùy chỉnh chart');b.title='Tùy chỉnh: loại chart, trục giá trị (Từ 0 / Vừa dữ liệu), độ rộng cột. Nhấp đúp vào chart để hiện số.';b.setAttribute('aria-pressed','false');
         b.onclick=e=>{e.stopPropagation();const on=!card.classList.contains('fs-cust-on');closePops();card.classList.toggle('fs-cust-on',on);b.setAttribute('aria-pressed',String(on));if(on){const c=card.querySelector(':scope>h3.sub>.ctl');const top=c&&c.offsetParent?54+c.offsetHeight+6:54;card.style.setProperty('--fs-cust-ax',top+'px')}};tb.append(b)}
       const per=card.querySelector('.tsctl');
@@ -9182,6 +9189,45 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('button,a,summary,[role=tab]'))setTimeout(run,400);},true);
 })();
 
+/* Chu kỳ cho cả mục (người dùng chốt 11/11/2026): đầu mỗi tab có cụm Quý / Năm / Lũy kế; bấm thì mọi chart theo kỳ (mkTS)
+   ĐANG HIỆN trong tab/sub-tab đó chuyển sang chu kỳ đã chọn (Số kỳ về Tất cả). Chart không có chu kỳ đó giữ nguyên.
+   Chỉ ghi vào lựa chọn từng chart (ts_chart_v1) như khi bấm tay; bộ chọn riêng của từng chart vẫn dùng được. */
+(function(){
+  if(typeof TSREG==='undefined'||typeof mkTS!=='function')return;
+  const PER=[['q','Quý'],['y','Năm'],['l','Lũy kế']];
+  const charts=sec=>[...sec.querySelectorAll('canvas')].filter(cv=>cv.id&&TSREG[cv.id]&&!/^fsCombo/.test(cv.id)&&cv.offsetParent!==null);
+  function apply(sec,p,msg){
+    let ok=0,all=0;
+    charts(sec).forEach(cv=>{const id=cv.id,sp=TSREG[id];if(!sp)return;all++;
+      if(p==='l'&&typeof tsYtdSpec==='function'&&sp.ytd)try{tsYtdSpec(id,sp)}catch(e){}
+      if(!tsAvail(sp).includes(p))return;ok++;
+      TSC[id]=Object.assign({},TSC[id],{p,n:'all'});mkTS(id,sp);});
+    TS_FORCE={};tsSave();if(typeof applyChartTips==='function')applyChartTips();
+    msg.textContent=all?`Đã đổi ${ok}/${all} chart`+(ok<all?' (chart còn lại không có chu kỳ này)':''):'Mục này chưa có chart theo kỳ';
+  }
+  function add(sec){
+    if(sec.querySelector(':scope > .fs-perall'))return;
+    const box=document.createElement('div');box.className='fs-perall';
+    box.innerHTML='<span class="lbl">Chu kỳ cả mục</span>'+PER.map(([k,t])=>`<button type="button" data-p="${k}">${t}</button>`).join('')+'<span class="msg"></span>';
+    const msg=box.querySelector('.msg');
+    box.onclick=e=>{const b=e.target.closest('button[data-p]');if(!b)return;box.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));apply(sec,b.dataset.p,msg);};
+    sec.prepend(box);
+  }
+  function scan(){document.querySelectorAll('section.tab').forEach(sec=>{if(sec.id==='notes'||sec.id==='cons'&&!charts(sec).length)return;add(sec);});
+    document.querySelectorAll('.fs-perall').forEach(b=>{const n=charts(b.parentElement).length;b.style.display=n?'':'none';});}
+  const css=document.createElement('style');css.textContent=`.fs-perall{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 12px;font-size:12.5px}
+.fs-perall .lbl{font-weight:600;color:#64748B;letter-spacing:.3px;margin-right:2px}
+.fs-perall button{border:1px solid #D6DDE8;background:#fff;color:#243878;border-radius:8px;padding:5px 12px;font:600 12.5px Inter,Arial,sans-serif;cursor:pointer}
+.fs-perall button.on{background:#1D2678;color:#fff;border-color:#1D2678}
+.fs-perall .msg{color:#64748B;margin-left:6px}
+html[data-theme=dark] .fs-perall button{background:#161616;border-color:#2A2A2A;color:#F5F5F5}
+html[data-theme=dark] .fs-perall button.on{background:#2938A8;color:#fff}
+@media print{.fs-perall{display:none!important}}`;document.head.appendChild(css);
+  const run=()=>{scan();setTimeout(scan,1500);};
+  if(document.readyState==='complete')run();else addEventListener('load',run);
+  document.addEventListener('click',e=>{if(e.target.closest('.subnav button,nav button,[data-tab],.tabs button'))setTimeout(scan,300);});
+})();
+
 
 </script>
 <script>
@@ -9759,7 +9805,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='tlg',BUILD='d3d2e7b29f58',URL_JSON='../version.json';
+  const PAGE='tlg',BUILD='cc87323a32a9',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
