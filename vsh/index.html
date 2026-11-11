@@ -5750,7 +5750,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG": {"2016": {"labels": ["Q1/2016", "Q2/2016", 
   // Thứ tự quan trọng: cụm hẹp trước cụm rộng, vì một tiêu đề có thể chứa nhiều từ khoá.
   const RULES=[
     ['valuation',/bội số|p\/e|p\/b|ev\/ebitda|định giá/i],
-    ['dividend',/lịch sử cổ tức|^\s*cổ tức\s*$|hoàn thành kế hoạch|kế hoạch lợi nhuận/i],
+    ['dividend',/cổ tức|hoàn thành kế hoạch|kế hoạch lợi nhuận/i],
     ['summary',/bóc tách|waterfall|sankey|tóm tắt|từ doanh thu/i],
     ['cashflow',/\bcfo\b|dòng tiền|chi đầu tư|capex|\bfcf\b|lưu chuyển tiền|chuyển đổi tiền/i],
     ['balance',/tiền mặt|tiền ròng|cấu phần tiền|nợ vay|nợ ròng|vay ngắn|vay dài|vốn lưu động|tồn kho|phải thu|cân đối|vốn bị khóa|tài trợ|chu kỳ vốn|đòn bẩy/i],
@@ -8903,7 +8903,7 @@ window.fsCmpChart=function(id,o){
     note:'Cột dương: tiền chi mua sắm, xây dựng TSCĐ và tài sản dài hạn. Cột âm: khấu hao TSCĐ (điều chỉnh trong LCTT gián tiếp). Đường (trục phải): khấu hao ÷ TSCĐ bình quân đầu-cuối kỳ, quý nhân 4 để năm hóa. CAPEX cao hơn khấu hao liên tục là đang mở rộng tài sản.',
     y:capDa(AR,YEARS.map(prevY),1),q:capDa(QR,QL.map(prevQ),4)});
   // 7d. Cổ tức tiền mặt (chỉ năm)
-  add({id:'coreDiv',pane:'cashflow',skip:/cổ tức/i,title:'Cổ tức tiền mặt đã trả (tỷ VND) · tỷ lệ chi trả (%)',unit:'tỷ VND',kind:'custom',
+  add({id:'coreDiv',pane:'dividend',skip:/cổ tức/i,title:'Cổ tức tiền mặt đã trả (tỷ VND) · tỷ lệ chi trả (%)',unit:'tỷ VND',kind:'custom',
     note:'Cột: tiền chi trả cổ tức, lợi nhuận cho chủ sở hữu trong năm (LCTT tài chính; gồm phần trả CĐ không kiểm soát của công ty con). Đường: số đã trả ÷ LNST cổ đông mẹ cùng năm; cổ tức trả trong năm thường thuộc lợi nhuận năm trước, nên đọc như tỷ lệ tiền mặt trả ra, không phải tỷ lệ cổ tức công bố.',
     y:[['Cổ tức tiền mặt đã trả',AR.map(r=>r?.dividendPaid==null?null:-r.dividendPaid)],['Đã trả / LNST mẹ',AR.map(r=>r&&ok(r.dividendPaid,r.parent)&&r.parent>0?-100*r.dividendPaid/r.parent:null),{line:1,axis:'y1',unit:'%'}]],
     q:[]});
@@ -9830,7 +9830,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='vsh',BUILD='63138968447f',URL_JSON='../version.json';
+  const PAGE='vsh',BUILD='60a313353dc5',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
