@@ -3216,7 +3216,22 @@ function valuationToDaily(hv){
     anchors.push({k,label:l,from:iso(new Date(end.getTime()+30*864e5)),j,p0,pe:hv.pe&&hv.pe[i],pb:hv.pb&&hv.pb[i],ev,n,ebitda});});
   if(anchors.length<2)return hv;
   const out={...hv,labels:[],pe:[],pb:[],evEbitda:[],basis:[],frequency:'daily',_live:true};   // không ghi đè điểm cuối bằng P/E đầu trang: giữ cùng mẫu số với chuỗi quý
-  const evDaily=anchors.some(a=>a.ebitda),evAnchorIdx=new Set(anchors.map(a=>a.j));
+  let evDaily=anchors.some(a=>a.ebitda);const evAnchorIdx=new Set(anchors.map(a=>a.j));
+  // EV/EBITDA theo phiên từ BCTC hợp nhất (coreFs): nợ ròng = vay NH + vay DH − tiền − ĐTTC NH cuối quý;
+  // EBITDA TTM = Σ4 quý (LNTT + chi phí lãi vay + khấu hao). Quý thiếu khoản mục hoặc EBITDA ≤ 0 → null.
+  const cq=D.coreFs&&D.coreFs.quarterly,coreEv=[];
+  if(cq&&sh){const qs=Object.keys(cq).map(k=>{const m=/^Q([1-4])\/(\d{4})$/.exec(k);return m?{k,y:+m[2],q:+m[1]}:null;}).filter(Boolean)
+      .sort((a,b)=>a.y-b.y||a.q-b.q);
+    const num=v=>typeof v==='number'&&isFinite(v);
+    qs.forEach((Q,i)=>{const v=cq[Q.k];if(i<3)return;const four=qs.slice(i-3,i+1);
+      if(!(four[0].y*4+four[0].q===Q.y*4+Q.q-3))return;
+      let e=0;for(const F of four){const x=cq[F.k];if(!num(x.pbt)||!num(x.da))return;e+=x.pbt+(num(x.interest)?x.interest:0)+Math.abs(x.da);}
+      if(!num(v.cash))return;const n=(v.cash||0)+(num(v.stInvest)?v.stInvest:0)-(num(v.shortDebt)?v.shortDebt:0)-(num(v.longDebt)?v.longDebt:0);
+      const end=new Date(Date.UTC(Q.y,Q.q*3,0));coreEv.push({k:Q.k,from:iso(new Date(end.getTime()+30*864e5)),n,ebitda:e>0?e:null});});}
+  // Quý mà chuỗi quý đã loại EV/EBITDA (ngoại lai, EV âm) thì cũng để trống theo phiên.
+  const evOff=new Set();hv.labels.forEach((l,i)=>{const k=qkey(l);if(k&&hv.evEbitda&&hv.evEbitda[i]==null)evOff.add(k);});
+  coreEv.forEach(c=>{if(evOff.has(c.k))c.ebitda=null;});
+  const useCore=coreEv.filter(c=>c.ebitda).length>=4;if(useCore)evDaily=true;let c=-1;
   let a=-1;
   for(let j=0;j<px.d.length;j++){
     const d=px.d[j];
@@ -3227,14 +3242,16 @@ function valuationToDaily(hv){
     (hv.shareChanges||[]).forEach(c=>{if(d>=c.date&&valuationPointDate(A.label,new Date())<new Date(c.date+'T00:00:00Z'))r*=c.factor;});
     out.labels.push(d);out.basis.push(A.k);
     out.pe.push(A.pe!=null?+(A.pe*r).toFixed(2):null);out.pb.push(A.pb!=null?+(A.pb*r).toFixed(2):null);
-    out.evEbitda.push(A.ebitda?+((px.p[j]*sh-A.n)/A.ebitda).toFixed(2):null);
+    if(useCore){while(c+1<coreEv.length&&coreEv[c+1].from<=d)c++;const C=c>=0?coreEv[c]:null;
+      const ev=C&&C.ebitda?(px.p[j]*sh-C.n)/C.ebitda:null;out.evEbitda.push(ev!=null&&ev>0?+ev.toFixed(2):null);}
+    else out.evEbitda.push(A.ebitda?+((px.p[j]*sh-A.n)/A.ebitda).toFixed(2):null);
   }
   // Mã thiếu tiền ròng quý: EV/EBITDA giữ điểm cuối quý (đặt đúng phiên cuối quý).
   if(!evDaily&&hv.evEbitda){out.evSparse=true;out.evEbitda=out.labels.map(()=>null);
     anchors.forEach(A=>{const i=out.labels.indexOf(px.d[A.j]);if(i>=0)out.evEbitda[i]=A.ev;});}
   const add=' Theo phiên: bội số quý gần nhất đã công bố (sau ngày kết thúc quý + 30 ngày) × giá điều chỉnh phiên ÷ giá điều chỉnh ngày cuối quý.';
   out.peNote=(hv.peNote||'')+add;out.pbNote=(hv.pbNote||'')+add;
-  out.evNote=(hv.evNote||'')+(out.evSparse?' Chưa có tiền ròng theo quý nên EV/EBITDA giữ điểm cuối quý.':' Theo phiên: vốn hóa theo giá phiên, tiền ròng và EBITDA TTM của quý gần nhất đã công bố.');
+  out.evNote=(hv.evNote||'')+(out.evSparse?' Chưa có tiền ròng theo quý nên EV/EBITDA giữ điểm cuối quý.':(useCore?' Theo phiên: (vốn hóa theo giá điều chỉnh phiên × CP hiện hành + vay − tiền − ĐTTC ngắn hạn) ÷ (LNTT + lãi vay + khấu hao) 4 quý, BCTC hợp nhất quý gần nhất đã công bố.':' Theo phiên: vốn hóa theo giá phiên, tiền ròng và EBITDA TTM của quý gần nhất đã công bố.'));
   return out;
 }
 function renderMultiples(){
@@ -8298,7 +8315,7 @@ html.fs-zoom-lock{overflow:hidden}
   /* 1 Header */
   function header(){
     const px=document.getElementById('pxBox');
-    if(px) [...px.children].forEach(c=>{const l=norm((c.querySelector('.l')||{}).textContent); if(/von hoa|p\/e|p\/b/.test(l)) c.classList.add('fs-dup');});
+    if(px) [...px.children].forEach(c=>{const l=norm((c.querySelector('.l')||{}).textContent); if(/p\/e|p\/b/.test(l)) c.classList.add('fs-dup');});
     const tape=document.querySelector('.mkt-tape');
     if(tape&&!document.querySelector('.fs-tape-tg')){
       const b=document.createElement('button'); b.type='button'; b.className='fs-tape-tg';
@@ -9753,7 +9770,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='dpr',BUILD='04d63830b7d8',URL_JSON='../version.json';
+  const PAGE='dpr',BUILD='32140355717c',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
