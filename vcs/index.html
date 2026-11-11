@@ -5901,7 +5901,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG": {"2016": {"labels": ["Q1/2016", "Q2/2016", 
     // đưa vào đúng pane, nếu không nó nằm ngoài mọi pane và hiện ở cả 5 sub-tab.
     const adopt=()=>{
       for(const el of [...bs.children]){
-        if(el===nav||el===title||el===kpi||el.classList.contains('fin-pane')||el.classList.contains('fs-next')||el.classList.contains('tb')||el.tagName==='SCRIPT'||el.tagName==='STYLE')continue;
+        if(el===nav||el===title||el===kpi||el.classList.contains('fin-pane')||el.classList.contains('fs-next')||el.classList.contains('fs-perall')||el.classList.contains('tb')||el.tagName==='SCRIPT'||el.tagName==='STYLE')continue;
         let group=classify(el,overrides);if(!panes[group])group='balance';
         const pane=panes[group];
         if(!pane.isConnected){
@@ -9234,25 +9234,22 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       box.innerHTML='<span class="lbl">Chu kỳ cả mục</span>'+PER.map(([k,t])=>`<button type="button" data-p="${k}">${t}</button>`).join('')+'<span class="msg"></span>';
       const msg=box.querySelector('.msg');
       box.onclick=e=>{const b=e.target.closest('button[data-p]');if(!b)return;box.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));apply(sec,b.dataset.p,msg);};}
-    // Đặt trong thanh sub-tab nếu có (finance-subtabs.js dồn phần tử khác vào pane) (áp cho sub-tab đang mở), không thì đầu tab.
+    // Đặt ngay dưới thanh sub-tab nếu có (finance-subtabs.js bỏ qua .fs-perall khi dồn phần tử vào pane) (áp cho sub-tab đang mở), không thì đầu tab.
     const nav=sec.querySelector('.fin-subnav')||[...sec.querySelectorAll('.subnav')].find(n=>n.parentElement===sec);
-    if(nav){if(box.parentElement!==nav){nav.appendChild(box);box.classList.add('in-nav');}}else if(sec.firstElementChild!==box)sec.prepend(box);
+    if(nav){box.classList.remove('in-nav');if(nav.nextElementSibling!==box)nav.after(box);}else if(sec.firstElementChild!==box)sec.prepend(box);
   }
   function scan(){document.querySelectorAll('section.tab').forEach(sec=>{if(sec.id==='notes'||sec.querySelector('section.tab'))return;add(sec);
       const b=sec.querySelector('.fs-perall'),n=[...sec.querySelectorAll('canvas')].filter(cv=>cv.id&&TSREG[cv.id]&&!/^fsCombo/.test(cv.id)).length;b.style.display=n?'':'none';
       if(b.dataset.lastPane!==location.hash+(sec.querySelector('.fin-subnav .on,.subnav .on')||{}).textContent){b.dataset.lastPane=location.hash+(sec.querySelector('.fin-subnav .on,.subnav .on')||{}).textContent;b.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.querySelector('.msg').textContent='';}});}
-  const css=document.createElement('style');css.textContent=`.fs-perall{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 12px;font-size:12.5px}
-.fs-perall .lbl{font-weight:600;color:#64748B;letter-spacing:.3px;margin-right:2px}
-.fs-perall button{border:1px solid #D6DDE8;background:#fff;color:#243878;border-radius:8px;padding:5px 12px;font:600 12.5px Inter,Arial,sans-serif;cursor:pointer}
-.fs-perall button.on{background:#1D2678;color:#fff;border-color:#1D2678}
-.fs-perall .msg{color:#64748B;margin-left:6px}
-html[data-theme=dark] .fs-perall button{background:#161616;border-color:#2A2A2A;color:#F5F5F5}
-html[data-theme=dark] .fs-perall button.on{background:#2938A8;color:#fff}
-
-.fs-perall.in-nav{margin:0 0 0 10px;padding:0 4px 0 12px;border-left:1px solid #D6DDE8;gap:4px}
-.fin-subnav .fs-perall button,.subnav .fs-perall button{border:1px solid #D6DDE8!important;background:#fff!important;color:#243878!important;border-radius:999px!important;padding:3px 10px!important;font-size:12px!important;box-shadow:none!important}
-html body .fin-subnav .fs-perall.in-nav button.on,html body .subnav .fs-perall.in-nav button.on{background:#1D2678!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:#1D2678!important}
-.fs-perall .msg{font-size:11.5px}
+  const css=document.createElement('style');css.textContent=`.fs-perall{display:flex;width:fit-content;max-width:100%;align-items:center;gap:6px;flex-wrap:wrap;margin:-6px 0 16px;padding:6px 10px;background:#E6F6F6;border:1px solid #BFE6E7;border-radius:10px;font-size:12.5px}
+.fs-perall .lbl{font-weight:600;color:#243878;letter-spacing:.3px;margin-right:2px}
+html body .fs-perall button{border:1px solid #BFE6E7;background:#fff;color:#243878;border-radius:999px;padding:3px 12px;font:600 12px Inter,Arial,sans-serif;cursor:pointer;box-shadow:none}
+html body .fs-perall button.on{background:#1D2678;color:#fff;-webkit-text-fill-color:#fff;border-color:#1D2678}
+.fs-perall .msg{color:#64748B;margin-left:6px;font-size:11.5px}
+html[data-theme=dark] .fs-perall{background:rgba(89,197,200,.12);border-color:rgba(89,197,200,.35)}
+html[data-theme=dark] .fs-perall .lbl{color:#59C5C8}
+html[data-theme=dark] body .fs-perall button{background:#161616;border-color:#2A2A2A;color:#F5F5F5}
+html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
 @media print{.fs-perall{display:none!important}}`;document.head.appendChild(css);
   const run=()=>{scan();setTimeout(scan,1500);};
   if(document.readyState==='complete')run();else addEventListener('load',run);
@@ -9836,7 +9833,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='vcs',BUILD='0501eeb809ba',URL_JSON='../version.json';
+  const PAGE='vcs',BUILD='dd3522258923',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
