@@ -4143,7 +4143,6 @@ if(window.PVS_DATA&&window.PVS_DATA.gasDetail&&window.PVS_DATA.gasDetail.modelXl
     if(hasCons)cmp.innerHTML=`<div class="card"><h3 class="sub">Doanh thu 2026E so với CTCK (tỷ VND)</h3><div class="chart"><canvas id="fsCmpRev"></canvas></div><div class="note">CTCK: dự phóng năm của báo cáo mới nhất mỗi công ty; báo cáo không ghi số thì bỏ qua. Đường nét đứt = bình quân CTCK. Nguồn: Mô hình/giả định analyst FinSuccess; PDF báo cáo CTCK.</div></div><div class="card"><h3 class="sub">LNST cổ đông mẹ 2026E so với CTCK (tỷ VND)</h3><div class="chart"><canvas id="fsCmpNp"></canvas></div><div class="note">LNST thuộc cổ đông mẹ theo dự phóng của từng CTCK (báo cáo mới nhất mỗi công ty). Nguồn: Mô hình/giả định analyst FinSuccess; PDF báo cáo CTCK.</div></div>`;
     // 3. Kết quả theo kịch bản đang chọn
     const res=document.createElement('div');res.id='gasXlResults';res.className='card';res.style.margin='16px 0';
-    const chartCard=document.createElement('div');chartCard.className='card';chartCard.style.margin='16px 0';chartCard.innerHTML='<h3 class="sub">Lãi gộp theo mảng · tỷ VND</h3><div class="chart tall"><canvas id="gasXlGp"></canvas></div><div class="note">2021A–2025A thực tế; 2026E cả năm (gồm phần thực tế) và 2027E–2030E theo kịch bản đang chọn. Quý 2026 thực tế: model gộp khí khô và LNG ở dòng khí khô. Nguồn: Mô hình/giả định analyst FinSuccess; Rev breakdown BCTC hợp nhất GAS.</div>';
     const qCard=document.createElement('div');qCard.className='card';qCard.id='gasXlQ';qCard.style.margin='16px 0';
     host.prepend(top,cmp,res,qCard);
     const peIn=top.querySelector('#gasXlPe'),upd=()=>{top.querySelector('#gasXlTp').textContent=fmt(TP(),0)+'đ';top.querySelector('#gasXlUp').textContent=sg(pct(TP(),price));paint();};
@@ -10794,7 +10793,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='gas',BUILD='ae4a294b58b5',URL_JSON='../version.json';
+  const PAGE='gas',BUILD='3454d663fe29',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
