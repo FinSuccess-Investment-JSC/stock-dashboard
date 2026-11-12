@@ -9886,7 +9886,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 (function(){
   if(typeof TSREG==='undefined'||typeof mkTS!=='function')return;
   const PER=[['q','Quý'],['y','Năm'],['l','Lũy kế']];
-  const charts=sec=>[...sec.querySelectorAll('canvas')].filter(cv=>cv.id&&TSREG[cv.id]&&!/^fsCombo/.test(cv.id)&&cv.offsetParent!==null);
+  const charts=sec=>[...sec.querySelectorAll('canvas')].filter(cv=>cv.id&&TSREG[cv.id]&&!/^fsCombo/.test(cv.id)&&(cv.closest('.card')||cv).offsetParent!==null);
+  // Đo theo card, không theo canvas: chart đang hiện "Không có dữ liệu theo quý" ẩn canvas nhưng vẫn phải đổi được sang Năm (lỗi TNG 12/11/2026).
   function apply(sec,p,msg){
     let ok=0,all=0;
     charts(sec).forEach(cv=>{const id=cv.id,sp=TSREG[id];if(!sp)return;all++;
@@ -10557,7 +10558,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='gas',BUILD='a0d458cff972',URL_JSON='../version.json';
+  const PAGE='gas',BUILD='cfd0973ff131',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
