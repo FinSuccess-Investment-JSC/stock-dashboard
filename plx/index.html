@@ -9454,7 +9454,7 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
       L.rows=L.rows||[];const tot=L.totalHa!=null?L.totalHa:L.rows.reduce((s,r)=>s+(+r.areaHa||0),0);
       const byReg={};L.rows.forEach(r=>{const k=r.region||'Khác';byReg[k]=(byReg[k]||0)+(+r.areaHa||0);});
       const regs=Object.entries(byReg).sort((a,b)=>b[1]-a[1]);
-      let h=`<div class="card"><div style="display:flex;gap:24px;flex-wrap:wrap"><div><div class="kpi-l">Tổng quỹ đất${L.asOf?' · '+dd(L.asOf):''}</div><div style="font-size:28px;font-weight:650">${fmt(tot,1)} ha</div></div><div>${L.rows.length?`<div><div class="kpi-l">Số dự án/khu đất</div><div style="font-size:28px;font-weight:650">${L.rows.length}</div></div>`:''}</div></div>`;
+      let h=`<div class="card"><div style="display:flex;gap:24px;flex-wrap:wrap"><div><div class="kpi-l">Tổng quỹ đất${L.asOf?' · '+dd(L.asOf):''}</div><div style="font-size:28px;font-weight:650">${fmt(tot,1)} ha</div></div>${L.rows.length?`<div><div class="kpi-l">Số dự án/khu đất</div><div style="font-size:28px;font-weight:650">${L.rows.length}</div></div>`:''}</div></div>`;
       if(regs.length)h+=card('Quỹ đất theo vùng (ha)',L,chart('reLandReg'));
       if((L.history||[]).length>1){h+=card('Tổng quỹ đất theo thời gian (ha)',L,chart('reLandHist'));mkChart('reLandHist',{type:'bar',data:{labels:L.history.map(x=>dd(x.date)),datasets:[{label:'Quỹ đất',data:L.history.map(x=>x.totalHa),backgroundColor:PAL[0]}]},options:{maintainAspectRatio:false,scales:{y:{beginAtZero:true}},plugins:{tooltip:tip('ha')}}});}
       if(L.rows.length)h+=card('Danh mục quỹ đất',L,tbl('reLandTbl',[['Dự án/khu đất'],['Vùng'],['Loại'],['Diện tích (ha)',1],['Sở hữu',1],['Pháp lý'],['Trạng thái']],L.rows.slice().sort((a,b)=>(b.areaHa||0)-(a.areaHa||0)).map(r=>'<tr>'+td(esc(r.name))+td(esc(r.region||'—'))+td(esc(r.type||'—'))+td(fmt(r.areaHa,1),1)+td(r.ownership==null?'—':fmt(r.ownership,1)+'%',1)+td(esc(r.legal||'—'))+td(esc(r.status||'—'))+'</tr>')));
@@ -10092,7 +10092,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='plx',BUILD='756919cc708d',URL_JSON='../version.json';
+  const PAGE='plx',BUILD='cc1446df8b8a',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
