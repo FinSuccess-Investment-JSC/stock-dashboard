@@ -9063,6 +9063,88 @@ window.fsCmpChart=function(id,o){
   };
 })();
 
+// Bối cảnh ngành dệt may (người dùng yêu cầu 12/11/2026) — chỉ cho mã nhóm "Dệt may" trong _template/peer-groups.json.
+// Dữ liệu PVS_DATA.textileMacro do build.py nhúng từ _template/sources/textile-macro.json
+// (refresh_textile_macro.py: UN Comtrade, US Census MARTS qua FRED). Ba card ở cuối tab Mảng kinh doanh, dùng mkTS
+// (Tháng/Quý/Năm; Lũy kế cho chuỗi cộng được). Quý/năm chỉ dựng khi đủ mọi tháng của kỳ; kỳ thiếu để trống.
+(function(){
+  const T=(window.PVS_DATA||{}).textileMacro;if(!T)return;
+  const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const fmt=v=>v==null||!isFinite(v)?'—':Number(v).toLocaleString('vi-VN',{maximumFractionDigits:2});
+  const r2=v=>v==null||!isFinite(v)?null:Math.round(v*100)/100;
+  const COL={VN:'#1D2678',CN:'#861C52',BD:'#59C5C8',IN:'#FFD45D',ID:'#2938A8',KH:'#8997D6',W:'#64748B',US:'#2938A8',JP:'#59C5C8',KR:'#861C52'};
+  const mLab=l=>'T'+(+l.slice(5))+'/'+l.slice(2,4);
+  // Gộp tháng → quý/năm. how: 'sum' (đủ tháng mới cộng) | 'avg' (bình quân tháng, đủ tháng).
+  function group(labels,vals,per,how){
+    const key=l=>per==='q'?'Q'+Math.ceil(+l.slice(5)/3)+'/'+l.slice(2,4):l.slice(0,4), need=per==='q'?3:12;
+    const out=new Map();labels.forEach((l,i)=>{const k=key(l);if(!out.has(k))out.set(k,[]);out.get(k).push(vals[i]);});
+    const L=[],V=[];out.forEach((a,k)=>{L.push(k);V.push(a.length===need&&a.every(v=>v!=null)?r2(how==='avg'?a.reduce((s,v)=>s+v,0)/need:a.reduce((s,v)=>s+v,0)):null);});
+    return {labels:L,values:V};
+  }
+  const cfg=(unitL,unitR)=>(labels,datasets)=>{
+    const scales={x:{grid:{display:false}},y:{beginAtZero:true,title:{display:true,text:unitL},ticks:{callback:v=>fmt(v)}}};
+    if(unitR&&datasets.some(d=>d.yAxisID==='y1'))scales.y1={position:'right',beginAtZero:true,grid:{drawOnChartArea:false},title:{display:true,text:unitR},ticks:{callback:v=>fmt(v)+(unitR==='%'?'%':'')}};
+    return {type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.raw)+(c.dataset.unit==='%'?'%':' '+c.dataset.unit)}}},scales}};
+  };
+  const line=(label,data,color,unit,extra)=>Object.assign({label,data,type:'line',borderColor:color,backgroundColor:color,borderWidth:label==='Việt Nam'?3:2,pointRadius:0,tension:.15,spanGaps:false,unit},extra||{});
+
+  function card(id,title,note,source){
+    const c=document.createElement('div');c.className='card textile-macro';c.dataset.source=source;
+    c.innerHTML='<h3 class="sub">'+esc(title)+'</h3><div class="chart tall"><canvas id="'+id+'"></canvas></div><div class="note">'+esc(note+' Nguồn: '+source)+'</div>';
+    return c;
+  }
+  // Chuỗi giá trị cộng được (keys) + tỷ lệ tùy chọn tính lại từ tổng (share: {num,den,label}).
+  function sumSpec(B,keys,unit,share){
+    const per=p=>{
+      const g=k=>p==='m'?{labels:B.labels.map(mLab),values:B.series[k]}:(x=>({labels:x.labels.map(l=>p==='y'?l:l),values:x.values}))(group(B.labels,B.series[k],p,'sum'));
+      const base=g(keys[0]);
+      const ds=keys.map(k=>line(B.names[k],g(k).values,COL[k]||'#64748B',unit));
+      if(share){const N=g(share.num).values,D=g(share.den).values;
+        ds.push(line(share.label,N.map((n,i)=>n!=null&&D[i]>0?r2(n/D[i]*100):null),'#E0A800','%',{yAxisID:'y1',borderDash:[6,4],borderWidth:2,
+          ytdRatio:{num:B.series[share.num],den:B.series[share.den]}}));}
+      return {labels:base.labels,datasets:ds};
+    };
+    return {m:per('m'),q:per('q'),y:per('y'),ytd:true,noShare:true,unitLabel:unit,cfg:cfg(unit,share?'%':null)};
+  }
+  function run(){
+    const seg=document.getElementById('seg');
+    if(!seg||typeof mkTS!=='function'||document.getElementById('txUsImp'))return;
+    const h=document.createElement('h2');h.className='sec';h.textContent='Bối cảnh ngành dệt may — cầu Mỹ, xuất khẩu Việt Nam, tồn kho bán lẻ';
+    const row=document.createElement('div');row.className='grid g2';
+    const U=T.usApparelImports,V=T.vnTextileExports,S=T.usClothingStores,cards=[];
+    if(U&&U.labels&&U.labels.length){
+      row.appendChild(card('txUsImp','Mỹ nhập khẩu may mặc theo nước xuất xứ (triệu USD)',
+        'Giá trị nhập khẩu HS 61 (dệt kim) + HS 62 (không dệt kim) của Mỹ theo nước xuất xứ, số Mỹ báo cáo. Đường nét đứt (trục phải) = thị phần Việt Nam = nhập khẩu từ VN ÷ tổng nhập khẩu HS 61+62 của Mỹ. Quý/năm chỉ cộng khi đủ tháng. Chưa có giá bình quân/m² tương đương (nguồn không có lượng theo m²). Số mới nhất: '+mLab(U.asOf||U.labels[U.labels.length-1])+'.',
+        'UN Comtrade – số nhập khẩu Mỹ báo cáo'));
+      cards.push(['txUsImp',sumSpec(U,['VN','CN','BD','IN','ID','KH'],'triệu USD',{num:'VN',den:'W',label:'Thị phần VN (%)'})]);
+    }
+    if(V&&V.labels&&V.labels.length){
+      row.appendChild(card('txVnExp','Xuất khẩu dệt may Việt Nam (triệu USD)',
+        'Xuất khẩu HS 50–63 (xơ, sợi, vải, may mặc, hàng dệt khác) của Việt Nam: tổng và sang Mỹ, Nhật Bản, Hàn Quốc, số Việt Nam báo cáo cho UN Comtrade. Việt Nam nộp số tháng chậm nên chuỗi dừng ở '+mLab(V.asOf||V.labels[V.labels.length-1])+'; EU chưa tách (nguồn không có EU là một đối tác).',
+        'UN Comtrade – số xuất khẩu Việt Nam báo cáo'));
+      cards.push(['txVnExp',sumSpec(V,['W','US','JP','KR'],'triệu USD')]);
+    }
+    if(S&&S.labels&&S.labels.length){
+      row.appendChild(card('txUsInv','Cửa hàng quần áo Mỹ — tồn kho/doanh số (lần) & doanh số (triệu USD)',
+        'Cửa hàng quần áo & phụ kiện Mỹ (NAICS 448), đã điều chỉnh mùa vụ. Tồn kho/doanh số (trục trái, lần) = tồn kho cuối tháng ÷ doanh số tháng; quý/năm là bình quân các tháng (đủ tháng). Doanh số bán lẻ (trục phải, triệu USD): quý/năm cộng các tháng. Số mới nhất: '+mLab(S.asOf)+'.',
+        'US Census Bureau – MARTS (FRED)'));
+      const per=p=>{
+        const R=p==='m'?{labels:S.labels.map(mLab),values:S.ratio}:group(S.labels,S.ratio,p,'avg');
+        const Sa=p==='m'?{labels:S.labels.map(mLab),values:S.sales}:group(S.labels,S.sales,p,'sum');
+        return {labels:R.labels,datasets:[line('Tồn kho/doanh số',R.values,'#1D2678','lần'),
+          Object.assign(line('Doanh số bán lẻ',Sa.values,'#59C5C8','triệu USD',{yAxisID:'y1'}),{type:'bar',backgroundColor:'rgba(89,197,200,.35)',borderWidth:0,order:2})]};
+      };
+      cards.push(['txUsInv',{m:per('m'),q:per('q'),y:per('y'),noShare:true,unitLabel:'lần',cfg:(labels,ds)=>{const c=cfg('lần','triệu USD')(labels,ds);c.options.scales.y.beginAtZero=true;return c;}}]);
+    }
+    if(!cards.length)return;
+    seg.appendChild(h);seg.appendChild(row);
+    cards.forEach(([id,spec])=>{try{mkTS(id,spec);}catch(e){console.error('textile-macro',id,e);}});
+    if(typeof applyChartTips==='function')try{applyChartTips();}catch(e){}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(run,0));else setTimeout(run,0);
+})();
+
 // Số dư bảng cân đối (phải thu, tồn kho, người mua trả trước, số ngày phải thu/tồn kho, CCC, nợ vay…)
 // thuộc tab Tài chính › Bảng cân đối, không thuộc Mảng kinh doanh (người dùng chốt 10/11/2026).
 // Nhiều mã dựng các card này trong #seg bằng enhancements.js riêng; lớp này chuyển từng card chart/bảng
@@ -9388,6 +9470,9 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
    wholesale{src, note, rows:[{year, project, partner, valueBn, kind('Bán sỉ'|'Bán lẻ'|'Chuyển nhượng dự án'), estimate}]}
    debt     {asOf, src, note, bonds:[{code, issueDate, maturity, amountBn, outstandingBn, coupon, collateral}],
             maturity:{years:[], bonds:[], loans:[]}, cash, cfoTTM}
+   kcn      {asOf, src, note, parks:[{name, region, totalHa, commercialHa, leasedHa, remainingHa, occupancy(%), ownership, price, status}],
+            leased:{labels:[kỳ], leasedHa:[], aspUsdM2:[], estimate}, unearned:{labels:[], values:[]}}  (KCN: diện tích cho thuê, lấp đầy,
+            diện tích ký mới theo kỳ, giá thuê bình quân, doanh thu chưa thực hiện)
    deals    {src, note, rows:[{date, type, counterparty, asset, valueBn, gainBn, status, note}]} */
 (function(){
   const P=(window.PVS_DATA||{}).rePack; if(!P)return;
@@ -9454,6 +9539,30 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
       const hasEst=W.rows.some(r=>r.estimate);
       H+=sec('Bán sỉ / bán lẻ',card('Giá trị theo hình thức bán (tỷ VND)',W,chart('reWhole'),hasEst?est:'')+card('Giao dịch bán sỉ theo dự án & đối tác',W,tbl('reWholeTbl',[['Năm'],['Dự án/phân khu'],['Đối tác'],['Hình thức'],['Giá trị (tỷ)',1]],W.rows.slice().sort((a,b)=>String(b.year).localeCompare(String(a.year))).map(r=>'<tr>'+td(esc(r.year))+td(esc(r.project||'—'))+td(esc(r.partner||'—'))+td(esc(r.kind||'Bán sỉ'))+td(fmt(r.valueBn)+(r.estimate?'*':''),1)+'</tr>')),hasEst?est:''));
       mkChart('reWhole',{type:'bar',data:{labels:years,datasets:kinds.map((k,i)=>({label:k,data:years.map(y=>{const v=W.rows.filter(r=>(r.kind||'Bán sỉ')===k&&String(r.year)===y).reduce((s,r)=>s+(+r.valueBn||0),0);return v||null;}),backgroundColor:PAL[[1,2,3,0][i%4]]}))},options:{maintainAspectRatio:false,scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}},plugins:{tooltip:tip('tỷ')}}});
+    }
+    // KCN · diện tích cho thuê & tỷ lệ lấp đầy
+    const K=P.kcn;
+    if(K&&((K.parks||[]).length||(K.leased&&(K.leased.labels||[]).length))){
+      let h='';const pk=(K.parks||[]).slice().sort((a,b)=>(b.commercialHa||b.totalHa||0)-(a.commercialHa||a.totalHa||0));
+      if(pk.length){
+        const sum=k=>pk.reduce((s,r)=>s+(+r[k]||0),0),com=sum('commercialHa'),lea=sum('leasedHa'),rem=pk.some(r=>r.remainingHa!=null)?sum('remainingHa'):(com&&lea?com-lea:null);
+        const kp=(l,v)=>`<div><div class="kpi-l">${l}</div><div style="font-size:28px;font-weight:650">${v}</div></div>`;
+        h+=`<div class="card"><div style="display:flex;gap:28px;flex-wrap:wrap">${kp('Đất thương phẩm'+(K.asOf?' · '+dd(K.asOf):''),fmt(com,1)+' ha')}${kp('Đã cho thuê',fmt(lea,1)+' ha')}${kp('Còn lại cho thuê',fmt(rem,1)+' ha')}${kp('Lấp đầy bình quân',com&&lea?fmt(lea/com*100,1)+'%':'—')}</div></div>`;
+        h+=card('Diện tích đã cho thuê và còn lại theo KCN (ha)',K,chart('reKcnPark'),'Lấp đầy = đã cho thuê ÷ đất công nghiệp thương phẩm cùng KCN.');
+        mkChart('reKcnPark',{type:'bar',data:{labels:pk.map(r=>r.name),datasets:[{label:'Đã cho thuê',data:pk.map(r=>r.leasedHa),backgroundColor:PAL[1],stack:'s'},{label:'Còn lại',data:pk.map(r=>r.remainingHa!=null?r.remainingHa:(r.commercialHa!=null&&r.leasedHa!=null?+(r.commercialHa-r.leasedHa).toFixed(1):null)),backgroundColor:PAL[2],stack:'s'}]},options:{indexAxis:'y',maintainAspectRatio:false,scales:{x:{stacked:true,beginAtZero:true},y:{stacked:true}},plugins:{tooltip:tip('ha')}}});
+        h+=card('Danh mục KCN',K,tbl('reKcnTbl',[['KCN'],['Vùng'],['Tổng DT (ha)',1],['Đất thương phẩm (ha)',1],['Đã cho thuê (ha)',1],['Còn lại (ha)',1],['Lấp đầy',1],['Sở hữu',1],['Giá thuê'],['Trạng thái']],pk.map(r=>{const occ=r.occupancy!=null?r.occupancy:(r.commercialHa&&r.leasedHa!=null?r.leasedHa/r.commercialHa*100:null);return '<tr>'+td(esc(r.name))+td(esc(r.region||'—'))+td(fmt(r.totalHa,1),1)+td(fmt(r.commercialHa,1),1)+td(fmt(r.leasedHa,1),1)+td(fmt(r.remainingHa!=null?r.remainingHa:(r.commercialHa!=null&&r.leasedHa!=null?r.commercialHa-r.leasedHa:null),1),1)+td(occ==null?'—':fmt(occ,1)+'%',1)+td(r.ownership==null?'—':fmt(r.ownership,1)+'%',1)+td(esc(r.price==null?'—':r.price))+td(esc(r.status||'—'))+'</tr>';})));
+      }
+      const Ls=K.leased;
+      if(Ls&&(Ls.labels||[]).length){
+        h+=card('Diện tích ký thuê mới (ha) & giá thuê bình quân',K,chart('reKcnLease'),Ls.estimate?est:'');
+        const ds=[{label:'Diện tích ký mới',data:Ls.leasedHa,backgroundColor:PAL[1],yAxisID:'y'}];
+        if((Ls.aspUsdM2||[]).some(v=>v!=null))ds.push({type:'line',label:'Giá thuê BQ (USD/m²/chu kỳ)',data:Ls.aspUsdM2,borderColor:PAL[3],backgroundColor:PAL[3],yAxisID:'y1',spanGaps:false});
+        mkChart('reKcnLease',{type:'bar',data:{labels:Ls.labels,datasets:ds},options:{maintainAspectRatio:false,scales:{y:{beginAtZero:true,title:{display:true,text:'ha'}},y1:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false},display:ds.length>1,title:{display:true,text:'USD/m²'}}},plugins:{tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y,1)+(c.dataset.yAxisID==='y1'?' USD/m²':' ha')}}}}});
+      }
+      const U=K.unearned;
+      if(U&&(U.labels||[]).length){h+=card('Doanh thu chưa thực hiện (tỷ VND)',K,chart('reKcnUnearned'),'Tiền thuê đất KCN đã thu trước, chờ ghi nhận (ngắn hạn + dài hạn, cuối kỳ).');
+        mkChart('reKcnUnearned',{type:'bar',data:{labels:U.labels,datasets:[{label:'Doanh thu chưa thực hiện',data:U.values,backgroundColor:PAL[0]}]},options:{maintainAspectRatio:false,scales:{y:{beginAtZero:true}},plugins:{tooltip:tip('tỷ')}}});}
+      H+=sec('Khu công nghiệp — diện tích cho thuê & lấp đầy',h);
     }
     // 7 · M&A, thoái vốn
     const M=P.deals;
@@ -10060,7 +10169,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='scs',BUILD='4743fe6f41ef',URL_JSON='../version.json';
+  const PAGE='scs',BUILD='a24479b034bd',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
