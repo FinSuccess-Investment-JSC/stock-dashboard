@@ -9354,7 +9354,9 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
       <div class="card"><h3 class="sub">RNAV theo CTCK <span class="info" tabindex="0" role="note" data-tip="${esc(note)}" aria-label="${esc(note)}">i</span></h3><div class="tbl-wrap"><table id="consRnavTable">${t}</table></div></div>
       <div class="card" style="margin-top:16px"><h3 class="sub">Giá trị dự án trong RNAV (tỷ VND) <span class="info" tabindex="0" role="note" data-tip="${esc(note)}" aria-label="${esc(note)}">i</span></h3><div class="chart tall"><canvas id="consRnavChart"></canvas></div></div>
       <div class="card" style="margin-top:16px"><h3 class="sub">Breakdown RNAV theo dự án <span class="info" tabindex="0" role="note" data-tip="${esc(note)}" aria-label="${esc(note)}">i</span></h3><div class="tbl-wrap"><table id="consRnavProjects">${m}</table></div></div>`;
-    tab.appendChild(sec);
+    // Đặt trên khối Consensus dự phóng doanh thu & LNST (người dùng chốt 12/11/2026).
+    const fc=document.getElementById('consFcst');
+    if(fc&&fc.parentNode&&tab.contains(fc))fc.parentNode.insertBefore(sec,fc);else tab.appendChild(sec);
     if(window.Chart){
       const top=plist.slice(0,8), rest=plist.slice(8);
       const pal=['#1D2678','#2938A8','#4354B7','#6171C5','#8997D6','#59C5C8','#861C52','#B3BDE8','#D9DEF4'];
@@ -9944,7 +9946,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='hng',BUILD='5d8ca16f8c8d',URL_JSON='../version.json';
+  const PAGE='hng',BUILD='ca1aabd0e395',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
