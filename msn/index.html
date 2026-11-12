@@ -9436,9 +9436,9 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
     const note=(D.consensusRnavNote||'RNAV theo báo cáo CTCK; giá trị dự án là phần thuộc doanh nghiệp (tỷ VND), % là tỷ trọng trong tổng giá trị dự án của chính CTCK đó; ô trống là báo cáo không nêu. Tên dự án chuẩn hóa để so cùng hàng.')+'\nNguồn: PDF báo cáo CTCK';
     const sec=document.createElement('div'); sec.id='consRnav';
     sec.innerHTML=`<h2 class="sec">Định giá RNAV theo CTCK</h2>
-      <div class="card"><h3 class="sub">RNAV theo CTCK <span class="icon-note" tabindex="0" data-note="${esc(note)}">ⓘ</span></h3><div class="tbl-wrap"><table id="consRnavTable">${t}</table></div></div>
-      <div class="card" style="margin-top:16px"><h3 class="sub">Giá trị dự án trong RNAV (tỷ VND) <span class="icon-note" tabindex="0" data-note="${esc(note)}">ⓘ</span></h3><div class="chart tall"><canvas id="consRnavChart"></canvas></div></div>
-      <div class="card" style="margin-top:16px"><h3 class="sub">Breakdown RNAV theo dự án <span class="icon-note" tabindex="0" data-note="${esc(note)}">ⓘ</span></h3><div class="tbl-wrap"><table id="consRnavProjects">${m}</table></div></div>`;
+      <div class="card"><h3 class="sub">RNAV theo CTCK <span class="info" tabindex="0" role="note" data-tip="${esc(note)}" aria-label="${esc(note)}">i</span></h3><div class="tbl-wrap"><table id="consRnavTable">${t}</table></div></div>
+      <div class="card" style="margin-top:16px"><h3 class="sub">Giá trị dự án trong RNAV (tỷ VND) <span class="info" tabindex="0" role="note" data-tip="${esc(note)}" aria-label="${esc(note)}">i</span></h3><div class="chart tall"><canvas id="consRnavChart"></canvas></div></div>
+      <div class="card" style="margin-top:16px"><h3 class="sub">Breakdown RNAV theo dự án <span class="info" tabindex="0" role="note" data-tip="${esc(note)}" aria-label="${esc(note)}">i</span></h3><div class="tbl-wrap"><table id="consRnavProjects">${m}</table></div></div>`;
     tab.appendChild(sec);
     if(window.Chart){
       const top=plist.slice(0,8), rest=plist.slice(8);
@@ -10029,7 +10029,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='msn',BUILD='3e1fbce3a259',URL_JSON='../version.json';
+  const PAGE='msn',BUILD='34efae9c59ed',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
