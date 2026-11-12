@@ -9350,6 +9350,114 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(run,0));else setTimeout(run,0);
 })();
 
+/* Bộ khối BĐS/KCN dùng chung (người dùng chốt 12/11/2026, tham khảo dashboard VHM 10 tab):
+   1 Quỹ đất · 2 Bảng dự án chuẩn hóa · 3 Pipeline 2026–2030 · 4 Từ doanh số đến lợi nhuận ·
+   5 Bán sỉ / bán lẻ · 6 Trái phiếu & lịch đáo hạn · 7 M&A, thoái vốn.
+   Dữ liệu: <MÃ>/sources/re-pack.json → PVS_DATA.rePack (build.py). Khối nào không có số thì không dựng.
+   Số chỉ từ BCTC/BCTN/CBTT/IR; ước tính phải có estimate:true và hiện nhãn "giả định analyst".
+   Schema (mọi giá trị tiền: tỷ VND; diện tích: ha):
+   landbank {asOf, src, note, rows:[{name, region, type, areaHa, ownership, legal, status}], history:[{date, totalHa}]}
+   projects {asOf, src, note, rows:[{name, region, type, areaHa, ownership, investBn, units, soldUnits, price, legal, launch, handover, status, note}]}
+   pipeline {src, note, rows:[{name, year, event('Mở bán'|'Bàn giao'), valueBn, estimate}]}
+   bridge   {src, note, labels:[kỳ], presales:[], advances:[], revenue:[], npat:[]}  (presales = doanh số ký bán DN công bố;
+            advances = người mua trả trước cuối kỳ; revenue = doanh thu BĐS ghi nhận; npat = LNST mẹ)
+   wholesale{src, note, rows:[{year, project, partner, valueBn, kind('Bán sỉ'|'Bán lẻ'|'Chuyển nhượng dự án'), estimate}]}
+   debt     {asOf, src, note, bonds:[{code, issueDate, maturity, amountBn, outstandingBn, coupon, collateral}],
+            maturity:{years:[], bonds:[], loans:[]}, cash, cfoTTM}
+   deals    {src, note, rows:[{date, type, counterparty, asset, valueBn, gainBn, status, note}]} */
+(function(){
+  const P=(window.PVS_DATA||{}).rePack; if(!P)return;
+  const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const fmt=(v,d=0)=>v==null||v===''||!isFinite(v)?'—':Number(v).toLocaleString('vi-VN',{maximumFractionDigits:d});
+  const dd=s=>s&&/^\d{4}-\d{2}-\d{2}$/.test(s)?s.split('-').reverse().join('/'):(s||'—');
+  const info=(b,extra)=>{const t=[b&&b.note,extra,b&&b.src?'Nguồn: '+b.src:''].filter(Boolean).join('\n');return t?` <span class="info" tabindex="0" role="note" data-tip="${esc(t)}" aria-label="${esc(t)}">i</span>`:'';};
+  const est='Ô có dấu * là ước tính/giả định analyst, không phải số DN công bố.';
+  const PAL=['#1D2678','#2938A8','#59C5C8','#861C52','#4354B7','#8997D6','#B3BDE8','#D9DEF4'];
+  const card=(title,b,body,extra)=>`<div class="card" style="margin-top:16px"><h3 class="sub">${esc(title)}${info(b,extra)}</h3>${body}</div>`;
+  const chart=id=>`<div class="chart tall"><canvas id="${id}"></canvas></div>`;
+  const tbl=(id,head,rows)=>`<details class="dd"${rows.length<=12?' open':''}><summary>Bảng chi tiết (${rows.length} dòng)</summary><div class="tbl-wrap"><table id="${id}"><tr>${head.map(h=>`<th${h[1]?' class="num"':''}>${esc(h[0])}</th>`).join('')}</tr>${rows.join('')}</table></div></details>`;
+  const td=(v,num)=>`<td${num?' class="num"':''}>${v}</td>`;
+  const charts=[];
+  const mkChart=(id,cfg)=>charts.push([id,cfg]);
+  const sec=(t,html)=>`<h2 class="sec">${esc(t)}</h2>${html}`;
+  const tip=u=>({callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y!=null&&c.chart.options.indexAxis!=='y'?c.parsed.y:c.parsed.x,1)+' '+u}});
+
+  const run=()=>{
+    const host=document.getElementById('backlog')||document.getElementById('seg'); if(!host||document.getElementById('rePack'))return;
+    let H='';
+    // 4 · Từ doanh số đến lợi nhuận
+    const B=P.bridge;
+    if(B&&(B.labels||[]).length){
+      H+=sec('Từ doanh số đến lợi nhuận',card('Doanh số ký bán → chưa ghi nhận → doanh thu → LNST mẹ (tỷ VND)',B,chart('reBridge'),'Doanh số ký bán là số DN công bố; người mua trả trước là số dư cuối kỳ (phần doanh số chưa ghi nhận đã thu tiền); doanh thu BĐS và LNST mẹ theo BCTC hợp nhất. Bốn khái niệm khác thời điểm ghi nhận nên không cộng trừ trực tiếp.'));
+      const ds=[['Doanh số ký bán','presales',PAL[0]],['Người mua trả trước (cuối kỳ)','advances',PAL[2]],['Doanh thu BĐS ghi nhận','revenue',PAL[1]],['LNST mẹ','npat',PAL[3]]].filter(x=>(B[x[1]]||[]).some(v=>v!=null));
+      mkChart('reBridge',{type:'bar',data:{labels:B.labels,datasets:ds.map(x=>({label:x[0],data:B[x[1]],backgroundColor:x[2]}))},options:{maintainAspectRatio:false,scales:{y:{beginAtZero:true}},plugins:{tooltip:tip('tỷ')}}});
+    }
+    // 1 · Quỹ đất
+    const L=P.landbank;
+    if(L&&(L.rows||[]).length){
+      const tot=L.rows.reduce((s,r)=>s+(+r.areaHa||0),0);
+      const byReg={};L.rows.forEach(r=>{const k=r.region||'Khác';byReg[k]=(byReg[k]||0)+(+r.areaHa||0);});
+      const regs=Object.entries(byReg).sort((a,b)=>b[1]-a[1]);
+      let h=`<div class="card"><div style="display:flex;gap:24px;flex-wrap:wrap"><div><div class="kpi-l">Tổng quỹ đất${L.asOf?' · '+dd(L.asOf):''}</div><div style="font-size:28px;font-weight:650">${fmt(tot,1)} ha</div></div><div><div class="kpi-l">Số dự án/khu đất</div><div style="font-size:28px;font-weight:650">${L.rows.length}</div></div></div></div>`;
+      h+=card('Quỹ đất theo vùng (ha)',L,chart('reLandReg'));
+      if((L.history||[]).length>1){h+=card('Tổng quỹ đất theo thời gian (ha)',L,chart('reLandHist'));mkChart('reLandHist',{type:'bar',data:{labels:L.history.map(x=>dd(x.date)),datasets:[{label:'Quỹ đất',data:L.history.map(x=>x.totalHa),backgroundColor:PAL[0]}]},options:{maintainAspectRatio:false,scales:{y:{beginAtZero:true}},plugins:{tooltip:tip('ha')}}});}
+      h+=card('Danh mục quỹ đất',L,tbl('reLandTbl',[['Dự án/khu đất'],['Vùng'],['Loại'],['Diện tích (ha)',1],['Sở hữu',1],['Pháp lý'],['Trạng thái']],L.rows.slice().sort((a,b)=>(b.areaHa||0)-(a.areaHa||0)).map(r=>'<tr>'+td(esc(r.name))+td(esc(r.region||'—'))+td(esc(r.type||'—'))+td(fmt(r.areaHa,1),1)+td(r.ownership==null?'—':fmt(r.ownership,1)+'%',1)+td(esc(r.legal||'—'))+td(esc(r.status||'—'))+'</tr>')));
+      H+=sec('Quỹ đất',h);
+      mkChart('reLandReg',{type:'bar',data:{labels:regs.map(x=>x[0]),datasets:[{label:'Diện tích',data:regs.map(x=>+x[1].toFixed(1)),backgroundColor:PAL[1]}]},options:{indexAxis:'y',maintainAspectRatio:false,scales:{x:{beginAtZero:true}},plugins:{legend:{display:false},tooltip:tip('ha')}}});
+    }
+    // 2 · Bảng dự án chuẩn hóa
+    const J=P.projects;
+    if(J&&(J.rows||[]).length){
+      const rows=J.rows.map(r=>{const left=r.units!=null&&r.soldUnits!=null?r.units-r.soldUnits:null;
+        return `<tr data-q="${esc((r.name+' '+(r.region||'')+' '+(r.type||'')+' '+(r.status||'')).toLowerCase())}">`+td(`<b>${esc(r.name)}</b>${r.note?` <span class="info" tabindex="0" data-tip="${esc(r.note)}">i</span>`:''}`)+td(esc(r.region||'—'))+td(esc(r.type||'—'))+td(fmt(r.areaHa,1),1)+td(r.ownership==null?'—':fmt(r.ownership,1)+'%',1)+td(fmt(r.investBn),1)+td(fmt(r.units),1)+td(fmt(r.soldUnits),1)+td(fmt(left),1)+td(esc(r.price==null?'—':r.price))+td(esc(r.legal||'—'))+td(esc(r.launch||'—'))+td(esc(r.handover||'—'))+td(esc(r.status||'—'))+'</tr>';});
+      H+=sec('Danh mục dự án',card('Dự án — thông số chuẩn hóa',J,`<input type="search" class="re-filter" data-t="reProjTbl" placeholder="Lọc theo tên, vùng, loại, trạng thái…" style="width:100%;max-width:360px;padding:7px 10px;border:1px solid #D6DDE8;border-radius:8px;margin-bottom:10px">`+`<div class="tbl-wrap"><table id="reProjTbl"><tr><th>Dự án</th><th>Vùng</th><th>Loại</th><th class="num">DT (ha)</th><th class="num">Sở hữu</th><th class="num">Tổng mức ĐT (tỷ)</th><th class="num">Sản phẩm</th><th class="num">Đã bán</th><th class="num">Còn lại</th><th>Giá bán</th><th>Pháp lý</th><th>Mở bán</th><th>Bàn giao</th><th>Trạng thái</th></tr>${rows.join('')}</table></div>`,'Ô trống: nguồn không công bố. Còn lại = sản phẩm − đã bán.'));
+    }
+    // 3 · Pipeline
+    const PL=P.pipeline;
+    if(PL&&(PL.rows||[]).length){
+      const years=[...new Set(PL.rows.map(r=>String(r.year)))].sort();
+      const names=[...new Set(PL.rows.filter(r=>r.valueBn!=null).map(r=>r.name))];
+      const hasEst=PL.rows.some(r=>r.estimate);
+      let h=names.length?card('Giá trị dự kiến theo năm (tỷ VND)',PL,chart('rePipe'),hasEst?est:''):'';
+      h+=card('Dòng thời gian mở bán / bàn giao',PL,`<div class="tbl-wrap"><table id="rePipeTbl"><tr><th>Năm</th><th>Dự án</th><th>Sự kiện</th><th class="num">Giá trị (tỷ)</th></tr>${PL.rows.slice().sort((a,b)=>String(a.year).localeCompare(String(b.year))).map(r=>'<tr>'+td(esc(r.year))+td(esc(r.name))+td(esc(r.event||'—'))+td(fmt(r.valueBn)+(r.estimate?'*':''),1)+'</tr>').join('')}</table></div>`,hasEst?est:'');
+      H+=sec('Pipeline dự án',h);
+      if(names.length)mkChart('rePipe',{type:'bar',data:{labels:years,datasets:names.map((n,i)=>({label:n,data:years.map(y=>{const v=PL.rows.filter(r=>r.name===n&&String(r.year)===y&&r.valueBn!=null).reduce((s,r)=>s+(+r.valueBn),0);return v||null;}),backgroundColor:PAL[i%PAL.length]}))},options:{maintainAspectRatio:false,scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}},plugins:{tooltip:tip('tỷ')}}});
+    }
+    // 5 · Bán sỉ / bán lẻ
+    const W=P.wholesale;
+    if(W&&(W.rows||[]).length){
+      const years=[...new Set(W.rows.map(r=>String(r.year)))].sort();const kinds=[...new Set(W.rows.map(r=>r.kind||'Bán sỉ'))];
+      const hasEst=W.rows.some(r=>r.estimate);
+      H+=sec('Bán sỉ / bán lẻ',card('Giá trị theo hình thức bán (tỷ VND)',W,chart('reWhole'),hasEst?est:'')+card('Giao dịch bán sỉ theo dự án & đối tác',W,tbl('reWholeTbl',[['Năm'],['Dự án/phân khu'],['Đối tác'],['Hình thức'],['Giá trị (tỷ)',1]],W.rows.slice().sort((a,b)=>String(b.year).localeCompare(String(a.year))).map(r=>'<tr>'+td(esc(r.year))+td(esc(r.project||'—'))+td(esc(r.partner||'—'))+td(esc(r.kind||'Bán sỉ'))+td(fmt(r.valueBn)+(r.estimate?'*':''),1)+'</tr>')),hasEst?est:''));
+      mkChart('reWhole',{type:'bar',data:{labels:years,datasets:kinds.map((k,i)=>({label:k,data:years.map(y=>{const v=W.rows.filter(r=>(r.kind||'Bán sỉ')===k&&String(r.year)===y).reduce((s,r)=>s+(+r.valueBn||0),0);return v||null;}),backgroundColor:PAL[[1,2,3,0][i%4]]}))},options:{maintainAspectRatio:false,scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}},plugins:{tooltip:tip('tỷ')}}});
+    }
+    // 7 · M&A, thoái vốn
+    const M=P.deals;
+    if(M&&(M.rows||[]).length){
+      H+=sec('Sở hữu, M&A & thoái vốn',card('Dòng thời gian thương vụ',M,`<div class="tbl-wrap"><table id="reDealTbl"><tr><th>Ngày</th><th>Loại</th><th>Tài sản/pháp nhân</th><th>Đối tác</th><th class="num">Giá trị (tỷ)</th><th class="num">Lãi ghi nhận (tỷ)</th><th>Trạng thái</th></tr>${M.rows.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(r=>'<tr>'+td(dd(r.date))+td(esc(r.type||'—'))+td(esc(r.asset||'—')+(r.note?` <span class="info" tabindex="0" data-tip="${esc(r.note)}">i</span>`:''))+td(esc(r.counterparty||'—'))+td(fmt(r.valueBn),1)+td(fmt(r.gainBn),1)+td(esc(r.status||'—'))+'</tr>').join('')}</table></div>`));
+    }
+    if(H){const d=document.createElement('div');d.id='rePack';d.innerHTML=H;host.appendChild(d);}
+    // 6 · Nợ vay: trái phiếu & lịch đáo hạn → tab Tài chính (nhóm Nợ vay & thanh khoản), dự phòng tab dự án
+    const Dt=P.debt;
+    if(Dt&&((Dt.bonds||[]).length||(Dt.maturity&&(Dt.maturity.years||[]).length))){
+      let h='';
+      if(Dt.maturity&&(Dt.maturity.years||[]).length){
+        h+=card('Lịch đáo hạn nợ vay (tỷ VND)',Dt,chart('reMaturity'),(Dt.cash!=null?'Tiền & tương đương + ĐTTC ngắn hạn tại '+dd(Dt.asOf)+': '+fmt(Dt.cash)+' tỷ. ':'')+(Dt.cfoTTM!=null?'CFO TTM: '+fmt(Dt.cfoTTM)+' tỷ.':''));
+        const m=Dt.maturity,ds=[];if((m.bonds||[]).some(v=>v))ds.push({label:'Trái phiếu',data:m.bonds,backgroundColor:PAL[3],stack:'s'});if((m.loans||[]).some(v=>v))ds.push({label:'Vay ngân hàng & khác',data:m.loans,backgroundColor:PAL[1],stack:'s'});
+        if(Dt.cash!=null)ds.push({type:'line',label:'Tiền + ĐTTC ngắn hạn hiện có',data:m.years.map(()=>Dt.cash),borderColor:PAL[2],borderDash:[6,4],pointRadius:0});
+        mkChart('reMaturity',{type:'bar',data:{labels:m.years,datasets:ds},options:{maintainAspectRatio:false,scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}},plugins:{tooltip:tip('tỷ')}}});
+      }
+      if((Dt.bonds||[]).length)h+=card('Danh mục trái phiếu đang lưu hành',Dt,tbl('reBondTbl',[['Mã TP'],['Phát hành'],['Đáo hạn'],['Giá trị PH (tỷ)',1],['Dư nợ (tỷ)',1],['Lãi suất'],['Tài sản đảm bảo']],Dt.bonds.slice().sort((a,b)=>String(a.maturity).localeCompare(String(b.maturity))).map(r=>'<tr>'+td(esc(r.code||'—'))+td(dd(r.issueDate))+td(dd(r.maturity))+td(fmt(r.amountBn),1)+td(fmt(r.outstandingBn),1)+td(esc(r.coupon==null?'—':r.coupon))+td(esc(r.collateral||'—'))+'</tr>')));
+      const d=document.createElement('div');d.id='reDebt';d.innerHTML=sec('Trái phiếu & lịch đáo hạn nợ vay',h);
+      (document.getElementById('bs')||host).appendChild(d);
+    }
+    const draw=()=>{if(!window.Chart)return;charts.forEach(([id,cfg])=>{const c=document.getElementById(id);if(c&&!c._fsChart){try{c._fsChart=new Chart(c,cfg);}catch(e){console.warn('re-pack',id,e);}}});};
+    draw();
+    document.querySelectorAll('.re-filter').forEach(i=>i.addEventListener('input',()=>{const q=i.value.trim().toLowerCase(),t=document.getElementById(i.dataset.t);if(!t)return;t.querySelectorAll('tr[data-q]').forEach(r=>{r.style.display=!q||r.dataset.q.includes(q)?'':'none';});}));
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(run,0));else setTimeout(run,0);
+})();
+
 
 </script>
 <script>
@@ -9928,7 +10036,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='vna',BUILD='b79ca3ec0278',URL_JSON='../version.json';
+  const PAGE='vna',BUILD='7fe48928530d',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
