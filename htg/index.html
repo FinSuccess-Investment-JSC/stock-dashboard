@@ -8956,6 +8956,7 @@ window.fsCmpChart=function(id,o){
   }
   window.fsCoreFinance=function(){
     if(window.fsCoreFinance.done)return;window.fsCoreFinance.done=true;
+    try{window.fsPeerCompare&&window.fsPeerCompare();}catch(e){console.error('peer-compare',e);}
     const bs=document.getElementById('bs');if(!bs||typeof mkTS!=='function')return;
     const have=[...bs.querySelectorAll('.card h3, .card h2, .card .sub')].map(h=>h.textContent).join(' || ');
     const todo=specs.filter(s=>!s.skip.test(have)&&s.y.some(([,v])=>v.filter(x=>x!=null).length>=3));
@@ -8988,6 +8989,61 @@ window.fsCmpChart=function(id,o){
       if(['bars','barline','stack','custom'].includes(s.kind)&&s.unit==='tỷ VND'){spec.unitLabel='tỷ VND';}
       try{mkTS(s.id,spec);}catch(e){console.error('core-finance',s.id,e);}
       return card;
+  };
+})();
+
+// So sánh cùng ngành (người dùng yêu cầu 12/11/2026: so số ngày phải thu, tồn kho… của TNG với MSH, STK).
+// Dữ liệu PVS_DATA.peers do build.py tính từ fs-core-vndirect.json của từng mã trong _template/peer-groups.json
+// (cùng công thức core-finance.js). Card nằm ở Tài chính › Bảng cân đối; chọn chỉ tiêu + bật/tắt từng mã, Năm/Quý dùng mkTS.
+(function(){
+  const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const KEY='fs_peer_v1';
+  const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return {}}};
+  const save=v=>{try{localStorage.setItem(KEY,JSON.stringify(v))}catch(e){}};
+  const PAL=['#59C5C8','#861C52','#E0A800','#8997D6','#2A9D8F','#64748B','#C2410C'];
+  const colorOf=(t,P,tks)=>t===P.self?'#1D2678':PAL[tks.filter(x=>x!==P.self).indexOf(t)%PAL.length];
+  const NOTE={dso:'DSO = phải thu khách hàng ngắn hạn bình quân đầu–cuối kỳ ÷ doanh thu thuần × số ngày của kỳ.',dio:'DIO = tồn kho bình quân đầu–cuối kỳ ÷ giá vốn × số ngày của kỳ.',
+    dpo:'DPO = phải trả người bán ngắn hạn bình quân ÷ giá vốn × số ngày của kỳ.',ccc:'CCC = DSO + DIO − DPO.',gm:'Biên gộp = LN gộp ÷ doanh thu thuần.',
+    nm:'Biên ròng = LNST cổ đông mẹ ÷ doanh thu thuần.',roe:'ROE = LNST cổ đông mẹ (năm; quý dùng 4 quý gần nhất) ÷ VCSH thuộc cổ đông mẹ bình quân đầu kỳ và cùng kỳ năm trước.',
+    revg:'Tăng trưởng doanh thu thuần so với cùng kỳ năm trước.',de:'Nợ vay / VCSH = (vay ngắn hạn + vay dài hạn) ÷ vốn chủ sở hữu, cuối kỳ.'};
+  window.fsPeerCompare=function(){
+    const P=(window.PVS_DATA||{}).peers,bs=document.getElementById('bs');
+    if(!P||!bs||typeof mkTS!=='function'||document.getElementById('peerCmp'))return;
+    const tks=Object.keys(P.series),M=P.metrics,st=load();
+    let metric=M.some(m=>m[0]===st.m)?st.m:'dso';
+    let on=Array.isArray(st.on)?st.on.filter(t=>tks.includes(t)):tks.slice();
+    if(!on.includes(P.self))on.unshift(P.self);
+    const card=document.createElement('div');card.className='card peer-cmp';card.style.gridColumn='1/-1';
+    card.dataset.source='BCTC hợp nhất (VNDirect finfo)';
+    card.innerHTML='<h3 class="sub">Vòng quay & hiệu quả — so sánh cùng ngành ('+esc(P.group)+')</h3>'
+      +'<div class="peer-ctl" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:4px 0 8px">'
+      +'<select class="peer-m" aria-label="Chỉ tiêu so sánh">'+M.map(m=>'<option value="'+m[0]+'"'+(m[0]===metric?' selected':'')+'>'+esc(m[1])+' ('+esc(m[2])+')</option>').join('')+'</select>'
+      +tks.map((t,i)=>'<label style="display:inline-flex;gap:4px;align-items:center;font-size:13px;font-weight:600;color:'+colorOf(t,P,tks)+'"><input type="checkbox" value="'+t+'"'+(on.includes(t)?' checked':'')+(t===P.self?' disabled':'')+'>'+t+'</label>').join('')
+      +'</div><div class="chart tall"><canvas id="peerCmp"></canvas></div><div class="note">'+esc(Object.values(NOTE).join(' ')+' Cùng một công thức cho mọi mã; quý dùng số riêng quý và số ngày thực của quý; kỳ thiếu số để trống. Nguồn: BCTC hợp nhất (VNDirect finfo)')+'</div>';
+    const P2=(window.PVS_DATA.financialProfile=window.PVS_DATA.financialProfile||{});P2.layout=P2.layout||{};P2.layout.subTabs=P2.layout.subTabs||{};P2.layout.subTabs.peerCmp='balance';
+    const row=document.createElement('div');row.className='grid g2';row.appendChild(card);
+    const anchor=bs.querySelector('#isBridgeCard')||bs.querySelector('#finTableCard')||bs.querySelector('#multiplesRow');
+    bs.insertBefore(row,anchor&&anchor.parentElement===bs?anchor:null);
+    const fmt=v=>v==null?'—':Number(v).toLocaleString('vi-VN',{maximumFractionDigits:1});
+    function spec(){
+      const m=M.find(x=>x[0]===metric),unit=m[2];
+      const per=k=>{
+        const lab=[...new Set(on.flatMap(t=>P.series[t][k].labels))];
+        const ord=k==='y'?(a,b)=>a-b:(a,b)=>{const f=l=>+l.slice(3)*4+ +l[1];return f(a)-f(b);};lab.sort(ord);
+        return {labels:lab,datasets:on.map(t=>{const S=P.series[t][k],c=colorOf(t,P,tks);
+          return {label:t,data:lab.map(l=>{const j=S.labels.indexOf(l);return j<0?null:S.m[metric][j];}),type:'line',borderColor:c,backgroundColor:c,
+            borderWidth:t===P.self?3.5:2,pointRadius:t===P.self?3:2,tension:.15,spanGaps:false,unit};})};};
+      return {def:'y',noShare:true,unitLabel:unit,y:per('y'),q:per('q'),cfg:(labels,datasets)=>({type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+        plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.raw)+(unit==='%'?'%':' '+unit)}}},
+        scales:{x:{grid:{display:false}},y:{beginAtZero:true,title:{display:true,text:unit==='%'?'%':'Ngày'},ticks:{callback:v=>fmt(v)+(unit==='%'?'%':'')}}}}})};
+    }
+    const draw=()=>{save({m:metric,on});try{mkTS('peerCmp',spec());}catch(e){console.error('peer-compare',e);}if(typeof applyChartTips==='function')applyChartTips();};
+    // Ủy quyền sự kiện ở document: các module bố cục có thể dời/dựng lại card.
+    document.addEventListener('change',e=>{const c=e.target.closest&&e.target.closest('.peer-cmp');if(!c)return;
+      if(e.target.classList.contains('peer-m'))metric=e.target.value;
+      else on=tks.filter(t=>t===P.self||c.querySelector('.peer-ctl input[value="'+t+'"]')?.checked);
+      draw();});
+    draw();
   };
 })();
 
@@ -9248,6 +9304,55 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
   const run=()=>{scan();setTimeout(scan,1500);};
   if(document.readyState==='complete')run();else addEventListener('load',run);
   addEventListener('hashchange',()=>setTimeout(scan,300));document.addEventListener('click',e=>{if(e.target.closest('.subnav button,.fin-subnav button,nav button,[data-tab],.tabs button'))setTimeout(scan,300);});
+})();
+
+/* Consensus RNAV (người dùng chốt 12/11/2026): tab Consensus CTCK của mã BĐS/KCN có khối tổng hợp
+   định giá RNAV của từng CTCK và breakdown giá trị theo dự án. Dữ liệu: <MÃ>/consensus.json › rnav[]
+   (build nhúng thành PVS_DATA.consensusRnav). Mỗi mục:
+   {broker, date, tpRaw, wacc, discount(% chiết khấu RNAV→TP), shares(triệu cp),
+    projects:[{name, type, ownership(%), method, value(tỷ, phần thuộc DN)}],
+    adjustments:[{name, value}] (tiền, đầu tư, nợ vay… âm là trừ), netDebt, rnav(tỷ), perShare(đ/cp), note}
+   Chỉ số có trong PDF báo cáo CTCK; báo cáo không ghi thì null, không tự suy. Không link file CTCK. */
+(function(){
+  const D=window.PVS_DATA||{}; const R=(D.consensusRnav||[]).filter(r=>r&&(r.projects||[]).length);
+  if(!R.length)return;
+  const run=()=>{
+    const tab=document.getElementById('cons'); if(!tab||document.getElementById('consRnav'))return;
+    const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    const fmt=(v,d=0)=>v==null||!isFinite(v)?'—':Number(v).toLocaleString('vi-VN',{maximumFractionDigits:d,minimumFractionDigits:0});
+    const dd=s=>s?String(s).split('-').reverse().join('/'):'—';
+    const rows=R.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+    const gross=r=>(r.projects||[]).reduce((s,p)=>s+(+p.value||0),0);
+    // Bảng tổng hợp theo CTCK
+    let t='<tr><th>CTCK</th><th>Ngày</th><th class="num">GT dự án (tỷ)</th><th class="num">Điều chỉnh (tỷ)</th><th class="num">RNAV (tỷ)</th><th class="num">RNAV/cp (đ)</th><th class="num">Chiết khấu</th><th class="num">TP (đ)</th><th class="num">WACC</th></tr>';
+    rows.forEach(r=>{const adj=(r.adjustments||[]).reduce((s,a)=>s+(+a.value||0),0);
+      t+=`<tr><td>${esc(r.broker)}</td><td>${dd(r.date)}</td><td class="num">${fmt(gross(r))}</td><td class="num">${(r.adjustments||[]).length?fmt(adj):'—'}</td><td class="num">${fmt(r.rnav)}</td><td class="num">${fmt(r.perShare)}</td><td class="num">${r.discount==null?'—':fmt(r.discount,1)+'%'}</td><td class="num">${fmt(r.tpRaw)}</td><td class="num">${r.wacc==null?'—':fmt(r.wacc,1)+'%'}</td></tr>`;});
+    // Ma trận dự án × CTCK (khớp tên dự án sau khi bỏ dấu/khoảng trắng)
+    const key=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/gi,'d').toLowerCase().replace(/[^a-z0-9]/g,'');
+    const proj=new Map();
+    rows.forEach((r,ci)=>(r.projects||[]).forEach(p=>{const k=key(p.name);if(!proj.has(k))proj.set(k,{name:p.name,type:p.type||'',vals:{},tot:0});const o=proj.get(k);o.vals[ci]=p;o.tot+=(+p.value||0);}));
+    const plist=[...proj.values()].sort((a,b)=>b.tot-a.tot);
+    let m='<tr><th>Dự án</th>'+rows.map(r=>`<th class="num">${esc(r.broker)}<br><span style="font-weight:400">${dd(r.date)}</span></th>`).join('')+'</tr>';
+    plist.forEach(p=>{m+=`<tr><td>${esc(p.name)}${p.type?` <span style="color:#64748B">· ${esc(p.type)}</span>`:''}</td>`+rows.map((r,ci)=>{const v=p.vals[ci];if(!v)return '<td class="num">—</td>';const g=gross(r);
+      return `<td class="num" title="${esc([v.method,v.ownership!=null?'sở hữu '+fmt(v.ownership,1)+'%':''].filter(Boolean).join(' · '))}">${fmt(v.value)}<br><span style="color:#64748B;font-size:12px">${g?fmt(v.value/g*100,1)+'%':''}</span></td>`;}).join('')+'</tr>';});
+    m+='<tr style="font-weight:600"><td>Tổng giá trị dự án</td>'+rows.map(r=>`<td class="num">${fmt(gross(r))}</td>`).join('')+'</tr>';
+    const note=(D.consensusRnavNote||'RNAV theo báo cáo CTCK; giá trị dự án là phần thuộc doanh nghiệp (tỷ VND), % là tỷ trọng trong tổng giá trị dự án của chính CTCK đó; ô trống là báo cáo không nêu. Tên dự án chuẩn hóa để so cùng hàng.')+'\nNguồn: PDF báo cáo CTCK';
+    const sec=document.createElement('div'); sec.id='consRnav';
+    sec.innerHTML=`<h2 class="sec">Định giá RNAV theo CTCK</h2>
+      <div class="card"><h3 class="sub">RNAV theo CTCK <span class="icon-note" tabindex="0" data-note="${esc(note)}">ⓘ</span></h3><div class="tbl-wrap"><table id="consRnavTable">${t}</table></div></div>
+      <div class="card" style="margin-top:16px"><h3 class="sub">Giá trị dự án trong RNAV (tỷ VND) <span class="icon-note" tabindex="0" data-note="${esc(note)}">ⓘ</span></h3><div class="chart tall"><canvas id="consRnavChart"></canvas></div></div>
+      <div class="card" style="margin-top:16px"><h3 class="sub">Breakdown RNAV theo dự án <span class="icon-note" tabindex="0" data-note="${esc(note)}">ⓘ</span></h3><div class="tbl-wrap"><table id="consRnavProjects">${m}</table></div></div>`;
+    tab.appendChild(sec);
+    if(window.Chart){
+      const top=plist.slice(0,8), rest=plist.slice(8);
+      const pal=['#1D2678','#2938A8','#4354B7','#6171C5','#8997D6','#59C5C8','#861C52','#B3BDE8','#D9DEF4'];
+      const ds=top.map((p,i)=>({label:p.name,data:rows.map((r,ci)=>p.vals[ci]?+p.vals[ci].value:null),backgroundColor:pal[i%pal.length],stack:'s'}));
+      if(rest.length)ds.push({label:'Dự án khác',data:rows.map((r,ci)=>{const v=rest.reduce((s,p)=>s+(p.vals[ci]?+p.vals[ci].value||0:0),0);return v||null;}),backgroundColor:'#D9DEF4',stack:'s'});
+      new Chart(document.getElementById('consRnavChart'),{type:'bar',data:{labels:rows.map(r=>r.broker+' '+dd(r.date).slice(3)),datasets:ds},
+        options:{maintainAspectRatio:false,scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}},plugins:{tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y)+' tỷ'}}}}});
+    }
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(run,0));else setTimeout(run,0);
 })();
 
 
@@ -9827,7 +9932,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='htg',BUILD='b92fba1d9cb1',URL_JSON='../version.json';
+  const PAGE='htg',BUILD='7e1e2deefa57',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
