@@ -8306,6 +8306,12 @@ html.fs-zoom-lock{overflow:hidden}
       document.querySelectorAll('.card').forEach(c=>{const ok=c.offsetParent&&c.querySelector('canvas')&&!c.querySelector('.card,table tr:nth-child(13)')&&!c.closest('.grid,.card .card,.fs-combo')&&!c.classList.contains('db')&&c.parentElement&&!/overview/.test(c.closest('section.tab')?.id||'');
         if(!ok){prev=null;return}
         if(prev&&prev.parentElement===c.parentElement&&prev.nextElementSibling===c){half.set(prev,'l');half.set(c,'r');prev=null}else prev=c})}
+    // Lưới 2 cột lẻ card: kéo card chart liền sau vào lấp chỗ trống; không có thì card cuối trải cả hàng
+    if(document.documentElement.classList.contains('fs-2col'))document.querySelectorAll('.grid.g2').forEach(g=>{if(!g.offsetParent)return;
+      const kids=[...g.children].filter(x=>x.offsetParent);if(kids.length%2===0)return;
+      const nx=g.nextElementSibling;
+      if(nx&&nx.classList.contains('card')&&nx.querySelector('canvas')&&!nx.querySelector('.card,table tr:nth-child(13)')&&!half.has(nx)){nx.classList.remove('fs-half','fs-half-r');kids.forEach(k=>{if(k.style.gridColumn==='1 / -1')k.style.gridColumn=''});g.append(nx);return}
+      const last=kids[kids.length-1];if(last.style.gridColumn!=='1 / -1')last.style.gridColumn='1 / -1'});
     new Set([...document.querySelectorAll('.card.fs-half'),...half.keys()]).forEach(c=>{const v=half.get(c);c.classList.toggle('fs-half',!!v);c.classList.toggle('fs-half-r',v==='r')});
     // Nhãn rõ cho icon
     document.querySelectorAll('button').forEach(b=>{const t=b.textContent.trim();if(t==='◐'&&!b.title)b.title='Đổi giao diện sáng / tối';if(t==='⌘K'&&!b.title)b.title='Tìm nhanh (⌘K)'});
@@ -9957,7 +9963,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='idc',BUILD='de2744230ed2',URL_JSON='../version.json';
+  const PAGE='idc',BUILD='939bed6fab30',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
