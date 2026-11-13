@@ -9795,9 +9795,37 @@ window.fsCmpChart=function(id,o){
     plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.raw)+(c.dataset.unit==='%'?'%':' '+c.dataset.unit)}}},
     scales:{x:{grid:{display:false}},y:{beginAtZero:unit!=='%',title:{display:true,text:unit},ticks:{callback:v=>fmt(v)+(unit==='%'?'%':'')}}}}});
   function card(id,title,note){
-    const c=document.createElement('div');c.className='card textile-cust';c.dataset.source=SRC;
+    const c=document.createElement('div');c.className='card textile-cust';c.dataset.source=SRC;c.setAttribute('data-keep-seg','');
     c.innerHTML='<h3 class="sub">'+esc(title)+'</h3><div class="chart tall"><canvas id="'+id+'"></canvas></div><div class="note">'+esc(note+' Nguồn: '+SRC)+'</div>';
     return c;
+  }
+  // Sub-tab "Khách hàng" trong Mảng kinh doanh (người dùng yêu cầu 13/11/2026). Dùng .subnav sẵn có của tab nếu mã đã chia
+  // sub-tab; chưa có thì tạo: "Mảng kinh doanh" (mọi nội dung cũ) + "Khách hàng". Chart dựng khi pane hiện lần đầu.
+  function subPane(seg){
+    const KEY='tc_seg_sub_'+location.pathname;
+    let nav=[...seg.querySelectorAll(':scope > .subnav')][0];
+    const head=seg.querySelector(':scope > h2');
+    const show=k=>{seg.querySelectorAll(':scope > .subpane').forEach(p=>{p.style.display=p.dataset.k===k?'':'none';if(p.dataset.k===k&&p._draw)p._draw();});
+      nav.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.k===k));try{localStorage.setItem(KEY,k)}catch(e){}
+      if(typeof applyChartTips==='function')try{applyChartTips()}catch(e){}};
+    if(!nav){
+      nav=document.createElement('div');nav.className='subnav';nav.id='segSubNav';
+      const main=document.createElement('div');main.className='subpane';main.dataset.k='main';
+      [...seg.children].filter(x=>x!==head&&!x.classList.contains('fs-perall')).forEach(x=>main.appendChild(x));
+      nav.innerHTML='<button type="button" data-k="main">Mảng kinh doanh</button>';
+      (head?head.after(nav):seg.prepend(nav));nav.after(main);
+      nav.addEventListener('click',e=>{const b=e.target.closest('button[data-k]');if(b)show(b.dataset.k);});
+      nav._own=true;
+    }
+    const pane=document.createElement('div');pane.className='subpane';pane.dataset.k='cust';
+    const b=document.createElement('button');b.type='button';b.dataset.k='cust';b.textContent='Khách hàng';
+    if(nav._own)nav.appendChild(b);else{nav.appendChild(b);b.addEventListener('click',()=>{seg.querySelectorAll(':scope > .subpane').forEach(p=>p.style.display=p===pane?'':'none');nav.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));pane._draw&&pane._draw();});
+      nav.addEventListener('click',e=>{const x=e.target.closest('button');if(x&&x!==b){pane.style.display='none';b.classList.remove('on');}});}
+    seg.appendChild(pane);
+    let k='main';try{k=localStorage.getItem(KEY)||'main'}catch(e){}
+    if(location.hash==='#segcust')k='cust';
+    if(nav._own)setTimeout(()=>show(k==='cust'?'cust':'main'),0);else pane.style.display='none';
+    return pane;
   }
   function run(){
     const seg=document.getElementById('seg');
@@ -9826,7 +9854,8 @@ window.fsCmpChart=function(id,o){
     row.appendChild(card('tcRev','Doanh thu khách hàng (triệu USD)','Doanh thu thuần theo quý của từng khách hàng (toàn công ty). Năm = cộng 4 quý dương lịch đã quy đổi, chỉ khi đủ 4 quý.'));
     row.appendChild(card('tcGrow','Doanh thu và tồn kho svck của khách hàng (%)','Tăng trưởng so với cùng quý năm trước: đường liền = doanh thu, nét đứt = tồn kho cuối quý. Tồn kho tăng chậm hơn doanh thu nghĩa là tồn kho/doanh thu giảm.'));
     row.appendChild(card('tcGm','Biên gộp khách hàng (%)','LN gộp ÷ doanh thu thuần cùng quý (hoặc cùng năm khi xem Năm). Hãng không công bố dòng LN gộp thì = doanh thu − giá vốn.'));
-    seg.appendChild(h);seg.appendChild(tb);if(nb)seg.appendChild(nb);seg.appendChild(row);
+    const pane=subPane(seg);pane.appendChild(h);pane.appendChild(tb);if(nb)pane.appendChild(nb);pane.appendChild(row);
+    let drawn=false;const draw=()=>{if(drawn||pane.style.display==='none')return;drawn=true;
     const L=allQ.map(lab);
     const revQ=C.list.map(c=>at(c,'revenue')), gpQ=C.list.map(c=>at(c,'grossProfit')), invQ=C.list.map(c=>at(c,'inventory'));
     try{mkTS('tcRev',{q:{labels:L,datasets:C.list.map((c,i)=>bar(c.name,revQ[i],COL[i%4],'triệu USD'))},
@@ -9836,7 +9865,8 @@ window.fsCmpChart=function(id,o){
     const gm=(g,r)=>g.map((v,i)=>v!=null&&r[i]>0?r2(v/r[i]*100):null);
     try{mkTS('tcGm',{q:{labels:L,datasets:C.list.map((c,i)=>ln(c.name,gm(gpQ[i],revQ[i]),COL[i%4],'%'))},
       y:{labels:years,datasets:C.list.map((c,i)=>ln(c.name,gm(ysum(gpQ[i]),ysum(revQ[i])),COL[i%4],'%'))},noShare:true,unitLabel:'%',cfg:cfg('%','line')});}catch(e){console.error('textile-customers',e);}
-    if(typeof applyChartTips==='function')try{applyChartTips();}catch(e){}
+    if(typeof applyChartTips==='function')try{applyChartTips();}catch(e){}};
+    pane._draw=draw;draw();
   }
   // chạy sau textile-macro (setTimeout 0) để khối khách hàng đứng sau Bối cảnh ngành
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(run,10));else setTimeout(run,10);
@@ -9856,6 +9886,7 @@ window.fsCmpChart=function(id,o){
     if (!seg || !bs) return 0;
     var cards = [].filter.call(seg.querySelectorAll('.card'), function (c) {
       if (c.parentNode.closest && c.parentNode.closest('.card')) return false;
+      if (c.hasAttribute('data-keep-seg')) return false;
       var t = title(c); return t && BAL.test(t) && !KEEP.test(t) && c.querySelector('canvas,table');
     });
     if (!cards.length) return 0;
@@ -10866,7 +10897,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='gas',BUILD='46577a49123b',URL_JSON='../version.json';
+  const PAGE='gas',BUILD='429423b54844',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
