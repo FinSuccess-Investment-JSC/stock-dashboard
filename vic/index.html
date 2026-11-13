@@ -9174,6 +9174,70 @@ window.fsCmpChart=function(id,o){
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(run,0));else setTimeout(run,0);
 })();
 
+// Khách hàng lớn của mã dệt may (người dùng yêu cầu 13/11/2026). Dữ liệu PVS_DATA.textileCustomers do build.py nhúng
+// từ _template/sources/textile-customers.json (refresh_textile_customers.py: SEC EDGAR XBRL, chỉ khách niêm yết Mỹ)
+// lọc theo _template/sources/textile-customers-map.json. Cuối tab Mảng kinh doanh, sau khối Bối cảnh ngành.
+// Chỉ số liệu khách hàng công bố; không nhận định, không suy đơn hàng của mã từ số khách hàng.
+(function(){
+  const C=(window.PVS_DATA||{}).textileCustomers;if(!C||!C.list||!C.list.length)return;
+  const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const fmt=v=>v==null||!isFinite(v)?'—':Number(v).toLocaleString('vi-VN',{maximumFractionDigits:2});
+  const r2=v=>v==null||!isFinite(v)?null:Math.round(v*100)/100;
+  const COL=['#1D2678','#59C5C8','#861C52','#2938A8'];
+  const qn=l=>{const [q,y]=l.slice(1).split('/');return +y*4+(+q);};
+  const lab=l=>l.slice(0,3)+l.slice(5); // Q3/2026 → Q3/26
+  const SRC='SEC EDGAR – báo cáo 10-Q/10-K của khách hàng';
+  // Trục quý chung cho mọi khách hàng
+  const allQ=[...new Set(C.list.flatMap(c=>c.labels))].sort((a,b)=>qn(a)-qn(b));
+  const at=(c,k)=>{const m=new Map(c.labels.map((l,i)=>[l,c[k][i]]));return allQ.map(l=>m.get(l)??null);};
+  const yoy=arr=>arr.map((v,i)=>i>=4&&v!=null&&arr[i-4]>0?r2((v/arr[i-4]-1)*100):null);
+  // Năm: chỉ khi đủ 4 quý dương lịch (nhãn quý đã quy về quý dương lịch)
+  const years=[...new Set(allQ.map(l=>l.slice(3)))];
+  const ysum=arr=>years.map(y=>{const v=[1,2,3,4].map(q=>arr[allQ.indexOf('Q'+q+'/'+y)]);return v.every(x=>x!=null&&x!==undefined)?r2(v.reduce((s,x)=>s+x,0)):null;});
+  const ln=(label,data,color,unit,extra)=>Object.assign({label,data,type:'line',borderColor:color,backgroundColor:color,borderWidth:2,pointRadius:0,tension:.15,spanGaps:false,unit},extra||{});
+  const bar=(label,data,color,unit)=>({label,data,type:'bar',backgroundColor:color,borderColor:color,unit});
+  const cfg=(unit,type)=>(labels,datasets)=>({type:type||'bar',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.raw)+(c.dataset.unit==='%'?'%':' '+c.dataset.unit)}}},
+    scales:{x:{grid:{display:false}},y:{beginAtZero:unit!=='%',title:{display:true,text:unit},ticks:{callback:v=>fmt(v)+(unit==='%'?'%':'')}}}}});
+  function card(id,title,note){
+    const c=document.createElement('div');c.className='card textile-cust';c.dataset.source=SRC;
+    c.innerHTML='<h3 class="sub">'+esc(title)+'</h3><div class="chart tall"><canvas id="'+id+'"></canvas></div><div class="note">'+esc(note+' Nguồn: '+SRC)+'</div>';
+    return c;
+  }
+  function run(){
+    const seg=document.getElementById('seg');
+    if(!seg||typeof mkTS!=='function'||document.getElementById('tcRev'))return;
+    const h=document.createElement('h2');h.className='sec';h.textContent='Khách hàng lớn — doanh thu, tồn kho, biên gộp';
+    // Bảng tóm tắt quý mới nhất
+    const tb=document.createElement('div');tb.className='card textile-cust';tb.dataset.source=SRC;
+    const rows=C.list.map(c=>{const n=c.labels.length-1,R=c.revenue,I=c.inventory,G=c.grossProfit,i4=n-4;
+      const ry=i4>=0&&R[i4]>0&&R[n]!=null?r2((R[n]/R[i4]-1)*100):null, iy=i4>=0&&I[i4]>0&&I[n]!=null?r2((I[n]/I[i4]-1)*100):null;
+      const gm=R[n]>0&&G[n]!=null?r2(G[n]/R[n]*100):null;
+      const d=c.end[n]?c.end[n].split('-').reverse().join('/'):'';
+      return '<tr><td><b>'+esc(c.name)+'</b></td><td>'+esc(lab(c.labels[n]))+' <span class="muted">('+d+')</span></td><td class="num">'+fmt(R[n])+'</td><td class="num">'+(ry==null?'—':fmt(ry)+'%')+'</td><td class="num">'+fmt(I[n])+'</td><td class="num">'+(iy==null?'—':fmt(iy)+'%')+'</td><td class="num">'+(gm==null?'—':fmt(gm)+'%')+'</td></tr>';}).join('');
+    tb.innerHTML='<h3 class="sub">Khách hàng lớn niêm yết ở Mỹ — quý gần nhất</h3><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Khách hàng</th><th>Quý (ngày kết thúc)</th><th class="num">Doanh thu (triệu USD)</th><th class="num">DT svck</th><th class="num">Tồn kho (triệu USD)</th><th class="num">Tồn kho svck</th><th class="num">Biên gộp</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+      (C.others&&C.others.length?'<p class="muted" style="margin:8px 0 0">Khách hàng khác đã nêu tên, chưa có chuỗi số (không niêm yết ở Mỹ): '+esc(C.others.join(', '))+'.</p>':'')+
+      '<div class="note">'+esc('Danh sách khách hàng: '+(C.src||'—')+'. Số của khách hàng là toàn công ty (không phải phần mua từ doanh nghiệp này). Quý theo năm tài chính của từng hãng, quy về quý dương lịch gần nhất (ngày kết thúc thật trong ngoặc). Quý thứ 4 tài chính = số năm − lũy kế 9 tháng. svck = so với cùng quý năm trước. Nguồn: '+SRC)+'</div>';
+    const row=document.createElement('div');row.className='grid g2';
+    row.appendChild(card('tcRev','Doanh thu khách hàng (triệu USD)','Doanh thu thuần theo quý của từng khách hàng (toàn công ty). Năm = cộng 4 quý dương lịch đã quy đổi, chỉ khi đủ 4 quý.'));
+    row.appendChild(card('tcGrow','Doanh thu và tồn kho svck của khách hàng (%)','Tăng trưởng so với cùng quý năm trước: đường liền = doanh thu, nét đứt = tồn kho cuối quý. Tồn kho tăng chậm hơn doanh thu nghĩa là tồn kho/doanh thu giảm.'));
+    row.appendChild(card('tcGm','Biên gộp khách hàng (%)','LN gộp ÷ doanh thu thuần cùng quý (hoặc cùng năm khi xem Năm). Hãng không công bố dòng LN gộp thì = doanh thu − giá vốn.'));
+    seg.appendChild(h);seg.appendChild(tb);seg.appendChild(row);
+    const L=allQ.map(lab);
+    const revQ=C.list.map(c=>at(c,'revenue')), gpQ=C.list.map(c=>at(c,'grossProfit')), invQ=C.list.map(c=>at(c,'inventory'));
+    try{mkTS('tcRev',{q:{labels:L,datasets:C.list.map((c,i)=>bar(c.name,revQ[i],COL[i%4],'triệu USD'))},
+      y:{labels:years,datasets:C.list.map((c,i)=>bar(c.name,ysum(revQ[i]),COL[i%4],'triệu USD'))},noShare:true,unitLabel:'triệu USD',cfg:cfg('triệu USD','bar')});}catch(e){console.error('textile-customers',e);}
+    try{mkTS('tcGrow',{q:{labels:L,datasets:C.list.flatMap((c,i)=>[ln(c.name+' – doanh thu',yoy(revQ[i]),COL[i%4],'%'),ln(c.name+' – tồn kho',yoy(invQ[i]),COL[i%4],'%',{borderDash:[6,4]})])},
+      noShare:true,unitLabel:'%',cfg:cfg('%','line')});}catch(e){console.error('textile-customers',e);}
+    const gm=(g,r)=>g.map((v,i)=>v!=null&&r[i]>0?r2(v/r[i]*100):null);
+    try{mkTS('tcGm',{q:{labels:L,datasets:C.list.map((c,i)=>ln(c.name,gm(gpQ[i],revQ[i]),COL[i%4],'%'))},
+      y:{labels:years,datasets:C.list.map((c,i)=>ln(c.name,gm(ysum(gpQ[i]),ysum(revQ[i])),COL[i%4],'%'))},noShare:true,unitLabel:'%',cfg:cfg('%','line')});}catch(e){console.error('textile-customers',e);}
+    if(typeof applyChartTips==='function')try{applyChartTips();}catch(e){}
+  }
+  // chạy sau textile-macro (setTimeout 0) để khối khách hàng đứng sau Bối cảnh ngành
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(run,10));else setTimeout(run,10);
+})();
+
 // Số dư bảng cân đối (phải thu, tồn kho, người mua trả trước, số ngày phải thu/tồn kho, CCC, nợ vay…)
 // thuộc tab Tài chính › Bảng cân đối, không thuộc Mảng kinh doanh (người dùng chốt 10/11/2026).
 // Nhiều mã dựng các card này trong #seg bằng enhancements.js riêng; lớp này chuyển từng card chart/bảng
@@ -10198,7 +10262,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='vic',BUILD='4bf43c167823',URL_JSON='../version.json';
+  const PAGE='vic',BUILD='c034bdc6817e',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
