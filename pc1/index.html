@@ -9183,11 +9183,20 @@ window.fsCmpChart=function(id,o){
     tb.innerHTML='<h3 class="sub">Khách hàng lớn niêm yết ở Mỹ — quý gần nhất</h3><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Khách hàng</th><th>Quý (ngày kết thúc)</th><th class="num">Doanh thu (triệu USD)</th><th class="num">DT svck</th><th class="num">Tồn kho (triệu USD)</th><th class="num">Tồn kho svck</th><th class="num">Biên gộp</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
       (C.others&&C.others.length?'<p class="muted" style="margin:8px 0 0">Khách hàng khác đã nêu tên, chưa có chuỗi số (không niêm yết ở Mỹ): '+esc(C.others.join(', '))+'.</p>':'')+
       '<div class="note">'+esc('Danh sách khách hàng: '+(C.src||'—')+'. Số của khách hàng là toàn công ty (không phải phần mua từ doanh nghiệp này). Quý theo năm tài chính của từng hãng, quy về quý dương lịch gần nhất (ngày kết thúc thật trong ngoặc). Quý thứ 4 tài chính = số năm − lũy kế 9 tháng. svck = so với cùng quý năm trước. Nguồn: '+SRC)+'</div>';
+    let nb=null;
+    if(C.notes&&C.notes.length){
+      const dd=d=>d.split('-').reverse().join('/');
+      nb=document.createElement('div');nb.className='card textile-cust';
+      nb.dataset.source=[...new Set(C.notes.map(n=>n.src))].join('; ');
+      nb.innerHTML='<h3 class="sub">Kết quả & dự báo gần nhất của khách hàng</h3><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Khách hàng</th><th>Kỳ · ngày công bố</th><th>Kết quả</th><th>Dự báo / doanh nghiệp nêu</th></tr></thead><tbody>'+
+        C.notes.map(n=>'<tr><td><b>'+esc(n.name)+'</b></td><td>'+esc(n.period)+'<br><span class="muted">'+esc(dd(n.published))+'</span></td><td>'+esc(n.result)+'</td><td>'+esc(n.outlook)+'</td></tr>').join('')+
+        '</tbody></table></div><div class="note">'+esc('Chỉ dữ kiện doanh nghiệp công bố trong thông cáo kết quả kinh doanh; % là so với cùng kỳ. Số toàn công ty của khách hàng, không phải phần mua từ doanh nghiệp này. Nguồn: '+nb.dataset.source)+'</div>';
+    }
     const row=document.createElement('div');row.className='grid g2';
     row.appendChild(card('tcRev','Doanh thu khách hàng (triệu USD)','Doanh thu thuần theo quý của từng khách hàng (toàn công ty). Năm = cộng 4 quý dương lịch đã quy đổi, chỉ khi đủ 4 quý.'));
     row.appendChild(card('tcGrow','Doanh thu và tồn kho svck của khách hàng (%)','Tăng trưởng so với cùng quý năm trước: đường liền = doanh thu, nét đứt = tồn kho cuối quý. Tồn kho tăng chậm hơn doanh thu nghĩa là tồn kho/doanh thu giảm.'));
     row.appendChild(card('tcGm','Biên gộp khách hàng (%)','LN gộp ÷ doanh thu thuần cùng quý (hoặc cùng năm khi xem Năm). Hãng không công bố dòng LN gộp thì = doanh thu − giá vốn.'));
-    seg.appendChild(h);seg.appendChild(tb);seg.appendChild(row);
+    seg.appendChild(h);seg.appendChild(tb);if(nb)seg.appendChild(nb);seg.appendChild(row);
     const L=allQ.map(lab);
     const revQ=C.list.map(c=>at(c,'revenue')), gpQ=C.list.map(c=>at(c,'grossProfit')), invQ=C.list.map(c=>at(c,'inventory'));
     try{mkTS('tcRev',{q:{labels:L,datasets:C.list.map((c,i)=>bar(c.name,revQ[i],COL[i%4],'triệu USD'))},
@@ -10227,7 +10236,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='pc1',BUILD='755d86e7355b',URL_JSON='../version.json';
+  const PAGE='pc1',BUILD='85ee400c6538',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
