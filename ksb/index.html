@@ -9659,6 +9659,8 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
    kcn      {asOf, src, note, parks:[{name, region, totalHa, commercialHa, leasedHa, remainingHa, occupancy(%), ownership, price, status}],
             leased:{labels:[kỳ], leasedHa:[], aspUsdM2:[], estimate}, unearned:{labels:[], values:[]}}  (KCN: diện tích cho thuê, lấp đầy,
             diện tích ký mới theo kỳ, giá thuê bình quân, doanh thu chưa thực hiện)
+   presalesByProject {src, note, years:['2022',…,'2026F'], rows:[{name, values:[]}]} — doanh số theo dự án; năm có 'F' là dự phóng CTCK (forecastSrc)
+   forecast {src, years:['2026F','2027F'], revenue:[], npat:[]} — dự phóng CTCK công khai, nối sau doanh thu/LNST mẹ thực tế của bridge
    progress {asOf, src, note, legal:[tên bước], build:[tên bước], rows:[{name, group, legal:[ô], build:[ô], handover:{units, sold, soldPct, done, built, guide, text, pinkDone, pinkDoneDate, pinkNext, pinkNextUnits}}]}
             → thêm thanh tiến độ từng dự án: tổng căn · % đã bán · % đã bàn giao · sổ hồng (đã cấp / dự kiến)
             ô = true (đã xong) | 'na' (chưa đến/không áp dụng) | 'chuỗi' (kế hoạch, vd '4Q26') | {p:1,t:'…'} (xong một phần)
@@ -9691,6 +9693,26 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
       const ds=[['Doanh số ký bán','presales',PAL[0]],['Người mua trả trước (cuối kỳ)','advances',PAL[2]],['Doanh thu BĐS ghi nhận','revenue',PAL[1]],['LNST mẹ','npat',PAL[3]]].filter(x=>(B[x[1]]||[]).some(v=>v!=null));
       mkChart('reBridge',{type:'bar',data:{labels:B.labels,datasets:ds.map(x=>({label:x[0],data:B[x[1]],backgroundColor:x[2]}))},options:{maintainAspectRatio:false,scales:{y:{beginAtZero:true}},plugins:{tooltip:tip('tỷ')}}});
     }
+    // 4b · Doanh số theo dự án + Doanh thu/LNST mẹ (thực tế + dự phóng CTCK)
+    const SP=P.presalesByProject, FC=P.forecast;
+    const isF=l=>/F$/i.test(String(l));
+    const fade=(c,l)=>isF(l)?c+'88':c;
+    let h4='';
+    if(SP&&(SP.years||[]).length&&(SP.rows||[]).length){
+      const rows=SP.rows.filter(r=>(r.values||[]).some(v=>v!=null&&v!==0));
+      h4+=card('Doanh số bán hàng theo dự án (tỷ VND)',SP,chart('rePresProj'),[SP.years.some(isF)?'Cột năm có chữ F là dự phóng của CTCK'+(SP.forecastSrc?' ('+SP.forecastSrc+')':'')+', tô nhạt; không phải số DN công bố.':'',SP.rows.some(r=>r.estimate)?est:''].filter(Boolean).join(' '));
+      mkChart('rePresProj',{type:'bar',data:{labels:SP.years,datasets:rows.map((r,i)=>{const c=window.stackColor?stackColor(i,rows.length):PAL[i%PAL.length];return {label:r.name,data:r.values,backgroundColor:SP.years.map(l=>fade(c,l))};})},options:{maintainAspectRatio:false,scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}},plugins:{tooltip:tip('tỷ')}}});
+    }
+    if(B&&(B.revenue||[]).some(v=>v!=null)){
+      const idx=B.labels.map((l,i)=>/^(NTC |FY ?)?\d{4}$/.test(l)?i:-1).filter(i=>i>=0).slice(-6);
+      const fy=FC&&(FC.years||[]).length?FC.years:[];
+      const L=[...idx.map(i=>B.labels[i]),...fy];
+      const rv=[...idx.map(i=>B.revenue[i]),...fy.map((_,k)=>(FC.revenue||[])[k]??null)];
+      const np=[...idx.map(i=>(B.npat||[])[i]),...fy.map((_,k)=>(FC.npat||[])[k]??null)];
+      h4+=card('Doanh thu & LNST mẹ (tỷ VND)',FC&&fy.length?{src:[B.src,'Dự phóng: '+FC.src].filter(Boolean).join('; ')}:B,chart('reRevNp'),fy.length?'Năm có chữ F là dự phóng CTCK ('+esc(FC.src||'')+'), tô nhạt.':'');
+      mkChart('reRevNp',{type:'bar',data:{labels:L,datasets:[{label:'Doanh thu',data:rv,backgroundColor:L.map(l=>fade(PAL[1],l))},{label:'LNST mẹ',data:np,backgroundColor:L.map(l=>fade(PAL[3],l))}]},options:{maintainAspectRatio:false,scales:{y:{beginAtZero:true}},plugins:{tooltip:tip('tỷ')}}});
+    }
+    if(h4)H+=sec('Doanh số & lợi nhuận theo năm',`<div class="re-two" style="display:flex;flex-wrap:wrap;gap:16px">${h4.replace(/<div class="card" style="margin-top:16px">/g,'<div class="card" style="margin-top:16px;flex:1 1 420px;min-width:0">')}</div>`);
     // 1 · Quỹ đất
     const L=P.landbank;
     if(L&&((L.rows||[]).length||L.totalHa!=null||(L.history||[]).length)){
@@ -10595,7 +10617,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='ksb',BUILD='1e3ec8ac12cd',URL_JSON='../version.json';
+  const PAGE='ksb',BUILD='5e5732728783',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
