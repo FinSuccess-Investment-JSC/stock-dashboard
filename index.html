@@ -270,6 +270,8 @@ window.PVS_DATA = {
       { l:"ICT-CE DT/cửa hàng/tháng (8T/26)", v:"3,61 tỷ", s:"3.007 cửa hàng đi ngang · 2025: 2,92 tỷ (+24%)" }
     ],
     network: {
+      monthly: {"labels": ["T12/25", "T2/26", "T3/26", "T4/26", "T5/26", "T6/26", "T7/26", "T8/26", "T9/26", "T10/26"], "counts": {"Bách Hóa Xanh": [2559, 2758, 2839, 2962, 3051, 3191, 3378, 3612, 3904, 4318], "Điện Máy Xanh": [2008, 2008, 2006, 2005, 2004, 2005, 2002, null, 1998, 1998], "TGDĐ (gồm TopZone)": [1012, 1014, 1014, 1012, 1012, 1008, 1005, null, 1005, 1006], "An Khang": [382, 404, 409, 423, 416, 415, 420, 426, 438, 450], "AvaKids": [83, 91, 95, 95, 95, 95, 95, 95, 95, 95], "Erablue (Indonesia)": [181, 198, 212, 222, 245, 261, 283, 307, 337, 369], "DMX gồm TGDĐ, ĐMX, TopZone, Erablue": [3201, 3220, 3232, 3239, 3261, 3274, 3290, 3314, 3340, 3373]}},
+      quarterly: {"labels": ["Q4/25", "Q1/26", "Q2/26", "Q3/26"], "counts": {"Bách Hóa Xanh": [2559, 2839, 3191, 3904], "Điện Máy Xanh": [2008, 2006, 2005, 1998], "TGDĐ (gồm TopZone)": [1012, 1014, 1008, 1005], "An Khang": [382, 409, 415, 438], "AvaKids": [83, 95, 95, 95], "Erablue (Indonesia)": [181, 212, 261, 337], "DMX gồm TGDĐ, ĐMX, TopZone, Erablue": [3201, 3232, 3274, 3340]}},
       // Bảng analyst (cuối năm; cột cuối = lũy kế năm hiện tại, mỗi tháng thay bằng 9T/10T/11T/2026...)
       periods: ["2019","2020","2021","2022","2023","2024","2025","9T/2026"],
       chains: [
@@ -832,7 +834,7 @@ window.PVS_DATA.valuation=window.PVS_DATA.valuation||{};window.PVS_DATA.valuatio
 
 (function(v){var o=window.PVS_DATA;o=o["stores"]=o["stores"]||{};o=o["network"]=o["network"]||{};o=o["chains"]=o["chains"]||{};o=o["5"]=o["5"]||{};o["counts"]=v;})([0,0,0,0,38,87,181,369]);
 
-(function(v){var o=window.PVS_DATA;o=o["stores"]=o["stores"]||{};o=o["network"]=o["network"]||{};o["note"]=v;})("Số cửa hàng cuối kỳ; cột cuối là lũy kế năm hiện tại. 9T/2026 theo bản tin IR: ĐMX 1.998, TGDĐ 919 + TopZone 86, Erablue 337; dòng DMX gồm là tổng 3.340 của các chuỗi này (không cộng thêm). BHX tăng 1.345 cửa hàng từ cuối 2025.");
+(function(v){var o=window.PVS_DATA;o=o["stores"]=o["stores"]||{};o=o["network"]=o["network"]||{};o["note"]=v;})("Số cửa hàng cuối kỳ. Năm: cuối năm 2019–2025, cột cuối là lũy kế năm hiện tại (10T/2026). Tháng: cuối tháng T12/2025, T2–T10/2026 theo báo cáo KQKD tháng của MWG (không có báo cáo riêng T1 vì T1+T2 gộp); Quý: cuối quý lấy từ tháng 3/6/9/12. TGDĐ gồm TopZone. T8/2026 báo cáo chỉ ghi nhóm DMX 3.314, không tách TGDĐ/ĐMX nên để trống; Erablue T8 = 181 + 126 cửa hàng mở mới 8T. Dòng DMX gồm = TGDĐ + ĐMX + Erablue (không cộng thêm).\nNguồn: MWG IR – báo cáo KQKD tháng (mwg.vn); bản tin nhà đầu tư DMX 10T/2026");
 
 (function(v){var o=window.PVS_DATA;o=o["segments"]=o["segments"]||{};o["marginSeries"]=v;})([{"label":"2024","values":{"Điện Máy Xanh (DMX)":18.3,"Bách Hóa Xanh":25.4,"MWG hợp nhất":20.5}},{"label":"2025","values":{"Điện Máy Xanh (DMX)":17.8,"Bách Hóa Xanh":24.8,"MWG hợp nhất":19.9}},{"label":"Q1/2026","values":{"Điện Máy Xanh (DMX)":19.2,"Bách Hóa Xanh":24.9,"MWG hợp nhất":20.9}},{"label":"Q2/2026","values":{"Điện Máy Xanh (DMX)":21.1,"Bách Hóa Xanh":24.4,"MWG hợp nhất":22.2}},{"label":"Q3/2026","values":{"Điện Máy Xanh (DMX)":20.2,"Bách Hóa Xanh":25.2,"MWG hợp nhất":21.7}}]);
 
@@ -4130,7 +4132,8 @@ function tsWire(){
   if(st&&st.network){
     const nw=st.network;
     if(!nw?.chains?.length){ $('stChain').closest('.card').style.display='none'; return; }
-    mkTS('stChain',{y:{labels:nw.periods,datasets:nw.chains.map((c,k)=>({label:c.name,data:c.counts,backgroundColor:CAT[k%CAT.length],borderRadius:3,maxBarThickness:40}))},
+    const nwSer=blk=>blk&&blk.labels&&blk.labels.length?{labels:blk.labels,datasets:nw.chains.map((c,k)=>({label:c.name,data:(blk.counts&&blk.counts[c.name])||blk.labels.map(()=>null),backgroundColor:CAT[k%CAT.length],borderRadius:3,maxBarThickness:40}))}:null;
+    mkTS('stChain',{def:nw.monthly?'m':'y',m:nwSer(nw.monthly),q:nwSer(nw.quarterly),y:{labels:nw.periods,datasets:nw.chains.map((c,k)=>({label:c.name,data:c.counts,backgroundColor:CAT[k%CAT.length],borderRadius:3,maxBarThickness:40}))},
       cfg:(labels,datasets)=>({type:'bar',data:{labels,datasets},options:baseOpts({plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+vnd(c.parsed.y)+' cửa hàng'}}}})})});
   }
   // 6.4 Doanh thu tháng theo chuỗi (bán lẻ):
@@ -10798,7 +10801,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='',BUILD='97c3775c012b',URL_JSON='./version.json';
+  const PAGE='',BUILD='112df9d8b2fd',URL_JSON='./version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
