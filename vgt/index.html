@@ -7496,10 +7496,17 @@ window.FS_INCOME_HISTORY_10Y={"MWG": {"2016": {"labels": ["Q1/2016", "Q2/2016", 
   var fmtDate = function (iso) { var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ''); return m ? m[3] + '/' + m[2] + '/' + m[1] : (iso || ''); };
   var today = function () { var d = new Date(Date.now() + 7 * 3600e3); return d.toISOString().slice(0, 10); };
 
-  // Bản đã publish + bản vừa ghi trên máy này (chưa kịp build), bản ghi mới hơn thắng.
+  // Bản sao công khai (người dùng chốt 16/11/2026, khi Actions lỗi): mỗi lần đăng còn ghi
+  // live-notes/<MÃ>/<file> vào repo website (public); trang tải bản này lúc mở nên ghi chú hiện
+  // sau ~1–5 phút mà không cần build. Giữ cả bản ghi đã xóa (deleted) để xóa cũng có hiệu lực.
+  var LIVE_REPO = 'FinSuccess-Investment-JSC/stock-dashboard', LIVE_PATH = 'live-notes/' + TK + '/' + C.file, live = [];
+  try { fetch('https://raw.githubusercontent.com/' + LIVE_REPO + '/main/' + LIVE_PATH + '?t=' + Date.now()).then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (d) { if (d && d.entries) { live = d.entries; if (sec.isConnected) render(); } }).catch(function () {}); } catch (e) {}
+  // Bản đã publish + bản công khai + bản vừa ghi trên máy này, bản ghi mới hơn thắng.
   function entries() {
     var map = {};
     ((D[C.dataKey] && D[C.dataKey].entries) || []).forEach(function (e) { map[e.id] = e; });
+    live.forEach(function (e) { var p = map[e.id]; if (!p || (e.ts || '') >= (p.ts || '')) map[e.id] = e; });
     try { var loc = JSON.parse(localStorage.getItem(KEY) || '{}'); Object.keys(loc).forEach(function (id) { var e = loc[id], p = map[id]; if (!p || (e.ts || '') > (p.ts || '')) map[id] = e; }); } catch (e) {}
     return Object.keys(map).map(function (k) { return map[k]; }).filter(function (e) { return !e.deleted; })
       .sort(function (a, b) { return (b.date + b.ts).localeCompare(a.date + a.ts); });
@@ -7633,7 +7640,15 @@ window.FS_INCOME_HISTORY_10Y={"MWG": {"2016": {"labels": ["Q1/2016", "Q2/2016", 
       doc.entries.sort(function (a, b) { return (b.date + b.ts).localeCompare(a.date + a.ts); });
       return api('PUT', path, { message: C.commit + ' ' + TK + ': ' + (x.deleted ? 'xóa ' : '') + (x.title || x.date), content: R.b64encode(JSON.stringify(doc, null, 1) + '\n'), branch: R.branch, sha: cur ? cur.sha : undefined });
     }).then(function () {
-      toast('Đã đăng. Website cập nhật cho mọi người sau khoảng 2–3 phút.');
+      // Bản sao công khai: giữ tombstone để lệnh xóa vẫn áp lên bản đã nhúng.
+      var lp = '/repos/' + LIVE_REPO + '/contents/' + LIVE_PATH;
+      return api('GET', lp + '?ref=main').catch(function () { return null; }).then(function (cur) {
+        var doc = cur ? JSON.parse(R.b64decode(cur.content)) : { ticker: TK, entries: [] };
+        doc.entries = (doc.entries || []).filter(function (e) { return e.id !== x.id; }); doc.entries.push(x);
+        return api('PUT', lp, { message: C.commit + ' ' + TK + ' (live): ' + (x.title || x.date), content: R.b64encode(JSON.stringify(doc, null, 1) + '\n'), branch: 'main', sha: cur ? cur.sha : undefined });
+      }).then(function () { return true; }, function () { return false; });
+    }).then(function (ok) {
+      toast(ok ? 'Đã đăng. Mọi người thấy sau khoảng 1–5 phút.' : 'Đã đăng vào dữ liệu nguồn; trang công khai cập nhật khi build chạy (key chưa có quyền ghi repo website).');
     }).catch(function (e) {
       if (e.status === 409 && !attempt) return save(x, 1);
       toast('Chưa đăng được (' + (e.status === 401 || e.status === 403 ? 'key analyst không hợp lệ' : 'lỗi mạng') + '). Ghi chú vẫn lưu trên trình duyệt này, thử đăng lại sau.', false);
@@ -10340,7 +10355,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='vgt',BUILD='2ff251ff7982',URL_JSON='../version.json';
+  const PAGE='vgt',BUILD='4403ab93ab4d',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
