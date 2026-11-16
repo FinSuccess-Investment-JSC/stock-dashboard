@@ -9939,16 +9939,17 @@ html.dark #reMap .rm-svgw,html[data-theme=dark] #reMap .rm-svgw{background:#1010
     let g=`<svg viewBox="0 0 560 ${H.toFixed(0)}" role="img" aria-label="Bản đồ quỹ đất">`;
     g+=SH.prov.map(pv=>`<path d="${path(pr,pv.p.map(shiftR))}" fill="${hot.has(pv.n)?'var(--rm-hot)':'var(--rm-land)'}" stroke="#fff" stroke-width=".6"><title>${esc(pv.n)}</title></path>`).join('');
     g+=ISL.map(([t,la,lo])=>{const[x,y]=pr.xy(la,lo);return `<text x="${x}" y="${y}" text-anchor="middle" font-family="Inter" font-size="11" font-weight="600" fill="#94A3B8">${t}</text>`;}).join('');
-    regs.forEach(r=>{const[x,y]=pr.xy(r.lat,r.lng),L=LBL[r.id]||[r.lat,r.lng+3],[lx,ly]=pr.xy(L[0],L[1]);
-      const t1=r.name,t2=`${fmt(r.ha,0)}${r.haMiss?'+':''} ha · ${r.items.length} dự án`,w=Math.max(tw(t1,13.5),tw(t2,12))+22,lft=lx<x;
-      const bx=lft?lx-w:lx;
-      g+=`<g class="rm-go" data-reg="${r.id}" style="cursor:pointer"><polyline points="${x},${y} ${lft?bx+w:bx},${ly}" fill="none" stroke="${PURPLE}" stroke-width="1.2" stroke-dasharray="3 3"/>
+    const placed=[];regs.forEach(r=>{const[x,y]=pr.xy(r.lat,r.lng),L=r.lbl||LBL[r.id]||[r.lat,r.lng+3];let[lx,ly]=pr.xy(L[0],L[1]);
+      const t1=r.name,t2=`${r.ha>0?fmt(r.ha,0)+(r.haMiss?'+':'')+' ha · ':''}${r.items.length} dự án`,w=Math.max(tw(t1,13.5),tw(t2,12))+22,lft=lx<x;
+      let bx=Math.min(Math.max(lft?lx-w:lx,4),556-w);ly=Math.min(Math.max(ly,24),H-24);
+      for(let k=0;k<12&&placed.some(q=>bx<q[0]+q[2]+6&&q[0]<bx+w+6&&Math.abs(ly-q[1])<48);k++)ly+=ly+50<H?50:-50;placed.push([bx,ly,w]);
+      g+=`<g class="rm-go" data-reg="${r.id}" style="cursor:pointer"><polyline points="${x},${y} ${bx+w<x?bx+w:bx>x?bx:bx+w/2},${bx+w<x||bx>x?ly:ly+(ly<y?21:-21)}" fill="none" stroke="${PURPLE}" stroke-width="1.2" stroke-dasharray="3 3"/>
 <rect x="${bx}" y="${ly-21}" width="${w}" height="42" rx="8" fill="#fff" stroke="${PURPLE}" stroke-width="1.2"/><text x="${bx+11}" y="${ly-4}" font-family="Inter" font-weight="700" font-size="13.5" fill="${PURPLE}">${esc(t1)}</text><text x="${bx+11}" y="${ly+13}" font-family="Inter" font-weight="600" font-size="12" fill="#243878">${esc(t2)}</text>
 <path transform="translate(${x-9},${y-24})" d="M9 0C4 0 0 4 0 9c0 7 9 15 9 15s9-8 9-15c0-5-4-9-9-9z" fill="${PURPLE}" stroke="#fff" stroke-width="1.5"/><circle cx="${x}" cy="${y-15}" r="3.2" fill="#fff"/></g>`;});
     g+='</svg>';
     const tbl=regs.map(r=>`<div class="rm-reg" data-reg="${r.id}"><h4><span>${esc(r.name)}${r.sub?` <small>· ${esc(r.sub)}</small>`:''}</span><em>Xem vùng →</em></h4>
 <table class="rm-t"><tr><th>Dự án</th><th>Diện tích</th><th>Đã bán</th></tr>${r.items.map(x=>`<tr class="pj" data-p="${esc(x.name)}"><td><span class="rm-dot" style="background:${stOf(x.r.status)[1]}"></span>${esc(x.name)}</td><td>${x.r.areaHa!=null?fmt(x.r.areaHa)+' ha':'—'}</td><td>${barH(sold(x))}</td></tr>`).join('')}</table></div>`).join('');
-    return `<div class="rm-kpi"><div><b>${fmt(totHa,0)}+</b><span>HA TỔNG QUỸ ĐẤT ĐANG THEO DÕI</span></div><div><b style="color:${NAVY}">${P.length}</b><span>DỰ ÁN</span></div><div><b style="color:${NAVY}">${regs.length}</b><span>KHU VỰC</span></div></div>
+    return `<div class="rm-kpi">${totHa>0?`<div><b>${fmt(totHa,0)}+</b><span>HA TỔNG QUỸ ĐẤT ĐANG THEO DÕI</span></div>`:''}<div><b style="color:${NAVY}">${P.length}</b><span>DỰ ÁN</span></div><div><b style="color:${NAVY}">${regs.length}</b><span>KHU VỰC</span></div></div>
 <div class="rm-grid"><div class="rm-svgw">${g}</div><div>${tbl}</div></div>
 <div class="rm-leg">${[['Đang bàn giao',BLUE],['Mở bán / triển khai',TEAL],['Quỹ đất',PURPLE]].map(a=>`<span><span class="rm-dot" style="background:${a[1]}"></span>${a[0]}</span>`).join('')}<span>Bấm vùng trên bản đồ hoặc tên vùng để phóng to; bấm dự án để xem chi tiết.</span></div>`;};
 
@@ -10600,7 +10601,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='hah',BUILD='2231f9c873d2',URL_JSON='../version.json';
+  const PAGE='hah',BUILD='d58568592099',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
