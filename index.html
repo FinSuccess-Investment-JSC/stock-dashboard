@@ -259,6 +259,7 @@ window.PVS_DATA = {
 
   // ---------- TAB 3: CỬA HÀNG & MẠNG LƯỚI (thay cho Backlog) ----------
   stores: {
+    openings: {chain:"Bách Hóa Xanh", monthly:{"labels": ["T12/23", "T2/24", "T3/24", "T4/24", "T5/24", "T6/24", "T7/24", "T8/24", "T9/24", "T10/24", "T11/24", "T12/24", "T2/25", "T3/25", "T4/25", "T5/25", "T6/25", "T7/25", "T8/25", "T9/25", "T10/25", "T11/25", "T12/25", "T2/26", "T3/26", "T4/26", "T5/26", "T6/26", "T7/26", "T8/26", "T9/26", "T10/26"], "counts": {"Bách Hóa Xanh": [1698, 1698, 1696, 1696, 1698, 1701, 1704, 1721, 1726, 1735, 1735, 1770, 1880, 2002, 2129, 2180, 2184, 2184, 2233, 2290, 2370, 2482, 2559, 2758, 2839, 2962, 3051, 3191, 3378, 3612, 3904, 4318]}}, quarterly:{"labels": ["Q4/23", "Q1/24", "Q2/24", "Q3/24", "Q4/24", "Q1/25", "Q2/25", "Q3/25", "Q4/25", "Q1/26", "Q2/26", "Q3/26"], "counts": {"Bách Hóa Xanh": [1698, 1696, 1701, 1726, 1770, 2002, 2184, 2290, 2559, 2839, 3191, 3904]}}, title:"BHX — số cửa hàng & mở mới", note:"Cột: số cửa hàng BHX cuối kỳ (trục trái). Đường: mở mới ròng = số cuối kỳ − số cuối kỳ trước (trục phải), đã trừ cửa hàng đóng. T2/26 gồm cả T1+T2 vì MWG gộp báo cáo hai tháng đầu năm. T12/2023 là số cuối năm 2023. Số tháng 2024–2025 theo bảng theo dõi của analyst FinSuccess; từ T2/2026 khớp báo cáo KQKD tháng của MWG.\nNguồn: MWG IR – báo cáo KQKD tháng (mwg.vn)"},
     tabLabel: "Cửa hàng & Mạng lưới",
     title: "Mạng lưới cửa hàng",
     kpis: [
@@ -4135,6 +4136,17 @@ function tsWire(){
     const nwSer=blk=>blk&&blk.labels&&blk.labels.length?{labels:blk.labels,datasets:nw.chains.map((c,k)=>({label:c.name,data:(blk.counts&&blk.counts[c.name])||blk.labels.map(()=>null),backgroundColor:CAT[k%CAT.length],borderRadius:3,maxBarThickness:40}))}:null;
     mkTS('stChain',{def:nw.monthly?'m':'y',m:nwSer(nw.monthly),q:nwSer(nw.quarterly),y:{labels:nw.periods,datasets:nw.chains.map((c,k)=>({label:c.name,data:c.counts,backgroundColor:CAT[k%CAT.length],borderRadius:3,maxBarThickness:40}))},
       cfg:(labels,datasets)=>({type:'bar',data:{labels,datasets},options:baseOpts({plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+vnd(c.parsed.y)+' cửa hàng'}}}})})});
+  }
+  // 6.3b Số cửa hàng + mở mới theo tháng của một chuỗi (stores.openings.chain), tính từ chênh lệch số cuối kỳ
+  const op=st&&st.openings, nwm=(op&&op.monthly)||(st&&st.network&&st.network.monthly);
+  if(op&&nwm&&nwm.counts&&nwm.counts[op.chain]&&$('stChain')){
+    const card=$('stChain').closest('.card'), id='stOpen';
+    if(!$(id)){ const c=document.createElement('div'); c.className='card'; c.innerHTML='<h3 class="sub">'+esc(op.title||('Số cửa hàng & mở mới — '+op.chain))+'</h3><div class="chart tall"><canvas id="'+id+'"></canvas></div><div class="note">'+esc(op.note||'')+'</div>'; card.after(c); }
+    const mk2=blk=>{ const v=blk.counts[op.chain]; const d=v.map((x,i)=>i&&x!=null&&v[i-1]!=null?x-v[i-1]:null);
+      return {labels:blk.labels,datasets:[{type:'bar',label:'Số cửa hàng',data:v,backgroundColor:NAVY,borderRadius:3,maxBarThickness:40,yAxisID:'y',order:2},{type:'line',label:'Mở mới (ròng) trong kỳ',data:d,borderColor:GREEN,backgroundColor:GREEN,borderWidth:2.5,pointRadius:3,tension:.25,yAxisID:'y1',order:1}]}; };
+    const qb=(op&&op.quarterly)||st.network.quarterly;
+    mkTS(id,{def:'m',m:mk2(nwm),q:qb&&qb.counts&&qb.counts[op.chain]?mk2(qb):null,
+      cfg:(labels,datasets)=>({type:'bar',data:{labels,datasets},options:baseOpts({plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+(c.parsed.y==null?'—':vnd(c.parsed.y))+' cửa hàng'}}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,title:{display:true,text:'Số cửa hàng'}},y1:{position:'right',beginAtZero:true,grid:{display:false},title:{display:true,text:'Mở mới'}}}})})});
   }
   // 6.4 Doanh thu tháng theo chuỗi (bán lẻ):
   //   Tháng = so sánh mùa vụ (mỗi năm 1 đường, chồng lên trục T1-T12, đúng rule CLAUDE.md).
@@ -10801,7 +10813,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='',BUILD='112df9d8b2fd',URL_JSON='./version.json';
+  const PAGE='',BUILD='905b01ab8100',URL_JSON='./version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
