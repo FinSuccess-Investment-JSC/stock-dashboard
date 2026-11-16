@@ -9997,7 +9997,7 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
     }
     // 3 · Pipeline
     const PL=P.pipeline;
-    if(PL&&(PL.rows||[]).length){
+    if(PL&&(PL.rows||[]).length&&!PL.ownGantt){ // ownGantt: mã đã có chart "Tiến độ dự án" riêng (enhancements) → không lặp
       const years=[...new Set(PL.rows.map(r=>String(r.year)))].sort();
       const names=[...new Set(PL.rows.filter(r=>r.valueBn!=null).map(r=>r.name))];
       const hasEst=PL.rows.some(r=>r.estimate);
@@ -10823,7 +10823,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='pvt',BUILD='0a06ca658468',URL_JSON='../version.json';
+  const PAGE='pvt',BUILD='5cbcc4649874',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
