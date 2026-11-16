@@ -9934,7 +9934,7 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
 
   const css=`#reMap{--rm-bg:#fff;--rm-land:#E5E9F0;--rm-hot:#BFE8E9;--rm-ink:#243878;--rm-mut:#64748B;--rm-line:#E3E8F0}
 #reMap .rm-kpi{display:flex;gap:28px;flex-wrap:wrap;align-items:flex-end;margin:4px 0 14px}#reMap .rm-kpi b{display:block;font:700 34px/1 Inter,sans-serif;color:${PURPLE};font-variant-numeric:tabular-nums}#reMap .rm-kpi span{font:600 12px Inter,sans-serif;color:var(--rm-mut);letter-spacing:.4px}
-#reMap .rm-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:22px;align-items:start}
+#reMap .rm-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:22px;align-items:start}
 #reMap svg{width:100%;height:auto;display:block}#reMap .rm-svgw{background:linear-gradient(180deg,#F4F8FC,#EAF1F8);border-radius:12px;border:1px solid #D6DDE8;position:relative}
 #reMap .rm-reg{border-top:2px solid ${PURPLE};padding:8px 0 4px;margin-bottom:12px;cursor:pointer}#reMap .rm-reg h4{margin:0;display:flex;justify-content:space-between;align-items:baseline;font:700 15px Inter,sans-serif;color:${PURPLE}}
 #reMap .rm-reg h4 small{font:600 12px Inter,sans-serif;color:var(--rm-mut)}#reMap .rm-reg h4 em{font-style:normal;font:600 12px Inter,sans-serif;color:${BLUE}}
@@ -10043,11 +10043,21 @@ ${p.note||r.note?`<div class="rm-fn">${esc([p.note,r.note].filter(Boolean).join(
   const run=()=>{const host=document.getElementById('rePack');if(!host)return false;if(document.getElementById('reMap'))return true;
     const box=document.createElement('div');box.id='reMap';
     const tip=[M.note,I.note,'Ranh giới hành chính 63 tỉnh/thành trước sáp nhập 2025, gồm QĐ Hoàng Sa và QĐ Trường Sa của Việt Nam.','Nguồn: '+[M.src,I.src].filter(Boolean).join('; ')].filter(Boolean).join('\n');
-    box.innerHTML=`<h2 class="sec">Bản đồ quỹ đất — ${regs.length} khu vực, ${P.length} dự án</h2><div class="card"><h3 class="sub">Quỹ đất theo khu vực <span class="info" tabindex="0" role="note" data-tip="${esc(tip)}" aria-label="${esc(tip)}">i</span></h3><div class="rm-body"></div></div>`;
+    box.innerHTML=`<h2 class="sec">Quỹ đất — ${regs.length} khu vực, ${P.length} dự án</h2><div class="card"><h3 class="sub">Quỹ đất theo khu vực <span class="info" tabindex="0" role="note" data-tip="${esc(tip)}" aria-label="${esc(tip)}">i</span></h3><div class="rm-body"></div></div>`;
     // đặt ngay sau khối "Từ doanh số đến lợi nhuận" (người dùng chốt 16/11/2026), không có thì đầu #rePack
     {const pt=document.getElementById('projTable');const c=pt&&pt.closest('.card');if(c&&BL.length)c.style.display='none';}
     const bh=[...host.querySelectorAll(':scope>h2.sec')].find(h=>/^Từ doanh số/.test(h.textContent.trim()));
     host.insertBefore(box,bh&&bh.nextElementSibling?bh.nextElementSibling.nextElementSibling:host.firstChild);
+    // Bố cục tab (người dùng chốt 16/11/2026): "Từ doanh số đến lợi nhuận" lên đầu tab; mọi khối quỹ đất gom thành một mục ngay dưới bản đồ.
+    const arrange=()=>{const tab=box.closest('.tab,section,[id=backlog]')||document.getElementById('backlog');if(!tab)return;
+      const nx=e=>e&&e.nextElementSibling;
+      if(bh&&nx(bh)){const c=nx(bh),first=[...tab.querySelectorAll('h2.sec')].find(h=>h.offsetParent!==null||h===bh);if(first&&first!==bh){first.parentNode.insertBefore(bh,first);bh.parentNode.insertBefore(c,nx(bh));}}
+      let at=box.querySelector(':scope>.card');
+      const put=el=>{if(!el||!at)return;at.parentNode.insertBefore(el,at.nextSibling);at=el;};
+      const qd=[...tab.querySelectorAll('.card')].find(c=>{const h=c.querySelector('h3.sub');return h&&/^Quỹ đất theo dự án/.test(h.textContent.trim())&&!box.contains(c);});put(qd);
+      const qh=[...host.querySelectorAll(':scope>h2.sec')].find(h=>h.textContent.trim()==='Quỹ đất');
+      if(qh){let e=nx(qh);while(e&&!(e.matches('h2.sec')||e.querySelector(':scope>h2.sec'))){const n=nx(e);put(e);e=n;}qh.remove();}};
+    arrange();setTimeout(arrange,800);setTimeout(arrange,2500);
     const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
     const body=box.querySelector('.rm-body');let cur=null;
     const show=id=>{cur=id;body.innerHTML=id?region(id):overview();};
@@ -10723,7 +10733,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='phr',BUILD='02cf828dc5b4',URL_JSON='../version.json';
+  const PAGE='phr',BUILD='d4ddd774cb70',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
