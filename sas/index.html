@@ -10010,7 +10010,9 @@ ${p.note||r.note?`<div class="rm-fn">${esc([p.note,r.note].filter(Boolean).join(
     const box=document.createElement('div');box.id='reMap';
     const tip=[M.note,I.note,'Ranh giới hành chính 63 tỉnh/thành trước sáp nhập 2025, gồm QĐ Hoàng Sa và QĐ Trường Sa của Việt Nam.','Nguồn: '+[M.src,I.src].filter(Boolean).join('; ')].filter(Boolean).join('\n');
     box.innerHTML=`<h2 class="sec">Bản đồ quỹ đất — ${regs.length} khu vực, ${P.length} dự án</h2><div class="card"><h3 class="sub">Quỹ đất theo khu vực <span class="info" tabindex="0" role="note" data-tip="${esc(tip)}" aria-label="${esc(tip)}">i</span></h3><div class="rm-body"></div></div>`;
-    host.insertBefore(box,host.firstChild);
+    // đặt ngay sau khối "Từ doanh số đến lợi nhuận" (người dùng chốt 16/11/2026), không có thì đầu #rePack
+    const bh=[...host.querySelectorAll(':scope>h2.sec')].find(h=>/^Từ doanh số/.test(h.textContent.trim()));
+    host.insertBefore(box,bh&&bh.nextElementSibling?bh.nextElementSibling.nextElementSibling:host.firstChild);
     const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
     const body=box.querySelector('.rm-body');let cur=null;
     const show=id=>{cur=id;body.innerHTML=id?region(id):overview();};
@@ -10601,7 +10603,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='sas',BUILD='374283e26e0e',URL_JSON='../version.json';
+  const PAGE='sas',BUILD='12ca9be15e3d',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
