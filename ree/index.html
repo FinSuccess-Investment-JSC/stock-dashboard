@@ -10767,6 +10767,91 @@ ${p.note||r.note?`<div class="rm-fn">${esc([p.note,r.note].filter(Boolean).join(
   let n=0;const t=setInterval(()=>{if(run()||++n>40)clearInterval(t);},300);
 })();
 
+/* Quy mô dự án BĐS (người dùng chốt 16/11/2026): 3 hình, không bảng tính.
+   1 Dải 3 số: GDV chưa ghi nhận · LN tiềm năng về DN · so với LNST năm gần nhất / vốn hóa
+   2 Treemap: ô theo GDV, tô đậm phần đã bán, viền theo hạch toán; bấm ô mở thẻ dự án trên bản đồ
+   3 Điểm rơi LN theo năm bàn giao (cột chồng theo dự án) + đường LNST mẹ năm gần nhất
+   Dữ liệu <MÃ>/sources/re-scale.json → PVS_DATA.reScale:
+   {asOf, src, note, netMargin:{value,src}, projects:[{name, accounting, ownership, segments:[{type,units,sizeM2,priceMn|unitPriceBn,src,estimate}],
+    gdvBn, gdvSrc, soldPct, handedPct, margin, schedule:{năm:tỷ trọng}, note}]}
+   GDV = Σ số căn × DT/căn × giá/m² (hoặc giá/căn); LN về DN = GDV chưa ghi nhận × biên LNST × % lợi ích. Mọi số là ước tính. */
+(function(){
+  const D=window.PVS_DATA||{}, S=D.reScale; if(!S||!(S.projects||[]).length)return;
+  const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const fmt=(v,d=0)=>v==null||!isFinite(v)?'—':Number(v).toLocaleString('vi-VN',{maximumFractionDigits:d});
+  const TK=(D.meta||{}).ticker||'';
+  const NAVY='#1D2678',BLUE='#2938A8',TEAL='#59C5C8',PURPLE='#861C52';
+  const ACC={'Hợp nhất':BLUE,'Liên doanh':PURPLE,'Hợp tác kinh doanh':TEAL};
+  const accC=a=>ACC[a]||(/liên doanh|liên kết/i.test(a||'')?PURPLE:/hợp tác/i.test(a||'')?TEAL:BLUE);
+  const nm=(S.netMargin||{}).value;
+  const P=S.projects.map(p=>{
+    let g=p.gdvBn,calc=[];
+    if(g==null){let t=0,ok=false;(p.segments||[]).forEach(s=>{let v=null;
+      if(s.unitPriceBn!=null&&s.units!=null)v=s.units*s.unitPriceBn;
+      else if(s.units!=null&&s.sizeM2!=null&&s.priceMn!=null)v=s.units*s.sizeM2*s.priceMn/1000;
+      if(v!=null){t+=v;ok=true;calc.push(`${s.type}: ${fmt(s.units)} căn × ${s.unitPriceBn!=null?fmt(s.unitPriceBn,2)+' tỷ/căn':fmt(s.sizeM2)+' m² × '+fmt(s.priceMn)+' tr/m²'} ≈ ${fmt(v)} tỷ${s.estimate?'*':''}`);}});
+      g=ok?t:null;}
+    else calc.push(`GDV công bố: ${fmt(g)} tỷ${p.gdvSrc?' ('+p.gdvSrc+')':''}`);
+    const m=p.margin!=null?p.margin:nm, own=p.ownership!=null?p.ownership/100:1;
+    const remain=g!=null?g*(1-(p.handedPct||0)/100):null;
+    const profit=remain!=null&&m!=null?remain*m*own:null;
+    return {...p,gdv:g,remain,profit,m,own,calc};
+  }).filter(p=>p.gdv!=null&&p.gdv>0).sort((a,b)=>b.gdv-a.gdv);
+  if(!P.length)return;
+  const totRemain=P.reduce((s,p)=>s+(p.remain||0),0), totProfit=P.reduce((s,p)=>s+(p.profit||0),0);
+  const B=(D.rePack||{}).bridge||{}; let lnY=null,lnV=null;
+  (B.labels||[]).forEach((l,i)=>{if(/^(NTC |FY ?)?\d{4}$/.test(l)&&(B.npat||[])[i]!=null){lnY=l;lnV=B.npat[i];}});
+  const mcap=(D.meta||{}).mcap||(D.meta||{}).marketCap||null;
+
+  // 1 · dải số
+  const kpi=`<div class="rs-kpi">
+<div><b>${fmt(totRemain)}<small> tỷ*</small></b><span>GDV CHƯA GHI NHẬN</span><em>${P.length} dự án · trước VAT/chiết khấu</em></div>
+<div><b style="color:${PURPLE}">${fmt(totProfit)}<small> tỷ*</small></b><span>LN TIỀM NĂNG VỀ ${esc(TK)}</span><em>biên LNST ${nm!=null?fmt(nm*100,1)+'%':'—'} × % lợi ích</em></div>
+<div><b style="color:${NAVY}">${lnV?fmt(totProfit/lnV,1)+' lần':'—'}</b><span>SO VỚI LNST MẸ ${esc(lnY||'')}</span><em>${mcap?'≈ '+fmt(totProfit/mcap,2)+' lần vốn hóa':''}</em></div></div>`;
+
+  // 2 · treemap (squarified)
+  const W=1000,H=360;
+  const sq=(items,x,y,w,h,out)=>{if(!items.length)return;const tot=items.reduce((s,i)=>s+i.v,0);
+    if(items.length===1){out.push({...items[0],x,y,w,h});return;}
+    const horiz=w>=h;let row=[],rs=0,best=Infinity,i=0;
+    const worst=(r,s)=>{const side=horiz?h:w,len=s/tot*(horiz?w:h);return Math.max(...r.map(it=>{const a=it.v/s*side;return Math.max(len/a,a/len);}));};
+    for(;i<items.length;i++){const r2=[...row,items[i]],s2=rs+items[i].v,wv=worst(r2,s2);if(wv>best&&row.length)break;row=r2;rs=s2;best=wv;}
+    const len=rs/tot*(horiz?w:h);let off=0;
+    row.forEach(it=>{const a=it.v/rs*(horiz?h:w);out.push(horiz?{...it,x,y:y+off,w:len,h:a}:{...it,x:x+off,y,w:a,h:len});off+=a;});
+    const rest=items.slice(i);if(horiz)sq(rest,x+len,y,w-len,h,out);else sq(rest,x,y+len,w,h-len,out);};
+  const cells=[];sq(P.map(p=>({p,v:p.gdv})),0,0,W,H,cells);
+  const tm=`<div class="rs-tm" style="aspect-ratio:${W}/${H}">${cells.map(c=>{const p=c.p,sold=Math.max(0,Math.min(100,p.soldPct||0)),col=accC(p.accounting),small=c.w<110||c.h<60;
+    return `<div class="rs-c" data-p="${esc(p.name)}" style="left:${c.x/W*100}%;top:${c.y/H*100}%;width:${c.w/W*100}%;height:${c.h/H*100}%;--c:${col}" title="${esc(p.name)} · GDV ≈ ${fmt(p.gdv)} tỷ* · đã bán ${p.soldPct!=null?fmt(p.soldPct)+'%':'—'} · ${esc(p.accounting||'')}">
+<i style="width:${sold}%"></i>${small?`<span class="s">${esc(p.name)}</span>`:`<span><b>${esc(p.name)}</b><br>${fmt(p.gdv)} tỷ*${p.soldPct!=null?' · bán '+fmt(p.soldPct)+'%':''}</span>`}</div>`;}).join('')}</div>
+<div class="rs-lg"><span><i style="background:${BLUE}"></i>Hợp nhất</span><span><i style="background:${PURPLE}"></i>Liên doanh / liên kết</span><span><i style="background:${TEAL}"></i>Hợp tác kinh doanh</span><span><i class="sd"></i>Phần tô đậm = đã bán</span><span>Bấm ô để xem dự án trên bản đồ</span></div>`;
+
+  // 3 · điểm rơi LN
+  const yrs=[...new Set(P.flatMap(p=>Object.keys(p.schedule||{})))].sort();
+  const PAL=['#1D2678','#2938A8','#4354B7','#6171C5','#8997D6','#59C5C8','#861C52','#B3BDE8','#D4A72C','#94A3B8'];
+  const info=t=>` <span class="info" tabindex="0" role="note" data-tip="${esc(t)}" aria-label="${esc(t)}">i</span>`;
+  const how=['Ước tính analyst từ số công khai, không phải số DN công bố.','GDV = Σ số căn × diện tích bán/căn × giá bán/m² (hoặc giá/căn), giá thường gồm VAT và chưa trừ chiết khấu nên có thể cao hơn giá thực thu 10–20%.','GDV chưa ghi nhận = GDV × (1 − % đã bàn giao).','LN về '+TK+' = GDV chưa ghi nhận × biên LNST × % lợi ích; dự án liên doanh chỉ vào lãi LDLK, không vào doanh thu hợp nhất.',nm!=null?'Biên LNST mặc định '+fmt(nm*100,1)+'% — '+((S.netMargin||{}).src||''):'',S.note||'',S.src?'Nguồn: '+S.src:''].filter(Boolean).join('\n');
+  const perProj=P.map(p=>p.name+': '+p.calc.join('; ')+(p.handedPct!=null?' · đã bàn giao '+fmt(p.handedPct)+'%':'')+(p.profit!=null?' → LN về '+TK+' ≈ '+fmt(p.profit)+' tỷ':'')).join('\n');
+  const css=`<style>.rs-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:4px 0 16px}.rs-kpi>div{background:#F8FAFC;border:1px solid #E1E6EE;border-radius:10px;padding:12px 14px}.rs-kpi b{display:block;font-size:28px;font-weight:700;color:${BLUE};font-variant-numeric:tabular-nums}.rs-kpi b small{font-size:14px;font-weight:600}.rs-kpi span{display:block;font-size:11.5px;font-weight:600;letter-spacing:.5px;color:#64748B;margin-top:2px}.rs-kpi em{display:block;font-style:normal;font-size:12px;color:#94A3B8;margin-top:2px}
+.rs-tm{position:relative;width:100%;border-radius:10px;overflow:hidden;background:#fff}.rs-c{position:absolute;box-sizing:border-box;border:2px solid #fff;background:color-mix(in srgb,var(--c) 22%,#fff);cursor:pointer;overflow:hidden;border-radius:6px;transition:filter .15s}.rs-c:hover{filter:brightness(.93)}.rs-c i{position:absolute;left:0;top:0;bottom:0;background:color-mix(in srgb,var(--c) 70%,#fff)}.rs-c span{position:relative;display:block;padding:8px 10px;font-size:12.5px;color:#0F172A;line-height:1.35}.rs-c span b{font-size:13.5px}.rs-c span.s{font-size:11px;padding:4px 6px}
+.rs-lg{display:flex;flex-wrap:wrap;gap:14px;margin:10px 0 0;font-size:12px;color:#64748B}.rs-lg i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-2px}.rs-lg i.sd{background:linear-gradient(90deg,#6171C5 50%,#D9DEF4 50%)}
+html.fs-dark .rs-kpi>div{background:#1E1E1E;border-color:#2A2A2A}html.fs-dark .rs-c span{color:#F5F5F5}</style>`;
+  const html=`${css}<h2 class="sec">Quy mô dự án — ${fmt(totProfit)} tỷ LN tiềm năng*</h2>
+<div class="card" style="margin-top:16px"><h3 class="sub">Có lớn không?${info(how)}</h3>${kpi}<h3 class="sub" style="margin-top:6px">Quy mô từng dự án (GDV, tỷ VND)${info(perProj)}</h3>${tm}</div>
+<div class="card" style="margin-top:16px"><h3 class="sub">Điểm rơi lợi nhuận về ${esc(TK)} theo năm bàn giao (tỷ VND)${info('LN về '+TK+' từng dự án × tỷ trọng ghi nhận theo năm (theo lịch bàn giao trong timeline dự án). Đường ngang: LNST mẹ '+(lnY||'')+' để so độ lớn. Ước tính, không phải dự phóng của DN.\n'+P.map(p=>p.name+': '+Object.entries(p.schedule||{}).map(([y,v])=>y+' '+fmt(v*100)+'%').join(', ')).join('\n'))}</h3><div class="chart tall"><canvas id="reScaleYr"></canvas></div></div>`;
+
+  const run=()=>{const map=document.getElementById('reMap');const host=document.getElementById('rePack');if(!host||(D.reMap&&!map))return false;if(document.getElementById('reScale'))return true;
+    const box=document.createElement('div');box.id='reScale';box.innerHTML=html;
+    if(map&&map.parentNode===host)host.insertBefore(box,map.nextSibling);else host.insertBefore(box,host.firstChild);
+    box.querySelectorAll('.rs-c').forEach(c=>c.addEventListener('click',()=>{const r=document.querySelector(`#reMap tr[data-p="${CSS.escape(c.dataset.p)}"]`);if(r){r.click();(document.querySelector('#reMap .rm-cardw')||document.getElementById('reMap')).scrollIntoView({behavior:'smooth',block:'center'});}}));
+    const draw=()=>{if(!window.Chart)return setTimeout(draw,300);const cv=document.getElementById('reScaleYr');if(!cv||cv._fsChart)return;
+      const ds=P.filter(p=>p.profit).map((p,i)=>({label:p.name,data:yrs.map(y=>p.schedule&&p.schedule[y]?+(p.profit*p.schedule[y]).toFixed(0):null),backgroundColor:PAL[i%PAL.length],stack:'s'}));
+      if(lnV)ds.push({type:'line',label:'LNST mẹ '+lnY,data:yrs.map(()=>lnV),borderColor:'#D4A72C',borderDash:[6,4],pointRadius:0,borderWidth:2});
+      cv._fsChart=new Chart(cv,{type:'bar',data:{labels:yrs,datasets:ds},options:{maintainAspectRatio:false,scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}},plugins:{tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y)+' tỷ'}}}}});};
+    draw();return true;};
+  const tryRun=(n)=>{if(run())return;if(n<40)setTimeout(()=>tryRun(n+1),250);};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>tryRun(0),50));else setTimeout(()=>tryRun(0),50);
+})();
+
 
 </script>
 <script>
@@ -11345,7 +11430,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='ree',BUILD='01c8b6d6dfc1',URL_JSON='../version.json';
+  const PAGE='ree',BUILD='03eb2684ea01',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
