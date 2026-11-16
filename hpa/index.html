@@ -9678,7 +9678,7 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
     }
     // 2 · Bảng dự án chuẩn hóa
     const J=P.projects;
-    if(J&&(J.rows||[]).length){
+    if(J&&(J.rows||[]).length&&!(window.PVS_DATA||{}).reMap){ // có bản đồ quỹ đất thì bảng này trùng → bỏ
       const rows=J.rows.map(r=>{const left=r.units!=null&&r.soldUnits!=null?r.units-r.soldUnits:null;
         return `<tr data-q="${esc((r.name+' '+(r.region||'')+' '+(r.type||'')+' '+(r.status||'')).toLowerCase())}">`+td(`<b>${esc(r.name)}</b>${r.note?` <span class="info" tabindex="0" data-tip="${esc(r.note)}">i</span>`:''}`)+td(esc(r.region||'—'))+td(esc(r.type||'—'))+td(fmt(r.areaHa,1),1)+td(r.ownership==null?'—':fmt(r.ownership,1)+'%',1)+td(fmt(r.investBn),1)+td(fmt(r.units),1)+td(fmt(r.soldUnits),1)+td(fmt(left),1)+td(esc(r.price==null?'—':r.price))+td(esc(r.legal||'—'))+td(esc(r.launch||'—'))+td(esc(r.handover||'—'))+td(esc(r.status||'—'))+'</tr>';});
       H+=sec('Danh mục dự án',card('Dự án — thông số chuẩn hóa',J,`<input type="search" class="re-filter" data-t="reProjTbl" placeholder="Lọc theo tên, vùng, loại, trạng thái…" style="width:100%;max-width:360px;padding:7px 10px;border:1px solid #D6DDE8;border-radius:8px;margin-bottom:10px">`+`<div class="tbl-wrap"><table id="reProjTbl"><tr><th>Dự án</th><th>Vùng</th><th>Loại</th><th class="num">DT (ha)</th><th class="num">Sở hữu</th><th class="num">Tổng mức ĐT (tỷ)</th><th class="num">Sản phẩm</th><th class="num">Đã bán</th><th class="num">Còn lại</th><th>Giá bán</th><th>Pháp lý</th><th>Mở bán</th><th>Bàn giao</th><th>Trạng thái</th></tr>${rows.join('')}</table></div>`,'Ô trống: nguồn không công bố. Còn lại = sản phẩm − đã bán.'));
@@ -9746,7 +9746,20 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
       const names=[...new Set(PL.rows.filter(r=>r.valueBn!=null).map(r=>r.name))];
       const hasEst=PL.rows.some(r=>r.estimate);
       let h=names.length?card('Giá trị dự kiến theo năm (tỷ VND)',PL,chart('rePipe'),hasEst?est:''):'';
-      h+=card('Dòng thời gian mở bán / bàn giao',PL,`<div class="tbl-wrap"><table id="rePipeTbl"><tr><th>Năm</th><th>Dự án</th><th>Sự kiện</th><th class="num">Giá trị (tỷ)</th></tr>${PL.rows.slice().sort((a,b)=>String(a.year).localeCompare(String(b.year))).map(r=>'<tr>'+td(esc(r.year))+td(esc(r.name))+td(esc(r.event||'—'))+td(fmt(r.valueBn)+(r.estimate?'*':''),1)+'</tr>').join('')}</table></div>`,hasEst?est:'');
+      { // Pipeline dạng chart: hàng = dự án, cột = năm, chấm = sự kiện
+        const kind=e=>{e=String(e||'').toLowerCase();return /bàn giao/.test(e)&&!/kế tiếp/.test(e)?'h':/mở bán|bán/.test(e)&&!/kế tiếp/.test(e)?'s':/chuẩn bị|xây dựng|pháp lý/.test(e)?'p':'n';};
+        const KC={s:['Mở bán','#59C5C8'],h:['Bàn giao','#1D2678'],p:['Chuẩn bị / xây dựng','#D4A72C'],n:['Giai đoạn kế tiếp','#94A3B8']};
+        const projs=[...new Set(PL.rows.map(r=>r.name))];
+        const cols=`minmax(150px,1.3fr) repeat(${years.length},minmax(110px,1fr))`;
+        let g=`<div class="rp-gantt" style="grid-template-columns:${cols}"><div class="rp-h"></div>${years.map(y=>`<div class="rp-h">${esc(y)}</div>`).join('')}`;
+        projs.forEach(n=>{g+=`<div class="rp-n">${esc(n)}</div>`;years.forEach(y=>{const ev=PL.rows.filter(r=>r.name===n&&String(r.year)===y);
+          g+=`<div class="rp-c">${ev.map(r=>{const k=kind(r.event),[lb,cl]=KC[k],t=String(r.event||'').split(' — '),sub=t.slice(1).join(' — ');
+            return `<span class="rp-e${r.estimate?' est':''}" style="--c:${cl}" title="${esc(r.event)}${r.valueBn!=null?' · '+fmt(r.valueBn)+' tỷ':''}${r.estimate?' (kỳ vọng/ước tính)':''}"><b>${esc(t[0])}${r.estimate?'*':''}</b>${sub?`<i>${esc(sub)}</i>`:''}</span>`;}).join('')}</div>`;});});
+        g+='</div>';
+        const lg=`<div class="rp-lg">${Object.values(KC).map(([l,c])=>`<span><i style="background:${c}"></i>${l}</span>`).join('')}<span><i class="o"></i>Viền đứt = kỳ vọng / chưa khóa lịch</span></div>`;
+        const st=`<style>.rp-gantt{display:grid;gap:0;font-size:12.5px;overflow-x:auto}.rp-h{font-weight:650;color:#243878;padding:6px 8px;border-bottom:2px solid #D6DDE8;text-align:center}.rp-n{font-weight:600;color:#334155;padding:8px;border-bottom:1px solid #E3E8F0;display:flex;align-items:center}.rp-c{padding:6px;border-bottom:1px solid #E3E8F0;border-left:1px dashed #E3E8F0;display:flex;flex-direction:column;gap:4px}.rp-e{display:block;border-radius:6px;padding:4px 7px;background:color-mix(in srgb,var(--c) 16%,transparent);border-left:4px solid var(--c);line-height:1.3}.rp-e.est{border:1px dashed var(--c);border-left:4px dashed var(--c);background:transparent}.rp-e b{display:block;font-weight:600;color:#1E293B}.rp-e i{font-style:normal;color:#64748B;font-size:11.5px}.rp-lg{display:flex;flex-wrap:wrap;gap:14px;margin:0 0 10px;font-size:12px;color:#64748B}.rp-lg i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-2px}.rp-lg i.o{border:1.5px dashed #64748B}html.fs-dark .rp-e b{color:#F5F5F5}html.fs-dark .rp-n{color:#E5E5E5}</style>`;
+        h+=card('Pipeline mở bán / bàn giao',PL,st+lg+g+`<details class="dd"><summary>Bảng chi tiết (${PL.rows.length} dòng)</summary><div class="tbl-wrap"><table id="rePipeTbl"><tr><th>Năm</th><th>Dự án</th><th>Sự kiện</th><th class="num">Giá trị (tỷ)</th></tr>${PL.rows.slice().sort((a,b)=>String(a.year).localeCompare(String(b.year))).map(r=>'<tr>'+td(esc(r.year))+td(esc(r.name))+td(esc(r.event||'—'))+td(fmt(r.valueBn)+(r.estimate?'*':''),1)+'</tr>').join('')}</table></div></details>`,hasEst?est:'');
+      }
       H+=sec('Pipeline dự án',h);
       if(names.length)mkChart('rePipe',{type:'bar',data:{labels:years,datasets:names.map((n,i)=>({label:n,data:years.map(y=>{const v=PL.rows.filter(r=>r.name===n&&String(r.year)===y&&r.valueBn!=null).reduce((s,r)=>s+(+r.valueBn),0);return v||null;}),backgroundColor:PAL[i%PAL.length]}))},options:{maintainAspectRatio:false,scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}},plugins:{tooltip:tip('tỷ')}}});
     }
@@ -9807,6 +9820,172 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
     document.querySelectorAll('.re-filter').forEach(i=>i.addEventListener('input',()=>{const q=i.value.trim().toLowerCase(),t=document.getElementById(i.dataset.t);if(!t)return;t.querySelectorAll('tr[data-q]').forEach(r=>{r.style.display=!q||r.dataset.q.includes(q)?'':'none';});}));
   };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(run,0));else setTimeout(run,0);
+})();
+
+/* Bản đồ quỹ đất BĐS dạng infographic (NLG thử nghiệm; viết lại 16/11/2026 theo mẫu BCTN Nam Long / infographic đại dự án).
+   Dữ liệu: <MÃ>/sources/re-map.json → PVS_DATA.reMap {projects{tên:{lat,lng,approx,price,units,handover,construction,legal,products,partner,phases,note}},
+   regions[{id,name,sub,projects[]}], competitors[], src, note}; tên dự án khớp rePack.projects.rows[].name.
+   Ranh giới tỉnh: _template/sources/vn-shape.json → PVS_DATA.vnShape (gồm QĐ Hoàng Sa, Trường Sa). Hạ tầng: _template/sources/infra-vn.json → PVS_DATA.reInfra.
+   Ba lớp: Toàn quốc (pin theo vùng + bảng quỹ đất) → Vùng (dự án NLG + chủ đầu tư khác có nhãn, bảng giá) → Thẻ dự án (đã bán/bàn giao, mốc, hạ tầng).
+   SVG tự vẽ, không dùng nền bản đồ ngoài. Chỉ hiện dữ kiện; số ước tính (báo chí/CTCK/môi giới) có dấu *; thiếu số hiện —. */
+(function(){
+  const D=window.PVS_DATA||{}, M=D.reMap, SH=D.vnShape, I=D.reInfra||{landmarks:[],lines:[]}, RP=D.rePack||{};
+  if(!M||!M.projects||!SH)return;
+  const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const fmt=(v,d=1)=>v==null||!isFinite(v)?'—':Number(v).toLocaleString('vi-VN',{maximumFractionDigits:d});
+  const dmy=d=>{const m=/^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?/.exec(d||'');return m?[m[3],m[2],m[1]].filter(Boolean).join('/'):'';};
+  const rows=((RP.projects||{}).rows||[]);
+  const P=rows.map(r=>({name:r.name,r,p:M.projects[r.name]})).filter(x=>x.p&&isFinite(x.p.lat));
+  if(!P.length)return;
+  const C=(M.competitors||[]).filter(c=>isFinite(c.lat)&&isFinite(c.lng));
+  const R=6371,rad=x=>x*Math.PI/180;
+  const km=(a,b)=>{const dl=rad(b[0]-a[0]),dg=rad(b[1]-a[1]);const h=Math.sin(dl/2)**2+Math.cos(rad(a[0]))*Math.cos(rad(b[0]))*Math.sin(dg/2)**2;return 2*R*Math.asin(Math.sqrt(h));};
+  const lineKm=(p,path)=>{let b=1e9;for(let i=0;i<path.length-1;i++){const a=path[i],c=path[i+1];for(let t=0;t<=1;t+=.05)b=Math.min(b,km(p,[a[0]+(c[0]-a[0])*t,a[1]+(c[1]-a[1])*t]));}return b;};
+  const NAVY='#1D2678',BLUE='#2938A8',TEAL='#59C5C8',PURPLE='#861C52',GOLD='#D4A72C',GREY='#94A3B8';
+  const stOf=s=>/bàn giao/i.test(s||'')?['Đang bàn giao',BLUE]:/mở bán|triển khai|chuẩn bị/i.test(s||'')?['Mở bán / triển khai',TEAL]:/quỹ đất/i.test(s||'')?['Quỹ đất',PURPLE]:['Khác',NAVY];
+  const sold=x=>x.p.units&&x.p.units.soldPct!=null?{v:x.p.units.soldPct,e:!!x.p.units.estimate}:null;
+  const csold=c=>c.sold&&c.sold.value!=null?{v:c.sold.value,e:!!c.sold.estimate}:null;
+  const tx=o=>o==null?null:typeof o==='object'?(o.text?o.text+(o.estimate?' *':'')+(o.asOf?` (${dmy(o.asOf)})`:''):null):String(o);
+  const hand=x=>x.p.handover&&x.p.handover.handedPct!=null?{v:x.p.handover.handedPct,e:!!x.p.handover.estimate}:null;
+  // vùng: theo regions khai báo; dự án chưa gán → vùng "Khác"
+  const regs=(M.regions||[]).map(g=>({...g,items:P.filter(x=>(g.projects||[]).includes(x.name))})).filter(g=>g.items.length);
+  const left=P.filter(x=>!regs.some(g=>g.items.includes(x)));
+  if(left.length)regs.push({id:'other',name:'Khác',items:left});
+  regs.forEach(g=>{g.lat=g.items.reduce((s,x)=>s+x.p.lat,0)/g.items.length;g.lng=g.items.reduce((s,x)=>s+x.p.lng,0)/g.items.length;
+    g.ha=g.items.reduce((s,x)=>s+(x.r.areaHa||0),0);g.haMiss=g.items.some(x=>x.r.areaHa==null);});
+  const totHa=P.reduce((s,x)=>s+(x.r.areaHa||0),0);
+
+  // ---------- chiếu tọa độ ----------
+  const proj=(b,W)=>{const lat0=rad((b[1]+b[3])/2),k=W/((b[2]-b[0])*Math.cos(lat0));return{H:(b[3]-b[1])*k,xy:(lat,lng)=>[(lng-b[0])*Math.cos(lat0)*k,(b[3]-lat)*k]};};
+  const path=(pr,rings)=>rings.map(r=>'M'+r.map(c=>pr.xy(c[1],c[0]).map(v=>v.toFixed(1)).join(',')).join('L')+'Z').join('');
+  const inRing=(lat,lng,r)=>{let o=false;for(let i=0,j=r.length-1;i<r.length;j=i++){const[xi,yi]=r[i],[xj,yj]=r[j];if((yi>lat)!==(yj>lat)&&lng<(xj-xi)*(lat-yi)/(yj-yi)+xi)o=!o;}return o;};
+  const hot=new Set(SH.prov.filter(pv=>P.some(x=>pv.p.some(r=>inRing(x.p.lat,x.p.lng,r)))).map(pv=>pv.n));
+  const bbHit=(b,pv)=>pv.p.some(r=>r.some(c=>c[0]>=b[0]&&c[0]<=b[2]&&c[1]>=b[1]&&c[1]<=b[3]));
+  // đặt nhãn tránh chồng: thử lần lượt các vị trí quanh điểm
+  const placer=()=>{const boxes=[];return(x,y,w,h,r)=>{const cand=[[r+6,-h/2],[-(w+r+6),-h/2],[r+4,-h-r],[r+4,r],[-(w+r+4),-h-r],[-(w+r+4),r],[-w/2,-h-r-6],[-w/2,r+6]];
+    for(let k=0;k<6;k++)for(const[dx,dy0]of cand){const dy=dy0+(k?(k%2?1:-1)*Math.ceil(k/2)*(h+4):0);const b=[x+dx,y+dy,w,h];
+      if(!boxes.some(o=>b[0]<o[0]+o[2]+3&&o[0]<b[0]+b[2]+3&&b[1]<o[1]+o[3]+3&&o[1]<b[1]+b[3]+3)){boxes.push(b);return b;}}
+    const b=[x+r+6,y-h/2,w,h];boxes.push(b);return b;};};
+  const tw=(s,px)=>s.length*px*.56;
+
+  const css=`#reMap{--rm-bg:#fff;--rm-land:#E5E9F0;--rm-hot:#BFE8E9;--rm-ink:#243878;--rm-mut:#64748B;--rm-line:#E3E8F0}
+#reMap .rm-kpi{display:flex;gap:28px;flex-wrap:wrap;align-items:flex-end;margin:4px 0 14px}#reMap .rm-kpi b{display:block;font:700 34px/1 Inter,sans-serif;color:${PURPLE};font-variant-numeric:tabular-nums}#reMap .rm-kpi span{font:600 12px Inter,sans-serif;color:var(--rm-mut);letter-spacing:.4px}
+#reMap .rm-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:22px;align-items:start}
+#reMap svg{width:100%;height:auto;display:block}#reMap .rm-svgw{background:linear-gradient(180deg,#F4F8FC,#EAF1F8);border-radius:12px;border:1px solid #D6DDE8;position:relative}
+#reMap .rm-reg{border-top:2px solid ${PURPLE};padding:8px 0 4px;margin-bottom:12px;cursor:pointer}#reMap .rm-reg h4{margin:0;display:flex;justify-content:space-between;align-items:baseline;font:700 15px Inter,sans-serif;color:${PURPLE}}
+#reMap .rm-reg h4 small{font:600 12px Inter,sans-serif;color:var(--rm-mut)}#reMap .rm-reg h4 em{font-style:normal;font:600 12px Inter,sans-serif;color:${BLUE}}
+#reMap table.rm-t{width:100%;border-collapse:collapse;font-size:13.5px}#reMap .rm-t th{font:600 11.5px Inter,sans-serif;color:var(--rm-mut);text-align:right;padding:4px 6px;border-bottom:1px solid #D6DDE8}#reMap .rm-t th:first-child{text-align:left}
+#reMap .rm-t td{padding:6px;border-bottom:1px solid var(--rm-line);text-align:right;font-variant-numeric:tabular-nums;vertical-align:middle}#reMap .rm-t td:first-child{text-align:left}#reMap .rm-t tr.pj{cursor:pointer}#reMap .rm-t tr.pj:hover td{background:#F1F7FB}
+#reMap .rm-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:middle}#reMap .rm-dot.c{background:#fff;border:2px solid ${GREY};width:8px;height:8px}
+#reMap .rm-bar{display:inline-flex;align-items:center;gap:6px;justify-content:flex-end;min-width:110px}#reMap .rm-bar i{display:block;width:64px;height:7px;border-radius:4px;background:#E3E8F0;overflow:hidden}#reMap .rm-bar i u{display:block;height:100%;background:${TEAL}}
+#reMap .rm-back{border:1px solid #D6DDE8;background:#fff;border-radius:8px;padding:5px 12px;font:600 12.5px Inter,sans-serif;color:var(--rm-ink);cursor:pointer;margin-bottom:10px}
+#reMap .rm-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}#reMap .rm-tabs button{border:1px solid #D6DDE8;background:#fff;border-radius:8px;padding:5px 12px;font:600 12.5px Inter,sans-serif;color:var(--rm-ink);cursor:pointer}#reMap .rm-tabs button.on{background:${NAVY};color:#fff;border-color:${NAVY}}
+#reMap .rm-leg{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--rm-mut);margin-top:10px}#reMap .rm-leg i{display:inline-block;width:18px;border-top:3px solid;vertical-align:middle;margin-right:5px}#reMap .rm-leg i.d{border-top-style:dashed}
+#reMap .rm-card{margin-top:18px;border:1px solid #D6DDE8;border-radius:12px;padding:18px 20px;background:#fff}#reMap .rm-card h3{margin:0;font:600 22px Newsreader,Georgia,serif;color:var(--rm-ink)}
+#reMap .rm-cg{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:22px;align-items:center;margin-top:14px}#reMap .rm-ring{text-align:center;font:600 12px Inter,sans-serif;color:var(--rm-mut)}
+#reMap .rm-facts{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;align-items:start}#reMap .rm-facts div.w{grid-column:span 2}#reMap .rm-facts div.w b{font-size:13px;font-weight:500}#reMap .rm-facts div{background:#F8FAFC;border:1px solid #E1E6EE;border-radius:10px;padding:9px 12px}#reMap .rm-facts span{display:block;font:600 11px Inter,sans-serif;color:var(--rm-mut);letter-spacing:.4px;text-transform:uppercase}#reMap .rm-facts b{font:600 15px Inter,sans-serif;color:var(--rm-ink)}
+#reMap .rm-sub{font:600 11.5px Inter,sans-serif;letter-spacing:.5px;color:var(--rm-mut);text-transform:uppercase;margin:18px 0 8px}
+#reMap .rm-tl{display:flex;gap:0;overflow-x:auto;padding-bottom:4px}#reMap .rm-tl>div{flex:1 0 150px;position:relative;padding:18px 12px 0 0;border-top:3px solid ${TEAL};font-size:13px}#reMap .rm-tl>div:before{content:'';position:absolute;top:-8px;left:0;width:13px;height:13px;border-radius:50%;background:#fff;border:3px solid ${NAVY}}#reMap .rm-tl b{display:block;color:var(--rm-ink)}#reMap .rm-tl span{color:var(--rm-mut);font-size:12px}
+#reMap .rm-km{display:grid;grid-template-columns:minmax(0,1fr) 70px;gap:4px 10px;align-items:center;font-size:13px}#reMap .rm-km i{display:block;height:8px;border-radius:4px;background:${BLUE};opacity:.75}
+#reMap .rm-fn{font-size:12px;color:var(--rm-mut);margin-top:12px}
+@media(max-width:900px){#reMap .rm-grid,#reMap .rm-cg{grid-template-columns:1fr}}
+html.dark #reMap,html[data-theme=dark] #reMap{--rm-bg:#161616;--rm-land:#2A2A2A;--rm-hot:#1F4F50;--rm-ink:#59C5C8;--rm-mut:#A3A3A3;--rm-line:#2A2A2A}
+html.dark #reMap .rm-svgw,html[data-theme=dark] #reMap .rm-svgw{background:#101010;border-color:#2A2A2A}html.dark #reMap .rm-card,html[data-theme=dark] #reMap .rm-card,html.dark #reMap .rm-facts div,html[data-theme=dark] #reMap .rm-facts div,html.dark #reMap .rm-back,html[data-theme=dark] #reMap .rm-back,html.dark #reMap .rm-tabs button,html[data-theme=dark] #reMap .rm-tabs button{background:#161616;border-color:#2A2A2A}`;
+
+  const barH=s=>s?`<span class="rm-bar">${fmt(s.v,0)}%${s.e?'*':''}<i><u style="width:${Math.max(0,Math.min(100,s.v))}%"></u></i></span>`:'<span style="color:#94A3B8">—</span>';
+  const ring=(s,label,col)=>{const v=s?Math.max(0,Math.min(100,s.v)):0,c=2*Math.PI*34;
+    return `<div class="rm-ring"><svg viewBox="0 0 84 84" style="width:96px"><circle cx="42" cy="42" r="34" fill="none" stroke="#E3E8F0" stroke-width="9"/>${s?`<circle cx="42" cy="42" r="34" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${(c*v/100).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 42 42)"/>`:''}<text x="42" y="47" text-anchor="middle" font-family="Inter" font-weight="700" font-size="17" fill="#243878">${s?fmt(s.v,0)+'%':'—'}</text></svg><div>${label}${s&&s.e?'*':''}</div></div>`;};
+
+  // ---------- lớp 1: toàn quốc ----------
+  const ISL=[['QĐ. Hoàng Sa',17.35,110.8],['QĐ. Trường Sa',11.75,112.4]];
+  const LBL={north:[21.0,108.6],east:[13.5,105.5],hcm:[12.45,105.5],west:[11.4,105.5],mekong:[8.75,107.0]};
+  // dời quần đảo vào khung cho bản đồ toàn quốc gọn (như bản đồ in): Hoàng Sa −1,6° kinh, Trường Sa −3,6° kinh, +1,2° vĩ
+  const shiftR=r=>{const lng=r[0][0],lat=r[0][1];return lng>110.6&&lat>15?r.map(c=>[c[0]-1.6,c[1]]):lng>110.6&&lat<13?r.map(c=>[c[0]-3.6,c[1]+1.2]):r;};
+  const overview=()=>{const b=[102.1,8.1,114.6,23.5],pr=proj(b,560),H=pr.H;
+    let g=`<svg viewBox="0 0 560 ${H.toFixed(0)}" role="img" aria-label="Bản đồ quỹ đất">`;
+    g+=SH.prov.map(pv=>`<path d="${path(pr,pv.p.map(shiftR))}" fill="${hot.has(pv.n)?'var(--rm-hot)':'var(--rm-land)'}" stroke="#fff" stroke-width=".6"><title>${esc(pv.n)}</title></path>`).join('');
+    g+=ISL.map(([t,la,lo])=>{const[x,y]=pr.xy(la,lo);return `<text x="${x}" y="${y}" text-anchor="middle" font-family="Inter" font-size="11" font-weight="600" fill="#94A3B8">${t}</text>`;}).join('');
+    regs.forEach(r=>{const[x,y]=pr.xy(r.lat,r.lng),L=LBL[r.id]||[r.lat,r.lng+3],[lx,ly]=pr.xy(L[0],L[1]);
+      const t1=r.name,t2=`${fmt(r.ha,0)}${r.haMiss?'+':''} ha · ${r.items.length} dự án`,w=Math.max(tw(t1,13.5),tw(t2,12))+22,lft=lx<x;
+      const bx=lft?lx-w:lx;
+      g+=`<g class="rm-go" data-reg="${r.id}" style="cursor:pointer"><polyline points="${x},${y} ${lft?bx+w:bx},${ly}" fill="none" stroke="${PURPLE}" stroke-width="1.2" stroke-dasharray="3 3"/>
+<rect x="${bx}" y="${ly-21}" width="${w}" height="42" rx="8" fill="#fff" stroke="${PURPLE}" stroke-width="1.2"/><text x="${bx+11}" y="${ly-4}" font-family="Inter" font-weight="700" font-size="13.5" fill="${PURPLE}">${esc(t1)}</text><text x="${bx+11}" y="${ly+13}" font-family="Inter" font-weight="600" font-size="12" fill="#243878">${esc(t2)}</text>
+<path transform="translate(${x-9},${y-24})" d="M9 0C4 0 0 4 0 9c0 7 9 15 9 15s9-8 9-15c0-5-4-9-9-9z" fill="${PURPLE}" stroke="#fff" stroke-width="1.5"/><circle cx="${x}" cy="${y-15}" r="3.2" fill="#fff"/></g>`;});
+    g+='</svg>';
+    const tbl=regs.map(r=>`<div class="rm-reg" data-reg="${r.id}"><h4><span>${esc(r.name)}${r.sub?` <small>· ${esc(r.sub)}</small>`:''}</span><em>Xem vùng →</em></h4>
+<table class="rm-t"><tr><th>Dự án</th><th>Diện tích</th><th>Đã bán</th></tr>${r.items.map(x=>`<tr class="pj" data-p="${esc(x.name)}"><td><span class="rm-dot" style="background:${stOf(x.r.status)[1]}"></span>${esc(x.name)}</td><td>${x.r.areaHa!=null?fmt(x.r.areaHa)+' ha':'—'}</td><td>${barH(sold(x))}</td></tr>`).join('')}</table></div>`).join('');
+    return `<div class="rm-kpi"><div><b>${fmt(totHa,0)}+</b><span>HA TỔNG QUỸ ĐẤT ĐANG THEO DÕI</span></div><div><b style="color:${NAVY}">${P.length}</b><span>DỰ ÁN</span></div><div><b style="color:${NAVY}">${regs.length}</b><span>KHU VỰC</span></div></div>
+<div class="rm-grid"><div class="rm-svgw">${g}</div><div>${tbl}</div></div>
+<div class="rm-leg">${[['Đang bàn giao',BLUE],['Mở bán / triển khai',TEAL],['Quỹ đất',PURPLE]].map(a=>`<span><span class="rm-dot" style="background:${a[1]}"></span>${a[0]}</span>`).join('')}<span>Bấm vùng trên bản đồ hoặc tên vùng để phóng to; bấm dự án để xem chi tiết.</span></div>`;};
+
+  // ---------- lớp 2: vùng ----------
+  const region=id=>{const r=regs.find(g=>g.id===id);if(!r)return '';
+    const near=C.filter(c=>r.items.some(x=>km([x.p.lat,x.p.lng],[c.lat,c.lng])<=12));
+    const lats=[...r.items.map(x=>x.p.lat),...near.map(c=>c.lat)],lngs=[...r.items.map(x=>x.p.lng),...near.map(c=>c.lng)];
+    let b=[Math.min(...lngs),Math.min(...lats),Math.max(...lngs),Math.max(...lats)];const cx=(b[0]+b[2])/2,cy=(b[1]+b[3])/2,sp=Math.max(b[2]-b[0],(b[3]-b[1])*2,.2)*0.7+.12;
+    b=[cx-sp,cy-sp*.5,cx+sp,cy+sp*.5];const W=1150,pr=proj(b,W),H=pr.H,pl=placer();
+    let g=`<svg viewBox="0 0 ${W} ${H.toFixed(0)}"><defs><clipPath id="rmc"><rect width="${W}" height="${H}"/></clipPath></defs><g clip-path="url(#rmc)">`;
+    g+=SH.prov.filter(pv=>bbHit([b[0]-1,b[1]-1,b[2]+1,b[3]+1],pv)).map(pv=>`<path d="${path(pr,pv.p)}" fill="var(--rm-land)" stroke="#fff" stroke-width="2"/>`).join('');
+    const lnC=k=>({'Cao tốc':PURPLE,'Vành đai':GOLD,'Metro':BLUE}[k]||GREY);
+    (I.lines||[]).forEach(l=>{const done=!/xây|quy hoạch/i.test(l.status||'');g+=`<polyline points="${l.path.map(c=>pr.xy(c[0],c[1]).map(v=>v.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="${lnC(l.kind)}" stroke-width="3.5" stroke-linecap="round" opacity=".85" ${done?'':'stroke-dasharray="9 7"'}><title>${esc(l.name)} · ${esc(l.status||'')}${l.done?' '+esc(l.done):''}</title></polyline>`;});
+    (I.landmarks||[]).forEach(l=>{const[x,y]=pr.xy(l.lat,l.lng);if(x<0||y<0||x>W||y>H)return;g+=`<rect x="${x-5}" y="${y-5}" width="10" height="10" transform="rotate(45 ${x} ${y})" fill="${NAVY}" stroke="#fff" stroke-width="1.5"/>`;
+      const bx=pl(x,y,tw(l.name,11)+6,15,7);g+=`<text x="${bx[0]+3}" y="${bx[1]+11}" font-family="Inter" font-size="11" fill="#475569" font-weight="600">${esc(l.name)}</text>`;});
+    // điểm trước, nhãn sau để nhãn nằm trên
+    let dots='',labs='';
+    r.items.forEach(x=>{const[px,py]=pr.xy(x.p.lat,x.p.lng),rr=Math.max(9,Math.min(26,Math.sqrt(x.r.areaHa||16)*1.9)),col=stOf(x.r.status)[1],s=sold(x);
+      dots+=`<circle class="rm-pp" data-p="${esc(x.name)}" cx="${px}" cy="${py}" r="${rr}" fill="${col}" fill-opacity=".9" stroke="#fff" stroke-width="2.5" style="cursor:pointer"><title>${esc(x.name)}</title></circle>`;
+      const t1=x.name.replace(/\s*\(.*\)$/,''),t2=[x.r.areaHa!=null?fmt(x.r.areaHa)+' ha':null,s?`đã bán ${fmt(s.v,0)}%${s.e?'*':''}`:null].filter(Boolean).join(' · ');
+      const w=Math.max(tw(t1,13),tw(t2,11.5))+18,h=t2?38:24,bx=pl(px,py,w,h,rr);
+      labs+=`<g class="rm-pp" data-p="${esc(x.name)}" style="cursor:pointer"><line x1="${px}" y1="${py}" x2="${bx[0]+(bx[0]<px?w:0)}" y2="${bx[1]+h/2}" stroke="${col}" stroke-width="1.2"/><rect x="${bx[0]}" y="${bx[1]}" width="${w}" height="${h}" rx="7" fill="#fff" stroke="${col}" stroke-width="1.5"/><text x="${bx[0]+9}" y="${bx[1]+16}" font-family="Inter" font-weight="700" font-size="13" fill="${NAVY}">${esc(t1)}</text>${t2?`<text x="${bx[0]+9}" y="${bx[1]+31}" font-family="Inter" font-weight="600" font-size="11.5" fill="#64748B">${esc(t2)}</text>`:''}</g>`;});
+    near.forEach(c=>{const[px,py]=pr.xy(c.lat,c.lng);dots+=`<circle class="rm-cc" data-c="${esc(c.name)}" cx="${px}" cy="${py}" r="8" fill="#fff" stroke="${GREY}" stroke-width="3" style="cursor:pointer"><title>${esc(c.name)}</title></circle>`;
+      const t=c.name+(c.ticker?` (${c.ticker})`:''),w=tw(t,12)+14,bx=pl(px,py,w,22,8);
+      labs+=`<g class="rm-cc" data-c="${esc(c.name)}" style="cursor:pointer"><rect x="${bx[0]}" y="${bx[1]}" width="${w}" height="22" rx="6" fill="#F8FAFC" stroke="${GREY}" stroke-dasharray="3 2"/><text x="${bx[0]+7}" y="${bx[1]+15}" font-family="Inter" font-weight="600" font-size="12" fill="#475569">${esc(t)}</text></g>`;});
+    g+=dots+labs+`</g></svg>`;
+    const price=o=>o&&o.text?esc(o.text)+(o.estimate?'*':''):'—';
+    const trs=[...r.items.map(x=>`<tr class="pj" data-p="${esc(x.name)}"><td><span class="rm-dot" style="background:${stOf(x.r.status)[1]}"></span><b style="color:#243878">${esc(x.name)}</b></td><td style="text-align:left">Nam Long</td><td style="text-align:left">${price(x.p.price)}</td><td>${barH(sold(x))}</td></tr>`),
+      ...near.map(c=>`<tr class="pj" data-c="${esc(c.name)}"><td><span class="rm-dot c"></span>${esc(c.name)}</td><td style="text-align:left">${esc(c.developer||'—')}${c.ticker?' ('+esc(c.ticker)+')':''}</td><td style="text-align:left">${price(c.price)}</td><td>${barH(csold(c))}</td></tr>`)].join('');
+    return `<button class="rm-back" data-back>← Toàn quốc</button><div class="rm-tabs">${regs.map(g2=>`<button data-reg="${g2.id}" class="${g2.id===id?'on':''}">${esc(g2.name)}</button>`).join('')}</div>
+<div class="rm-svgw">${g}</div>
+<div class="rm-leg">${[['Đang bàn giao',BLUE],['Mở bán / triển khai',TEAL],['Quỹ đất',PURPLE]].map(a=>`<span><span class="rm-dot" style="background:${a[1]}"></span>${a[0]}</span>`).join('')}<span><span class="rm-dot c"></span>Chủ đầu tư khác (≤12 km)</span><span><i style="border-color:${PURPLE}"></i>Cao tốc</span><span><i class="d" style="border-color:${PURPLE}"></i>Đang xây</span><span><i style="border-color:${GOLD}"></i>Vành đai</span><span><i style="border-color:${BLUE}"></i>Metro</span><span>◆ Sân bay / cảng / trung tâm</span></div>
+<div class="rm-sub">Dự án trong vùng · giá bán</div><div style="overflow-x:auto"><table class="rm-t"><tr><th>Dự án</th><th style="text-align:left">Chủ đầu tư</th><th style="text-align:left">Giá bán</th><th>Đã bán</th></tr>${trs}</table></div>
+<div class="rm-fn">* ước tính từ báo chí, báo cáo CTCK hoặc tin rao môi giới. Vị trí là tâm dự án ước định; khoảng cách là đường chim bay.</div><div class="rm-cardw"></div>`;};
+
+  // ---------- lớp 3: thẻ dự án ----------
+  const card=x=>{const p=x.p,r=x.r,pt=[p.lat,p.lng],st=stOf(r.status);
+    const facts=[['Trạng thái',r.status],['Diện tích',r.areaHa!=null?fmt(r.areaHa)+' ha':null],['Sở hữu NLG',r.ownership!=null?fmt(r.ownership)+'%':null],['Sản phẩm',p.units&&p.units.total!=null?fmt(p.units.total,0)+' căn':null],['Giá bán',p.price&&p.price.text],['Đối tác',p.partner&&(p.partner.text||p.partner)]].filter(a=>a[1]);
+    const ev=[];(p.phases||[]).forEach(f=>ev.push([f.launch||f.asOf||'',f.name,[f.units!=null?fmt(f.units,0)+' căn':null,f.soldPct!=null?'đã bán '+fmt(f.soldPct,0)+'%'+(f.estimate?'*':''):null,f.price&&(f.price.text||f.price)].filter(Boolean).join(' · ')]));
+    [['Thi công',p.construction],['Bàn giao',p.handover],['Pháp lý',p.legal]].forEach(([k,o])=>{if(o&&o.text)ev.push([o.asOf||'',k,o.text+(o.estimate?' *':'')]);});
+    ev.sort((a,b)=>String(a[0]).localeCompare(String(b[0])));
+    const reg=regs.find(g=>g.items.includes(x));
+    const lm=(I.landmarks||[]).map(l=>({n:l.name,d:km(pt,[l.lat,l.lng])})).filter(o=>o.d<=60);
+    const ln=(I.lines||[]).map(l=>({n:l.name+(l.status&&/xây|quy hoạch/i.test(l.status)?' (đang xây'+(l.done?', '+l.done:'')+')':''),d:lineKm(pt,l.path)})).filter(o=>o.d<=20);
+    const kms=[...lm,...ln].sort((a,b)=>a.d-b.d).slice(0,8),mx=Math.max(...kms.map(o=>o.d),1);
+    const comp=C.map(c=>({c,d:km(pt,[c.lat,c.lng])})).filter(o=>o.d<=12).sort((a,b)=>a.d-b.d);
+    return `<div class="rm-card"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><h3>${esc(x.name)}</h3><div style="color:#64748B;margin-top:2px">${esc(r.region||'')}${reg?' · '+esc(reg.name):''}${p.approx?' · vị trí ước định':''}</div></div><span style="align-self:flex-start;background:${st[1]};color:#fff;border-radius:999px;padding:3px 12px;font:600 12px Inter,sans-serif">${st[0]}</span></div>
+<div class="rm-cg">${ring(sold(x),'Đã bán',TEAL)}${ring(hand(x),'Đã bàn giao',BLUE)}<div class="rm-facts">${facts.map(a=>`<div${String(a[1]).length>40?' class="w"':''}><span>${a[0]}</span><b>${esc(a[1])}</b></div>`).join('')}</div></div>
+${ev.length?`<div class="rm-sub">Mốc mở bán, thi công, bàn giao</div><div class="rm-tl">${ev.map(e=>`<div><b>${esc(e[1])}</b><span>${esc(dmy(e[0])||'Chưa rõ ngày')}</span><p style="margin:3px 0 0">${esc(e[2])}</p></div>`).join('')}</div>`:''}
+<div class="rm-grid" style="margin-top:4px"><div>${kms.length?`<div class="rm-sub">Khoảng cách tới hạ tầng (km, đường chim bay)</div><div class="rm-km">${kms.map(o=>`<div>${esc(o.n)}<i style="width:${(o.d/mx*100).toFixed(0)}%"></i></div><b style="text-align:right;font-variant-numeric:tabular-nums">${fmt(o.d)}</b>`).join('')}</div>`:''}</div>
+<div>${comp.length?`<div class="rm-sub">Chủ đầu tư khác trong 12 km</div><table class="rm-t">${comp.map(o=>`<tr class="pj" data-c="${esc(o.c.name)}"><td><span class="rm-dot c"></span>${esc(o.c.name)}<br><span style="color:#64748B;font-size:12px">${esc(o.c.developer||'')}</span></td><td style="text-align:left;font-size:12.5px">${o.c.price&&o.c.price.text?esc(o.c.price.text):'—'}</td><td>${fmt(o.d)} km</td></tr>`).join('')}</table>`:''}</div></div>
+${p.note||r.note?`<div class="rm-fn">${esc([p.note,r.note].filter(Boolean).join(' · '))}</div>`:''}</div>`;};
+  const ccard=c=>{const n=P.map(x=>({x,d:km([c.lat,c.lng],[x.p.lat,x.p.lng])})).sort((a,b)=>a.d-b.d)[0];
+    const facts=[['Chủ đầu tư',(c.developer||'')+(c.ticker?' ('+c.ticker+')':'')],['Diện tích',c.areaHa!=null?fmt(c.areaHa)+' ha':null],['Quy mô',c.units!=null&&typeof c.units!=='object'?fmt(c.units,0)+' căn':tx(c.units)],['Sản phẩm',c.products],['Giá bán',tx(c.price)],['Mở bán',tx(c.launch)],['Bàn giao',tx(c.handover)],['Pháp lý',tx(c.legal)],['Thi công',tx(c.construction)],['Tiến độ',c.timing],['Trạng thái',tx(c.status)],['Dự án NLG gần nhất',n?n.x.name+' · '+fmt(n.d)+' km':null]].filter(a=>a[1]);
+    return `<div class="rm-card" style="border-style:dashed"><div style="font:600 11.5px Inter,sans-serif;color:#64748B;letter-spacing:.5px">CHỦ ĐẦU TƯ KHÁC</div><h3>${esc(c.name)}</h3>${c.sold?`<div class="rm-cg" style="grid-template-columns:auto minmax(0,1fr)">${csold(c)?ring(csold(c),'Đã bán (đợt gần nhất)',GREY):''}<div>${c.sold.text?`<div style="font-size:13px;color:#475569">${esc(c.sold.text)}${c.sold.asOf?' ('+dmy(c.sold.asOf)+')':''}</div>`:''}</div></div>`:''}<div class="rm-facts" style="margin-top:12px">${facts.map(a=>`<div${String(a[1]).length>40?' class="w"':''}><span>${a[0]}</span><b>${esc(a[1])}</b></div>`).join('')}</div><div class="rm-fn">${c.approx?'Vị trí ước định theo xã/huyện. ':''}* ước tính từ báo chí/môi giới.</div></div>`;};
+
+  const run=()=>{const host=document.getElementById('rePack');if(!host)return false;if(document.getElementById('reMap'))return true;
+    const box=document.createElement('div');box.id='reMap';
+    const tip=[M.note,I.note,'Ranh giới hành chính 63 tỉnh/thành trước sáp nhập 2025, gồm QĐ Hoàng Sa và QĐ Trường Sa của Việt Nam.','Nguồn: '+[M.src,I.src].filter(Boolean).join('; ')].filter(Boolean).join('\n');
+    box.innerHTML=`<h2 class="sec">Bản đồ quỹ đất — ${regs.length} khu vực, ${P.length} dự án</h2><div class="card"><h3 class="sub">Quỹ đất theo khu vực <span class="info" tabindex="0" role="note" data-tip="${esc(tip)}" aria-label="${esc(tip)}">i</span></h3><div class="rm-body"></div></div>`;
+    host.insertBefore(box,host.firstChild);
+    const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
+    const body=box.querySelector('.rm-body');let cur=null;
+    const show=id=>{cur=id;body.innerHTML=id?region(id):overview();};
+    const open=(nm,isC)=>{if(!cur){const x=P.find(y=>y.name===nm),g=x&&regs.find(r=>r.items.includes(x));if(g)show(g.id);}
+      const w=body.querySelector('.rm-cardw');if(!w)return;const x=isC?C.find(c=>c.name===nm):P.find(y=>y.name===nm);if(!x)return;
+      w.innerHTML=isC?ccard(x):card(x);w.scrollIntoView({behavior:'smooth',block:'nearest'});};
+    body.addEventListener('click',e=>{const t=e.target.closest('[data-back],[data-reg],[data-p],[data-c]');if(!t)return;
+      if(t.hasAttribute('data-back'))return show(null);if(t.dataset.p)return open(t.dataset.p,false);if(t.dataset.c)return open(t.dataset.c,true);if(t.dataset.reg)show(t.dataset.reg);});
+    show(null);return true;};
+  let n=0;const t=setInterval(()=>{if(run()||++n>40)clearInterval(t);},300);
 })();
 
 
@@ -10387,7 +10566,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='hpa',BUILD='97b8499f2aca',URL_JSON='../version.json';
+  const PAGE='hpa',BUILD='787d118bf362',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
