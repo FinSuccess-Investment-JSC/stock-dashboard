@@ -9976,8 +9976,12 @@ html.dark #reMap .rm-svgw,html[data-theme=dark] #reMap .rm-svgw{background:#1010
 <div class="rm-fn">* ước tính từ báo chí, báo cáo CTCK hoặc tin rao môi giới. Vị trí là tâm dự án ước định; khoảng cách là đường chim bay.</div><div class="rm-cardw"></div>`;};
 
   // ---------- lớp 3: thẻ dự án ----------
-  const card=x=>{const p=x.p,r=x.r,pt=[p.lat,p.lng],st=stOf(r.status);
-    const facts=[['Trạng thái',r.status],['Diện tích',r.areaHa!=null?fmt(r.areaHa)+' ha':null],['Sở hữu '+TK,r.ownership!=null?fmt(r.ownership)+'%':null],['Sản phẩm',p.units&&p.units.total!=null?fmt(p.units.total,0)+' căn':null],['Giá bán',p.price&&p.price.text],['Đối tác',p.partner&&(p.partner.text||p.partner)]].filter(a=>a[1]);
+  // thông tin từ bảng backlog.projects (hạch toán, doanh số gần nhất) — bảng đó ẩn khi có bản đồ (người dùng chốt 16/11/2026)
+  const nk=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/\(.*?\)/g,'').replace(/[^a-z0-9]/g,'');
+  const BL=((D.backlog||{}).projects||[]);
+  const blOf=n=>{const k=nk(n);return BL.find(b=>nk(b.name)===k)||BL.find(b=>{const q=nk(b.name);return q&&k&&(q.startsWith(k)||k.startsWith(q));});};
+  const card=x=>{const p=x.p,r=x.r,pt=[p.lat,p.lng],st=stOf(r.status),bl=blOf(x.name)||{};
+    const facts=[['Hạch toán',bl.type],['Trạng thái',r.status],['Diện tích',r.areaHa!=null?fmt(r.areaHa)+' ha':null],['Sở hữu '+TK,r.ownership!=null?fmt(r.ownership)+'%':null],['Sản phẩm',p.units&&p.units.total!=null?fmt(p.units.total,0)+' căn':null],['Giá bán',p.price&&p.price.text],['Đối tác',p.partner&&(p.partner.text||p.partner)],['Doanh số gần nhất',bl.sold&&bl.sold!=='—'?bl.sold:null]].filter(a=>a[1]);
     const ev=[];(p.phases||[]).forEach(f=>ev.push([f.launch||f.asOf||'',f.name,[f.units!=null?fmt(f.units,0)+' căn':null,f.soldPct!=null?'đã bán '+fmt(f.soldPct,0)+'%'+(f.estimate?'*':''):null,f.price&&(f.price.text||f.price)].filter(Boolean).join(' · ')]));
     [['Thi công',p.construction],['Bàn giao',p.handover],['Pháp lý',p.legal]].forEach(([k,o])=>{if(o&&o.text)ev.push([o.asOf||'',k,o.text+(o.estimate?' *':'')]);});
     ev.sort((a,b)=>String(a[0]).localeCompare(String(b[0])));
@@ -10001,6 +10005,7 @@ ${p.note||r.note?`<div class="rm-fn">${esc([p.note,r.note].filter(Boolean).join(
     const tip=[M.note,I.note,'Ranh giới hành chính 63 tỉnh/thành trước sáp nhập 2025, gồm QĐ Hoàng Sa và QĐ Trường Sa của Việt Nam.','Nguồn: '+[M.src,I.src].filter(Boolean).join('; ')].filter(Boolean).join('\n');
     box.innerHTML=`<h2 class="sec">Bản đồ quỹ đất — ${regs.length} khu vực, ${P.length} dự án</h2><div class="card"><h3 class="sub">Quỹ đất theo khu vực <span class="info" tabindex="0" role="note" data-tip="${esc(tip)}" aria-label="${esc(tip)}">i</span></h3><div class="rm-body"></div></div>`;
     // đặt ngay sau khối "Từ doanh số đến lợi nhuận" (người dùng chốt 16/11/2026), không có thì đầu #rePack
+    {const pt=document.getElementById('projTable');const c=pt&&pt.closest('.card');if(c&&BL.length)c.style.display='none';}
     const bh=[...host.querySelectorAll(':scope>h2.sec')].find(h=>/^Từ doanh số/.test(h.textContent.trim()));
     host.insertBefore(box,bh&&bh.nextElementSibling?bh.nextElementSibling.nextElementSibling:host.firstChild);
     const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
@@ -10593,7 +10598,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='sgn',BUILD='2adbcf8e38d2',URL_JSON='../version.json';
+  const PAGE='sgn',BUILD='e6afb31c1e2c',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
