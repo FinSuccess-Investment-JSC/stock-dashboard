@@ -9240,7 +9240,7 @@ window.fsCmpChart=function(id,o){
     const seg=document.getElementById('seg');
     if(!seg||typeof mkTS!=='function'||document.getElementById('txUsImp'))return;
     const h=document.createElement('h2');h.className='sec';h.dataset.segSub='ind';h.textContent='Bối cảnh ngành dệt may — cầu Mỹ, xuất khẩu Việt Nam, tồn kho bán lẻ';
-    const row=document.createElement('div');row.className='grid g2';row.dataset.segSub='ind';
+    const row=document.createElement('div');row.className='grid g2';row.dataset.segSub='ind';let custRow=null;
     const U=T.usApparelImports,V=T.vnTextileExports,S=T.usClothingStores,cards=[];
     if(U&&U.labels&&U.labels.length){
       row.appendChild(card('txUsImp','Mỹ nhập khẩu may mặc theo nước xuất xứ (triệu USD)',
@@ -9255,9 +9255,12 @@ window.fsCmpChart=function(id,o){
       cards.push(['txVnExp',sumSpec(V,['W','US','JP','KR'],'triệu USD')]);
     }
     if(S&&S.labels&&S.labels.length){
-      row.appendChild(card('txUsInv','Cửa hàng quần áo Mỹ — tồn kho/doanh số (lần) & doanh số (triệu USD)',
+      // Tồn kho bán lẻ quần áo Mỹ = sức khỏe đơn hàng của khách → tab con Khách hàng (người dùng yêu cầu 17/11/2026).
+      custRow=document.createElement('div');custRow.className='grid';custRow.dataset.segSub='cust';custRow.setAttribute('data-keep-seg','');
+      custRow.appendChild(card('txUsInv','Cửa hàng quần áo Mỹ — tồn kho/doanh số (lần) & doanh số (triệu USD)',
         'Cửa hàng quần áo & phụ kiện Mỹ (NAICS 448), đã điều chỉnh mùa vụ. Tồn kho/doanh số (trục trái, lần) = tồn kho cuối tháng ÷ doanh số tháng; quý/năm là bình quân các tháng (đủ tháng). Doanh số bán lẻ (trục phải, triệu USD): quý/năm cộng các tháng. Số mới nhất: '+mLab(S.asOf)+'.',
         'US Census Bureau – MARTS (FRED)'));
+      custRow.lastChild.setAttribute('data-keep-seg','');
       const per=p=>{
         const R=p==='m'?{labels:S.labels.map(mLab),values:S.ratio}:group(S.labels,S.ratio,p,'avg');
         const Sa=p==='m'?{labels:S.labels.map(mLab),values:S.sales}:group(S.labels,S.sales,p,'sum');
@@ -9267,7 +9270,8 @@ window.fsCmpChart=function(id,o){
       cards.push(['txUsInv',{m:per('m'),q:per('q'),y:per('y'),noShare:true,unitLabel:'lần',cfg:(labels,ds)=>{const c=cfg('lần','triệu USD')(labels,ds);c.options.scales.y.beginAtZero=true;return c;}}]);
     }
     if(!cards.length)return;
-    seg.appendChild(h);seg.appendChild(row);
+    if(row.children.length){seg.appendChild(h);seg.appendChild(row);}
+    if(custRow)seg.appendChild(custRow);
     cards.forEach(([id,spec])=>{try{mkTS(id,spec);}catch(e){console.error('textile-macro',id,e);}});
     if(typeof applyChartTips==='function')try{applyChartTips();}catch(e){}
   }
@@ -10795,7 +10799,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='tlg',BUILD='dc7568e4eced',URL_JSON='../version.json';
+  const PAGE='tlg',BUILD='a92ae552d304',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
