@@ -9212,8 +9212,8 @@ window.fsCmpChart=function(id,o){
   function run(){
     const seg=document.getElementById('seg');
     if(!seg||typeof mkTS!=='function'||document.getElementById('txUsImp'))return;
-    const h=document.createElement('h2');h.className='sec';h.textContent='Bối cảnh ngành dệt may — cầu Mỹ, xuất khẩu Việt Nam, tồn kho bán lẻ';
-    const row=document.createElement('div');row.className='grid g2';
+    const h=document.createElement('h2');h.className='sec';h.dataset.segSub='ind';h.textContent='Bối cảnh ngành dệt may — cầu Mỹ, xuất khẩu Việt Nam, tồn kho bán lẻ';
+    const row=document.createElement('div');row.className='grid g2';row.dataset.segSub='ind';
     const U=T.usApparelImports,V=T.vnTextileExports,S=T.usClothingStores,cards=[];
     if(U&&U.labels&&U.labels.length){
       row.appendChild(card('txUsImp','Mỹ nhập khẩu may mặc theo nước xuất xứ (triệu USD)',
@@ -9252,7 +9252,8 @@ window.fsCmpChart=function(id,o){
 // lọc theo _template/sources/textile-customers-map.json. Cuối tab Mảng kinh doanh, sau khối Bối cảnh ngành.
 // Chỉ số liệu khách hàng công bố; không nhận định, không suy đơn hàng của mã từ số khách hàng.
 (function(){
-  const C=(window.PVS_DATA||{}).textileCustomers;if(!C||!C.list||!C.list.length)return;
+  const C=(window.PVS_DATA||{}).textileCustomers||{};const HAS_C=!!(C.list&&C.list.length);
+  if(!HAS_C&&!(window.PVS_DATA||{}).textileMacro)return;
   const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const fmt=v=>v==null||!isFinite(v)?'—':Number(v).toLocaleString('vi-VN',{maximumFractionDigits:2});
   const r2=v=>v==null||!isFinite(v)?null:Math.round(v*100)/100;
@@ -9261,7 +9262,7 @@ window.fsCmpChart=function(id,o){
   const lab=l=>l.slice(0,3)+l.slice(5); // Q3/2026 → Q3/26
   const SRC='SEC EDGAR – báo cáo 10-Q/10-K của khách hàng';
   // Trục quý chung cho mọi khách hàng
-  const allQ=[...new Set(C.list.flatMap(c=>c.labels))].sort((a,b)=>qn(a)-qn(b));
+  const allQ=[...new Set((C.list||[]).flatMap(c=>c.labels))].sort((a,b)=>qn(a)-qn(b));
   const at=(c,k)=>{const m=new Map(c.labels.map((l,i)=>[l,c[k][i]]));return allQ.map(l=>m.get(l)??null);};
   const yoy=arr=>arr.map((v,i)=>i>=4&&v!=null&&arr[i-4]>0?r2((v/arr[i-4]-1)*100):null);
   // Năm: chỉ khi đủ 4 quý dương lịch (nhãn quý đã quy về quý dương lịch)
@@ -9277,37 +9278,63 @@ window.fsCmpChart=function(id,o){
     c.innerHTML='<h3 class="sub">'+esc(title)+'</h3><div class="chart tall"><canvas id="'+id+'"></canvas></div><div class="note">'+esc(note+' Nguồn: '+SRC)+'</div>';
     return c;
   }
-  // Sub-tab "Khách hàng" trong Mảng kinh doanh (người dùng yêu cầu 13/11/2026). Dùng .subnav sẵn có của tab nếu mã đã chia
-  // sub-tab; chưa có thì tạo: "Mảng kinh doanh" (mọi nội dung cũ) + "Khách hàng". Chart dựng khi pane hiện lần đầu.
-  function subPane(seg){
-    const KEY='tc_seg_sub_'+location.pathname;
+  // Sub-tab trong Mảng kinh doanh của mã dệt may. "Khách hàng" (13/11/2026); "Thị trường xuất khẩu" và "Bối cảnh ngành"
+  // (17/11/2026): phần tử mang data-seg-sub="mkt" | "ind" (textile-macro.js, enhancements.js của mã) tự dời vào tab con.
+  // Dùng .subnav sẵn có nếu mã đã chia sub-tab; chưa có thì tạo, mọi nội dung cũ vào "Mảng kinh doanh".
+  const SUBS=[['main','Mảng kinh doanh'],['mkt','Thị trường xuất khẩu'],['ind','Bối cảnh ngành'],['cust','Khách hàng']];
+  const KEY='tc_seg_sub_'+location.pathname;
+  function navOf(seg){
     let nav=[...seg.querySelectorAll(':scope > .subnav')][0];
+    if(nav)return nav;
     const head=seg.querySelector(':scope > h2');
-    const show=k=>{seg.querySelectorAll(':scope > .subpane').forEach(p=>{p.style.display=p.dataset.k===k?'':'none';if(p.dataset.k===k&&p._draw)p._draw();});
-      nav.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.k===k));try{localStorage.setItem(KEY,k)}catch(e){}
-      if(typeof applyChartTips==='function')try{applyChartTips()}catch(e){}};
-    if(!nav){
-      nav=document.createElement('div');nav.className='subnav';nav.id='segSubNav';
-      const main=document.createElement('div');main.className='subpane';main.dataset.k='main';
-      [...seg.children].filter(x=>x!==head&&!x.classList.contains('fs-perall')).forEach(x=>main.appendChild(x));
-      nav.innerHTML='<button type="button" data-k="main">Mảng kinh doanh</button>';
-      (head?head.after(nav):seg.prepend(nav));nav.after(main);
-      nav.addEventListener('click',e=>{const b=e.target.closest('button[data-k]');if(b)show(b.dataset.k);});
-      nav._own=true;
-    }
-    const pane=document.createElement('div');pane.className='subpane';pane.dataset.k='cust';
-    const b=document.createElement('button');b.type='button';b.dataset.k='cust';b.textContent='Khách hàng';
-    if(nav._own)nav.appendChild(b);else{nav.appendChild(b);b.addEventListener('click',()=>{seg.querySelectorAll(':scope > .subpane').forEach(p=>p.style.display=p===pane?'':'none');nav.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));pane._draw&&pane._draw();});
+    nav=document.createElement('div');nav.className='subnav';nav.id='segSubNav';nav._own=true;
+    const main=document.createElement('div');main.className='subpane';main.dataset.k='main';
+    [...seg.children].filter(x=>x!==head&&!x.classList.contains('fs-perall')).forEach(x=>main.appendChild(x));
+    nav.innerHTML='<button type="button" data-k="main">Mảng kinh doanh</button>';
+    (head?head.after(nav):seg.prepend(nav));nav.after(main);
+    nav.addEventListener('click',e=>{const b=e.target.closest('button[data-k]');if(b&&nav._own)show(seg,b.dataset.k);});
+    return nav;
+  }
+  function show(seg,k){
+    const nav=navOf(seg);
+    seg.querySelectorAll(':scope > .subpane').forEach(p=>{p.style.display=p.dataset.k===k?'':'none';if(p.dataset.k===k&&p._draw)p._draw();});
+    nav.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.k===k));try{localStorage.setItem(KEY,k)}catch(e){}
+    if(typeof applyChartTips==='function')try{applyChartTips()}catch(e){}
+    if(window.Chart)setTimeout(()=>{const p=seg.querySelector(':scope > .subpane[data-k="'+k+'"]');p&&p.querySelectorAll('canvas').forEach(c=>{const ch=Chart.getChart(c);ch&&ch.resize();});},0);
+  }
+  function subPane(seg,k){
+    const nav=navOf(seg);
+    let pane=seg.querySelector(':scope > .subpane[data-k="'+k+'"]');if(pane)return pane;
+    pane=document.createElement('div');pane.className='subpane';pane.dataset.k=k;pane.style.display='none';
+    const b=document.createElement('button');b.type='button';b.dataset.k=k;b.textContent=SUBS.find(x=>x[0]===k)[1];
+    // giữ thứ tự cố định của SUBS
+    const order=k2=>SUBS.findIndex(x=>x[0]===k2);
+    const nextBtn=[...nav.querySelectorAll('button[data-k]')].find(x=>order(x.dataset.k)>order(k));
+    nav.insertBefore(b,nextBtn||null);
+    const nextPane=[...seg.querySelectorAll(':scope > .subpane')].find(x=>order(x.dataset.k)>order(k));
+    seg.insertBefore(pane,nextPane||null);
+    if(!nav._own){b.addEventListener('click',()=>{seg.querySelectorAll(':scope > .subpane').forEach(p=>p.style.display=p===pane?'':'none');nav.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));pane._draw&&pane._draw();});
       nav.addEventListener('click',e=>{const x=e.target.closest('button');if(x&&x!==b){pane.style.display='none';b.classList.remove('on');}});}
-    seg.appendChild(pane);
-    let k='main';try{k=localStorage.getItem(KEY)||'main'}catch(e){}
-    if(location.hash==='#segcust')k='cust';
-    if(nav._own)setTimeout(()=>show(k==='cust'?'cust':'main'),0);else pane.style.display='none';
     return pane;
+  }
+  function restore(seg){
+    const nav=navOf(seg);if(!nav._own)return;
+    let k='main';try{k=localStorage.getItem(KEY)||'main'}catch(e){}
+    const h=location.hash.match(/^#seg(cust|mkt|ind)$/);if(h)k=h[1];
+    if(!seg.querySelector(':scope > .subpane[data-k="'+k+'"]'))k='main';
+    show(seg,k);
+  }
+  // Dời phần tử data-seg-sub vào tab con tương ứng (giữ thứ tự xuất hiện).
+  function organize(){
+    const seg=document.getElementById('seg');if(!seg)return;
+    const items=[...seg.querySelectorAll('[data-seg-sub]')].filter(x=>!x.parentElement.closest('[data-seg-sub]'));
+    if(!items.length){if(seg.querySelector(':scope > .subnav'))restore(seg);return;}
+    items.forEach(x=>{const k=x.dataset.segSub;if(!SUBS.some(s=>s[0]===k))return;const pane=subPane(seg,k);if(x.parentElement!==pane)pane.appendChild(x);});
+    restore(seg);
   }
   function run(){
     const seg=document.getElementById('seg');
-    if(!seg||typeof mkTS!=='function'||document.getElementById('tcRev'))return;
+    if(!HAS_C||!seg||typeof mkTS!=='function'||document.getElementById('tcRev'))return;
     const h=document.createElement('h2');h.className='sec';h.textContent='Khách hàng lớn — doanh thu, tồn kho, biên gộp';
     // Bảng tóm tắt quý mới nhất
     const tb=document.createElement('div');tb.className='card textile-cust';tb.dataset.source=SRC;
@@ -9332,7 +9359,7 @@ window.fsCmpChart=function(id,o){
     row.appendChild(card('tcRev','Doanh thu khách hàng (triệu USD)','Doanh thu thuần theo quý của từng khách hàng (toàn công ty). Năm = cộng 4 quý dương lịch đã quy đổi, chỉ khi đủ 4 quý.'));
     row.appendChild(card('tcGrow','Doanh thu và tồn kho svck của khách hàng (%)','Tăng trưởng so với cùng quý năm trước: đường liền = doanh thu, nét đứt = tồn kho cuối quý. Tồn kho tăng chậm hơn doanh thu nghĩa là tồn kho/doanh thu giảm.'));
     row.appendChild(card('tcGm','Biên gộp khách hàng (%)','LN gộp ÷ doanh thu thuần cùng quý (hoặc cùng năm khi xem Năm). Hãng không công bố dòng LN gộp thì = doanh thu − giá vốn.'));
-    const pane=subPane(seg);pane.appendChild(h);pane.appendChild(tb);if(nb)pane.appendChild(nb);pane.appendChild(row);
+    const pane=subPane(seg,'cust');pane.appendChild(h);pane.appendChild(tb);if(nb)pane.appendChild(nb);pane.appendChild(row);
     let drawn=false;const draw=()=>{if(drawn||pane.style.display==='none')return;drawn=true;
     const L=allQ.map(lab);
     const revQ=C.list.map(c=>at(c,'revenue')), gpQ=C.list.map(c=>at(c,'grossProfit')), invQ=C.list.map(c=>at(c,'inventory'));
@@ -9346,8 +9373,9 @@ window.fsCmpChart=function(id,o){
     if(typeof applyChartTips==='function')try{applyChartTips();}catch(e){}};
     pane._draw=draw;draw();
   }
-  // chạy sau textile-macro (setTimeout 0) để khối khách hàng đứng sau Bối cảnh ngành
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(run,10));else setTimeout(run,10);
+  // chạy sau textile-macro (setTimeout 0) và khối riêng của mã; organize dời phần tử data-seg-sub vào tab con.
+  const go=()=>setTimeout(()=>{try{run();}catch(e){console.error('textile-customers',e);}setTimeout(()=>{try{organize();}catch(e){console.error('seg-subtabs',e);}},60);},10);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go();
 })();
 
 // Số dư bảng cân đối (phải thu, tồn kho, người mua trả trước, số ngày phải thu/tồn kho, CCC, nợ vay…)
@@ -10740,7 +10768,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='dmc',BUILD='1628cf31fe27',URL_JSON='../version.json';
+  const PAGE='dmc',BUILD='4f157abb4faf',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
