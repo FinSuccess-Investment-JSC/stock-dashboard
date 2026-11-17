@@ -11812,7 +11812,7 @@ window.fsCmpChart=function(id,o){
     const nav=document.getElementById('fsNav'),dec=document.getElementById('fsDecision'),mdl=document.getElementById('fsModel');
     // Giữ sub-nav (sub-tab Nhật ký chuyên viên vẫn dùng được); thẻ chờ nằm trong pane 1, ẩn nút pane 2.
     const host=nav&&dec&&mdl?dec:val;
-    if(host===dec){[dec,mdl].forEach(p=>[...p.children].forEach(c=>c.style.display='none'));const mb=nav.querySelector('button[data-s="model"]');if(mb)mb.style.display='none';if(mdl.style.display!=='none'&&typeof setSubTab==='function')setSubTab('decision');}
+    if(host===dec){[dec,mdl].forEach(p=>[...p.children].forEach(c=>{if(!c.hasAttribute('data-fs-keep'))c.style.display='none';}));const mb=nav.querySelector('button[data-s="model"]');if(mb)mb.style.display='none';if(mdl.style.display!=='none'&&typeof setSubTab==='function')setSubTab('decision');}
     else [...val.children].forEach(c=>{if(c.tagName!=='H2')c.style.display='none';});
     const card=document.createElement('div');card.id='fsPending';card.className='card';card.style.cssText='text-align:center;padding:48px 24px';
     card.innerHTML='<div style="font-size:34px;line-height:1">⏳</div><h3 class="sub" style="margin:12px 0 6px">Đội ngũ sẽ cập nhật sau</h3><p style="color:#64748B;margin:0">Mô hình dự phóng và định giá '+esc(d.meta.ticker)+' đang được FinSuccess xây dựng.</p>';
@@ -13183,6 +13183,55 @@ html.fs-dark .rs-kpi>div{background:#1E1E1E;border-color:#2A2A2A}html.fs-dark .r
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>tryRun(0),50));else setTimeout(()=>tryRun(0),50);
 })();
 
+/* Ước tính độc lập FinSuccess cho mã BĐS, so với benchmark CTCK (người dùng chốt 17/11/2026; NLG: HSC, Vietcap, BSC).
+   Dữ liệu <MÃ>/sources/re-indep.json → PVS_DATA.reIndep (build.py). Hiện ở tab 💎 FinSuccess (khối ước tính, không ở tab Dự án).
+   Schema: {asOf, years[], presalesTotal[], npat[], gdvBn, valueBn, overheadBn, projects:[{name,gdvBn,valueBn,presales[],profit[]}],
+            benchmarks:[{broker,date,presales[],npat[],value{dự án:tỷ},valueTotal,note}], actual{presales{},npat{}},
+            method[], pricing[], pace[], limits[], src}
+   Chỉ hiển thị kết quả; cách tính, cơ sở giá/diện tích và nhịp bán nằm trong ⓘ. */
+(function(){
+  const D=window.PVS_DATA||{}, X=D.reIndep; if(!X||!(X.projects||[]).length)return;
+  const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const fmt=(v,d=0)=>v==null||!isFinite(v)?'—':Number(v).toLocaleString('vi-VN',{maximumFractionDigits:d});
+  const TK=(D.meta||{}).ticker||'';
+  const C={FinSuccess:'#D4A72C',HSC:'#1D2678',Vietcap:'#2938A8',BSC:'#59C5C8'};
+  const BC=['#1D2678','#2938A8','#59C5C8','#861C52','#8997D6'];
+  const info=t=>` <span class="info" tabindex="0" role="note" data-tip="${esc(t)}" aria-label="${esc(t)}">i</span>`;
+  const B=X.benchmarks||[]; const Y=X.years||[]; const Y3=Y.slice(0,3);
+  const med=a=>{a=a.filter(v=>v!=null).sort((x,y)=>x-y);return a.length?(a.length%2?a[(a.length-1)/2]:(a[a.length/2-1]+a[a.length/2])/2):null;};
+  const src='Nguồn: '+(X.src||'');
+  const how=[...(X.method||[]),...(X.limits||[]).map(s=>'Giới hạn: '+s),src].join('\n');
+  const yi=Y.indexOf(2027);
+  const kpi=[
+    ['Doanh số '+Y3[0]+'–'+Y3[2],fmt(X.presalesTotal.slice(0,3).reduce((a,b)=>a+b,0))+' tỷ*','CTCK: '+B.map(b=>b.broker+' '+(b.presales.every(v=>v!=null)?fmt(b.presales.reduce((a,c)=>a+c,0)):'—')).join(' · ')],
+    ['LNST mẹ '+Y[yi],fmt(X.npat[yi])+' tỷ*','Trung vị CTCK '+fmt(med(B.map(b=>b.npat[1])))],
+    ['GDV còn lại (gồm VAT)',fmt(X.gdvBn)+' tỷ*',(X.projects||[]).length+' dự án, giá theo phân khu'],
+    ['Giá trị dự án (PV lợi nhuận)',fmt(X.valueBn)+' tỷ*','RNAV CTCK: '+B.map(b=>b.broker+' '+fmt(b.valueTotal)).join(' · ')]];
+  const css=`<style>#reIndep .ri-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:4px 0 4px}#reIndep .ri-kpi>div{background:#F8FAFC;border:1px solid #E1E6EE;border-radius:10px;padding:12px 14px}#reIndep .ri-kpi b{display:block;font-size:24px;font-weight:700;color:#1D2678;font-variant-numeric:tabular-nums}#reIndep .ri-kpi span{display:block;font-size:11.5px;font-weight:600;letter-spacing:.5px;color:#64748B;text-transform:uppercase}#reIndep .ri-kpi em{display:block;font-style:normal;font-size:12px;color:#94A3B8;margin-top:3px}#reIndep .ri-g{display:flex;flex-wrap:wrap;gap:16px}#reIndep .ri-g>.card{flex:1 1 420px;min-width:0;margin-top:16px}html.fs-dark #reIndep .ri-kpi>div{background:#1E1E1E;border-color:#2A2A2A}</style>`;
+  const card=(t,id,tip,tall)=>`<div class="card"><h3 class="sub">${esc(t)}${info(tip)}</h3><div class="chart${tall?' tall':''}"><canvas id="${id}"></canvas></div></div>`;
+  const bnote=B.map(b=>b.broker+' ('+b.date+')'+(b.note?': '+b.note:'')).join('\n');
+  const html=`${css}<h2 class="sec">Ước tính độc lập FinSuccess — so với ${esc(B.map(b=>b.broker).join(', '))}</h2>
+<div class="card" style="margin-top:16px"><h3 class="sub">Tóm tắt${info(how)}</h3><div class="ri-kpi">${kpi.map(k=>`<div><span>${esc(k[0])}</span><b>${esc(k[1])}</b><em>${esc(k[2])}</em></div>`).join('')}</div></div>
+<div class="ri-g">${card('Doanh số ký bán (tỷ VND)','riPres','Cột vàng: ước tính FinSuccess ('+Y3[0]+' = 9T thực tế + Q4 ước tính). Các cột khác: dự phóng CTCK.\n'+bnote+'\n'+src)}
+${card('LNST cổ đông mẹ (tỷ VND)','riNpat','FinSuccess: LN cốt lõi từ dự án (backlog + bán mới) trừ chi phí quản lý chung ~'+fmt(X.overheadBn)+' tỷ/năm; chưa tính lãi vay, thu nhập tài chính, khoản bất thường. 9T/2026 thực tế: '+fmt((X.actual||{}).npat&&X.actual.npat['9T/2026'])+' tỷ.\n'+bnote+'\n'+src)}</div>
+<div class="ri-g">${card('Giá trị theo dự án (tỷ VND, phần thuộc '+TK+')','riVal','FinSuccess: PV lợi nhuận về '+TK+' (chiết khấu 15%/năm, đã trừ tiền đất). CTCK: RNAV/NPV dòng tiền theo dự án — khác cơ sở nên so thứ tự và tỷ trọng, không so trực tiếp con số.\n'+bnote+'\n'+src,true)}
+${card('Pipeline doanh số theo dự án — ước tính FinSuccess (tỷ VND)','riPipe','Doanh số ký bán dự kiến theo dự án × năm. '+Y[0]+' gồm 9T thực tế NLG công bố. Nhịp bán:\n'+(X.pace||[]).join('\n')+'\nCơ sở giá:\n'+(X.pricing||[]).join('\n')+'\n'+src,true)}</div>`;
+  const tip={callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y!=null&&c.chart.options.indexAxis!=='y'?c.parsed.y:c.parsed.x)+' tỷ'}};
+  const run=()=>{const host=document.getElementById('fsDecision')||document.getElementById('fsModel');if(!host)return false;if(document.getElementById('reIndep'))return true;
+    const box=document.createElement('div');box.id='reIndep';box.setAttribute('data-no-results-only','');box.setAttribute('data-fs-keep','');box.innerHTML=html;host.insertBefore(box,host.firstChild);
+    const draw=()=>{if(!window.Chart)return setTimeout(draw,300);
+      const mk=(id,cfg)=>{const c=document.getElementById(id);if(c&&!c._fsChart)c._fsChart=new Chart(c,cfg);};
+      mk('riPres',{type:'bar',data:{labels:Y3.map(String),datasets:[{label:'FinSuccess (ước tính)',data:X.presalesTotal.slice(0,3),backgroundColor:C.FinSuccess},...B.map(b=>({label:b.broker+' '+b.date.slice(3),data:b.presales.slice(0,3),backgroundColor:C[b.broker]||'#94A3B8'}))]},options:{maintainAspectRatio:false,scales:{y:{beginAtZero:true}},plugins:{tooltip:tip}}});
+      mk('riNpat',{type:'bar',data:{labels:Y3.map(String),datasets:[{label:'FinSuccess (ước tính)',data:X.npat.slice(0,3),backgroundColor:C.FinSuccess},...B.map(b=>({label:b.broker+' '+b.date.slice(3),data:b.npat.slice(0,3),backgroundColor:C[b.broker]||'#94A3B8'}))]},options:{maintainAspectRatio:false,scales:{y:{beginAtZero:true}},plugins:{tooltip:tip}}});
+      const names=X.projects.map(p=>p.name);
+      mk('riVal',{type:'bar',data:{labels:names,datasets:[{label:'FinSuccess (PV lợi nhuận)',data:X.projects.map(p=>p.valueBn),backgroundColor:C.FinSuccess},...B.map(b=>({label:b.broker+' (RNAV)',data:names.map(n=>(b.value||{})[n]??null),backgroundColor:C[b.broker]||'#94A3B8'}))]},options:{indexAxis:'y',maintainAspectRatio:false,scales:{x:{beginAtZero:true}},plugins:{tooltip:tip}}});
+      const pr=X.projects.filter(p=>p.presales.some(v=>v>0));
+      mk('riPipe',{type:'bar',data:{labels:Y.map(String),datasets:pr.map((p,i)=>({label:p.name,data:p.presales.map(v=>v||null),backgroundColor:window.stackColor?stackColor(i,pr.length):BC[i%BC.length]}))},options:{maintainAspectRatio:false,scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}},plugins:{tooltip:tip}}});};
+    draw();return true;};
+  const tryRun=n=>{if(run())return;if(n<40)setTimeout(()=>tryRun(n+1),250);};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>tryRun(0),80));else setTimeout(()=>tryRun(0),80);
+})();
+
 
 </script>
 <script>
@@ -13761,7 +13810,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='pvs',BUILD='4f93459ae479',URL_JSON='../version.json';
+  const PAGE='pvs',BUILD='28cffa1db96b',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
