@@ -10082,7 +10082,12 @@ ${p.note||r.note?`<div class="rm-fn">${esc([p.note,r.note].filter(Boolean).join(
     // Bố cục tab (người dùng chốt 16/11/2026): "Từ doanh số đến lợi nhuận" lên đầu tab; mọi khối quỹ đất gom thành một mục ngay dưới bản đồ.
     const arrange=()=>{const tab=box.closest('.tab,section,[id=backlog]')||document.getElementById('backlog');if(!tab)return;
       const nx=e=>e&&e.nextElementSibling;
-      if(bh&&nx(bh)){const c=nx(bh),first=[...tab.querySelectorAll('h2.sec')].find(h=>h.offsetParent!==null||h===bh);if(first&&first!==bh){first.parentNode.insertBefore(bh,first);bh.parentNode.insertBefore(c,nx(bh));}}
+      // Thứ tự đầu tab (người dùng chốt 19/11/2026): Doanh số & LN theo năm → Từ doanh số đến lợi nhuận → doanh số theo dự án → giá trị dự án → quỹ đất
+      let top=document.getElementById('reTop');if(!top){top=document.createElement('div');top.id='reTop';const pa=[...tab.children].find(c=>!c.classList.contains('fs-perall')&&c.tagName!=='STYLE');tab.insertBefore(top,pa||null);}
+      const unit=h=>{if(!h||h.parentNode===top)return;const c=nx(h);top.appendChild(h);if(c&&!c.matches('h2.sec'))top.appendChild(c);};
+      const ah=[...tab.querySelectorAll('h2.sec')].find(h=>/^Doanh số & lợi nhuận theo năm/.test(h.textContent.trim()));
+      if(ah&&ah.parentNode!==top)unit(ah);if(bh&&bh.parentNode!==top)unit(bh);
+      const tb=document.getElementById('tab3Backlog'),ob=document.getElementById('reObs');if(ob&&tb&&tb.parentNode===tab&&tb.nextElementSibling!==ob)tab.insertBefore(ob,tb.nextElementSibling);
       let at=box.querySelector(':scope>.card');
       const put=el=>{if(!el||!at)return;at.parentNode.insertBefore(el,at.nextSibling);at=el;};
       const qd=[...tab.querySelectorAll('.card')].find(c=>{const h=c.querySelector('h3.sub');return h&&/^Quỹ đất theo dự án/.test(h.textContent.trim())&&!box.contains(c);});put(qd);
@@ -10437,7 +10442,7 @@ html.dark #reObs .ro-watch>div,html.dark #reObsPanel .ro-mini>div{background:#1E
         <div class="ro-views"><button type="button" data-v="list">Danh mục</button><button type="button" data-v="contrib">Định giá theo CTCK</button><button type="button" data-v="loc">Vị trí & bán hàng</button></div></div><div id="roTbl"></div></div>
       <div class="card" style="margin-top:16px"><h3 class="sub">Cần theo dõi & giá trị phụ thuộc${info('Mỗi dự án: mốc kế tiếp trong lịch triển khai và giá trị dự án (trung vị CTCK) phụ thuộc vào mốc đó. "Mốc kỳ vọng" là lịch chưa khóa theo DN/CTCK. Nhận định của chuyên viên ghi ở mục Catalyst & điểm cần theo dõi (tab Catalyst & Sự kiện).')}</h3><div class="ro-watch"></div>
         <p style="margin:12px 0 0"><a href="#events" class="ro-cat">Ghi chú chuyên viên: Catalyst & điểm cần theo dõi →</a></p></div>`;
-    const anchor=[...host.children].find(c=>!c.classList.contains('fs-perall')&&c.tagName!=='STYLE');anchor?host.insertBefore(d,anchor):host.appendChild(d);
+    const tb=document.getElementById('tab3Backlog');const anchor=tb&&tb.parentNode===host?tb.nextElementSibling:[...host.children].find(c=>!c.classList.contains('fs-perall')&&c.tagName!=='STYLE'&&c.id!=='reTop');anchor?host.insertBefore(d,anchor):host.appendChild(d);
     d.addEventListener('click',e=>{const b=e.target.closest('.ro-pj');if(b)openPanel(b.dataset.p);const v=e.target.closest('.ro-views button');if(v){st.view=v.dataset.v;refresh(d);}
       if(e.target.closest('.ro-reset')){st.q='';st.reg='all';st.m='ln';d.querySelector('input').value='';d.querySelectorAll('select').forEach(s=>s.selectedIndex=0);refresh(d);}});
     d.querySelectorAll('select').forEach(s=>s.addEventListener('change',()=>{st[s.dataset.k]=s.value;refresh(d);}));
@@ -11025,7 +11030,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='hng',BUILD='422ecf784919',URL_JSON='../version.json';
+  const PAGE='hng',BUILD='bd8a3dc601c3',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
