@@ -9941,7 +9941,15 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
     const unit=h=>{if(!h||h.parentNode===top)return;const c=h.nextElementSibling;top.appendChild(h);if(c&&!c.matches('h2.sec'))top.appendChild(c);};
     unit(H(/^Doanh số & lợi nhuận theo năm/));unit(H(/^Từ doanh số đến lợi nhuận/));
     const ob=document.getElementById('reObs'),qd=document.getElementById('reMap')||(H(/^Quỹ đất/)||null);
-    if(ob&&qd&&ob.nextElementSibling!==qd)qd.parentNode.insertBefore(ob,qd);};
+    if(ob&&qd&&ob.nextElementSibling!==qd)qd.parentNode.insertBefore(ob,qd);
+    // Tên khối 3 thống nhất (người dùng chốt 19/11/2026)
+    const b3=[...tab.querySelectorAll('h2.sec')].find(h=>/^(Doanh số, tiền nhận trước|Tồn kho, tiền nhận trước|Dự án, (tồn kho|tiền nhận trước|quỹ đất))/.test(h.textContent.trim()));
+    if(b3){const tn=[...b3.childNodes].find(n=>n.nodeType===3&&n.textContent.trim());if(tn&&tn.textContent.trim()!=='Dự án, doanh số & tiền nhận trước')tn.textContent='Dự án, doanh số & tiền nhận trước';}
+    // Thứ tự cố định sau Quỹ đất: Khu công nghiệp → Tiến độ dự án → Pipeline → Bán sỉ/bán lẻ → Sở hữu, M&A
+    const pk=document.getElementById('rePack');if(pk){
+      const seq=[/^Khu công nghiệp/,/^Tiến độ dự án/,/^Pipeline/,/^Bán sỉ/,/^Sở hữu/];
+      const units=seq.map(re=>{const h=[...pk.querySelectorAll(':scope>h2.sec')].find(x=>re.test(x.textContent.trim()));if(!h)return null;const u=[h];let e=h.nextElementSibling;while(e&&!e.matches('h2.sec')&&e.id!=='reMap'&&e.id!=='reObs'){u.push(e);e=e.nextElementSibling;}return u;}).filter(Boolean);
+      units.forEach(u=>u.forEach(el=>pk.appendChild(el)));}};
   window.FSReOrder=order;
   [300,1200,2600,4500].forEach(t=>setTimeout(order,t));
 })();
@@ -11058,7 +11066,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='ntp',BUILD='4cefc526ee54',URL_JSON='../version.json';
+  const PAGE='ntp',BUILD='f10e3492f514',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
