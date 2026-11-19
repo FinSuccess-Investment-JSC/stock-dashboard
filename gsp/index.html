@@ -10209,6 +10209,222 @@ ${card('Pipeline doanh số theo dự án — ước tính FinSuccess (tỷ VND)
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>tryRun(0),80));else setTimeout(()=>tryRun(0),80);
 })();
 
+/* Góc nhìn "Dự án nào dẫn dắt tăng trưởng" cho mã BĐS (người dùng duyệt 19/11/2026, học flow từ bản demo Project Observatory; NLG làm chuẩn).
+   Không thêm dữ liệu mới: ghép ba khối sẵn có theo tên dự án
+     PVS_DATA.rePack.projects / pipeline (danh mục, sở hữu, trạng thái, mốc) · PVS_DATA.reMap (vị trí, căn, giá, pháp lý, thi công, bàn giao, đối thủ)
+     PVS_DATA.reIndep (ước tính FinSuccess theo dự án: doanh số, LN theo lợi ích, GDV, giá trị PV; định giá dự án của CTCK).
+   Năm lớp: câu hỏi + bộ lọc + 4 ô số → xếp hạng dự án & đóng góp theo năm → bảng 3 góc nhìn → hồ sơ dự án (panel phải, 4 mục)
+   → cần theo dõi & tác động mô hình. Chỉ hiện kết quả; giả định (giá, nhịp bán, biên) nằm trong ⓘ như re-indep.js.
+   Số ước tính có dấu *; thiếu số hiện "Chưa xác minh". Mã thiếu reIndep hoặc rePack.projects thì không dựng. */
+(function(){
+  const D=window.PVS_DATA||{}, RP=D.rePack||{}, X=D.reIndep, M=D.reMap||{};
+  const PR=((RP.projects||{}).rows||[]); if(!X||!(X.projects||[]).length||!PR.length)return;
+  const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const fmt=(v,d=0)=>v==null||v===''||!isFinite(v)?'—':Number(v).toLocaleString('vi-VN',{maximumFractionDigits:d});
+  const dmy=d=>{const m=/^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?/.exec(d||'');return m?[m[3],m[2],m[1]].filter(Boolean).join('/'):(d||'');};
+  const norm=s=>String(s||'').toLowerCase().normalize('NFC').replace(/\s+/g,' ').trim();
+  const head=s=>norm(String(s).split(/[·(\/–]/)[0]);
+  const info=t=>t?` <span class="info" tabindex="0" role="note" data-tip="${esc(t)}" aria-label="${esc(t)}">i</span>`:'';
+  const sum=a=>a.reduce((s,v)=>s+(+v||0),0);
+  const Y=(X.years||[]).map(Number), yi=y=>Y.indexOf(y);
+  const W=[2027,2028].filter(y=>yi(y)>=0), WL=W.length?W[0]+'–'+W[W.length-1]:'';
+  const B=X.benchmarks||[];
+  const TK=(D.meta||{}).ticker||'';
+
+  // Ghép theo tên: tên rút gọn (phần trước "·", "(", "/") của khối kia nằm trong tên đầy đủ của dự án.
+  const find=(name,list,key)=>{const h=head(name);return list.find(x=>norm(x[key||'name']).includes(h)||head(x[key||'name'])===h);};
+  const regionOf=n=>{const r=(M.regions||[]).find(r=>(r.projects||[]).includes(n));return r?{id:r.id,name:r.name}:{id:'other',name:'Khác'};};
+  const P=PR.map(r=>{
+    const ix=(X.projects||[]).find(p=>norm(r.name).includes(head(p.name)));
+    const mp=(M.projects||{})[r.name]||null;
+    const pipe=((RP.pipeline||{}).rows||[]).filter(p=>{const h=head(p.name);return PR.find(o=>norm(o.name).includes(h))===r;});
+    const cut=a=>W.map(y=>a?(a[yi(y)]??null):null);
+    return {name:r.name,r,ix,mp,pipe,reg:regionOf(r.name),
+      gdv:ix?ix.gdvBn:null,val:ix?ix.valueBn:null,
+      lnW:ix?sum(cut(ix.profit)):null,psW:ix?sum((ix.presales||[]).slice(0,3)):null,
+      bench:B.map(b=>({broker:b.broker,date:b.date,v:ix?(b.value||{})[ix.name]??null:null}))};
+  });
+  const shared=n=>P.filter(p=>p.ix&&p.ix.name===n).length>1;
+
+  const METRICS={
+    ln:{label:`LN theo lợi ích ${WL}`,unit:'tỷ VND',get:p=>p.lnW,note:`Phần lợi nhuận dự án thuộc ${TK} (đã nhân tỷ lệ sở hữu), cộng ${WL}, trước chi phí quản lý chung cấp công ty; không phải LNST mẹ.`},
+    ps:{label:`Doanh số ký bán ${Y[0]}–${Y[2]}`,unit:'tỷ VND',get:p=>p.psW,note:'Doanh số bán hàng ước tính theo dự án, cấp dự án 100%.'},
+    gdv:{label:'GDV còn lại',unit:'tỷ VND',get:p=>p.gdv,note:'Giá trị bán còn lại (gồm VAT), cấp dự án 100%.'},
+    val:{label:'Giá trị dự án (PV)',unit:'tỷ VND',get:p=>p.val,note:`Hiện giá lợi nhuận phần của ${TK}.`}};
+  const st={q:'',reg:'all',m:'ln',view:'list'};
+  const vis=()=>P.filter(p=>(st.reg==='all'||p.reg.id===st.reg)&&(!st.q||norm(p.name+' '+p.r.region).includes(norm(st.q))));
+  const ranked=()=>{const g=METRICS[st.m].get;return vis().filter(p=>g(p)!=null&&!(p.ix&&shared(p.ix.name)&&p!==P.find(q=>q.ix===p.ix))).sort((a,b)=>g(b)-g(a));};
+  const how=[...(X.method||[]),...(X.limits||[]).map(s=>'Giới hạn: '+s),'Nguồn: Ước tính FinSuccess; '+(X.src||'')].join('\n');
+
+  const CSS=`<style>
+#reObs .ro-bar{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 12px}#reObs .ro-bar input,#reObs .ro-bar select,#reObs .ro-bar button{height:36px;border:1px solid #D6DDE8;border-radius:8px;padding:0 12px;background:#fff;font:inherit;font-size:13.5px;color:#334155}
+#reObs .ro-bar input,#reObs .ro-bar select,#reObs .ro-bar button{width:auto;flex:0 0 auto;margin:0}#reObs .ro-bar input{min-width:220px}#reObs .ro-bar button{cursor:pointer}
+#reObs .ro-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px}#reObs .ro-kpi>div{background:#fff;border:1px solid #D6DDE8;border-radius:12px;padding:14px 16px}
+#reObs .ro-kpi .l{font-size:12.5px;font-weight:600;color:#64748B}#reObs .ro-kpi .v{font-size:26px;font-weight:650;color:#243878;font-variant-numeric:tabular-nums;margin:4px 0}#reObs .ro-kpi .s{font-size:12.5px;color:#64748B}
+#reObs .ro-grid{display:grid;grid-template-columns:5fr 7fr;gap:16px}@media(max-width:900px){#reObs .ro-grid{grid-template-columns:1fr}}
+#reObs .ro-rank{list-style:none;margin:0;padding:0}#reObs .ro-rank li{display:grid;grid-template-columns:minmax(120px,38%) 1fr 64px;align-items:center;gap:10px;padding:6px 0}
+#reObs .ro-rank .bar{height:14px;border-radius:7px;background:#EEF2F7;overflow:hidden}#reObs .ro-rank .bar i{display:block;height:100%;border-radius:7px}#reObs .ro-rank b{text-align:right;font-variant-numeric:tabular-nums}
+#reObs .ro-pj{background:none;border:0;padding:0;font:inherit;font-weight:600;color:#2938A8;cursor:pointer;text-align:left}#reObs .ro-pj:hover{text-decoration:underline}
+#reObs .ro-views{display:flex;gap:6px;margin-left:auto}#reObs .ro-views button,#reObsPanel .ro-tabs button{height:32px;padding:0 12px;border:1px solid #D6DDE8;border-radius:8px;background:#fff;font:inherit;font-size:13px;cursor:pointer;color:#334155}
+#reObs .ro-views button[aria-pressed=true],#reObsPanel .ro-tabs button[aria-pressed=true]{background:#1D2678;border-color:#1D2678;color:#fff}
+#reObs .ro-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#reObs table td small,#reObsPanel small{color:#64748B;font-size:12px}
+#reObs .ro-chip{display:inline-block;font-size:11.5px;font-weight:600;border-radius:999px;padding:2px 8px;background:#EEF2F7;color:#475569}#reObs .ro-chip.ok,#reObsPanel .ro-chip.ok{background:#E6F6F6;color:#0F766E}#reObs .ro-chip.est,#reObsPanel .ro-chip.est{background:#FFF7E0;color:#8A6A12}
+#reObsPanel .ro-chip{display:inline-block;font-size:11.5px;font-weight:600;border-radius:999px;padding:2px 8px;background:#EEF2F7;color:#475569}
+#reObs .ro-watch{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}#reObs .ro-watch>div{border:1px solid #E1E6EE;background:#F8FAFC;border-radius:10px;padding:12px 14px;font-size:13.5px}
+#reObs .ro-watch .t{display:flex;justify-content:space-between;gap:8px;margin-bottom:6px}
+#reObsPanel{width:min(600px,100vw)}#reObsPanel .ro-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 14px}#reObsPanel h3{font-family:Newsreader,serif;font-size:24px;margin:2px 0 4px;color:#243878}
+#reObsPanel .k{font-size:12px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:#27AF95}
+#reObsPanel table{width:100%;border-collapse:collapse;font-size:13.5px;margin:6px 0 12px}#reObsPanel td,#reObsPanel th{padding:7px 8px;border-bottom:1px solid #E3E8F0;vertical-align:top;text-align:left}#reObsPanel th{font-size:12px;font-weight:600;color:#64748B}
+#reObsPanel td.num,#reObsPanel th.num{text-align:right;font-variant-numeric:tabular-nums}
+#reObsPanel .ro-mini{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:8px 0 12px}#reObsPanel .ro-mini>div{background:#F8FAFC;border:1px solid #E1E6EE;border-radius:10px;padding:10px 12px}
+#reObsPanel .ro-mini .l{font-size:12px;color:#64748B}#reObsPanel .ro-mini .v{font-size:20px;font-weight:650;color:#243878;font-variant-numeric:tabular-nums}
+html.dark #reObs .ro-kpi>div,html.dark #reObs .ro-bar input,html.dark #reObs .ro-bar select,html.dark #reObs .ro-bar button,html.dark #reObs .ro-views button,html.dark #reObsPanel .ro-tabs button{background:#161616;border-color:#2A2A2A;color:#F5F5F5}
+html.dark #reObs .ro-watch>div,html.dark #reObsPanel .ro-mini>div{background:#1E1E1E;border-color:#2A2A2A}html.dark #reObs .ro-kpi .v,html.dark #reObsPanel h3,html.dark #reObsPanel .ro-mini .v{color:#59C5C8}
+</style>`;
+
+  const COL=['#1D2678','#2938A8','#59C5C8','#861C52','#4354B7','#8997D6','#B3BDE8','#D9DEF4','#94A3B8'];
+  const colorOf=n=>{const i=(X.projects||[]).findIndex(p=>p.name===n);return COL[(i<0?8:i)%COL.length];};
+  const draw=(id,cfg)=>{if(typeof mk==='function')mk(id,cfg);else{const c=document.getElementById(id);if(!c)return;const o=window.Chart&&Chart.getChart(c);if(o)o.destroy();new Chart(c,cfg);}};
+  const tip=u=>({callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y,0)+' '+u+' *'}});
+
+  function kpis(){
+    const v=vis(), r=ranked(), g=METRICS[st.m].get, tot=sum(r.map(g)), top=sum(r.slice(0,3).map(g));
+    const lnT=sum(v.filter(p=>p.ix&&p===P.find(q=>q.ix===p.ix)).map(p=>p.lnW));
+    return `<div><div class="l">Dự án trong danh mục</div><div class="v">${v.length}</div><div class="s">${r.length} dự án có ước tính FinSuccess</div></div>
+      <div><div class="l">${esc(METRICS[st.m].label)}</div><div class="v">${fmt(tot)}*</div><div class="s">${esc(METRICS[st.m].unit)} · ${st.m==='ln'?'theo lợi ích '+esc(TK)+', trước chi phí chung, không phải LNST mẹ':st.m==='val'?'phần của '+esc(TK):'cấp dự án 100%'}</div></div>
+      ${st.m==='ln'?`<div><div class="l">Doanh số ký bán ${Y[0]}–${Y[2]}</div><div class="v">${fmt(sum(v.filter(p=>p.ix&&p===P.find(q=>q.ix===p.ix)).map(p=>p.psW)))}*</div><div class="s">tỷ VND · cấp dự án 100%</div></div>`:`<div><div class="l">LN theo lợi ích ${WL}</div><div class="v">${fmt(lnT)}*</div><div class="s">tỷ VND · trước chi phí chung, không phải LNST mẹ</div></div>`}
+      <div><div class="l">Tập trung ở 3 dự án lớn nhất</div><div class="v">${tot>0?fmt(top/tot*100):'—'}%</div><div class="s">${r.slice(0,3).map(p=>esc(p.ix?p.ix.name:p.name)).join(' · ')||'—'}</div></div>`;
+  }
+  function rank(){
+    const r=ranked(), g=METRICS[st.m].get, mx=Math.max(1,...r.map(g));
+    return r.length?`<ul class="ro-rank">${r.map(p=>`<li><button type="button" class="ro-pj" data-p="${esc(p.name)}">${esc(p.ix&&shared(p.ix.name)?p.ix.name:p.name)}</button><span class="bar"><i style="width:${Math.max(0,g(p))/mx*100}%;background:${colorOf(p.ix&&p.ix.name)}"></i></span><b>${fmt(g(p))}</b></li>`).join('')}</ul>`:'<p class="note">Không có dự án nào khớp bộ lọc.</p>';
+  }
+  function stack(){
+    const r=ranked().filter(p=>p.ix);
+    const key=st.m==='ps'?'presales':'profit';
+    draw('roStack',{type:'bar',data:{labels:Y.map(String),datasets:r.map(p=>({label:p.ix.name,data:(p.ix[key]||[]).map(v=>v||null),backgroundColor:colorOf(p.ix.name)}))},
+      options:{maintainAspectRatio:false,scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}},plugins:{tooltip:tip('tỷ')}}});
+    const t=document.getElementById('roStackT'); if(t)t.firstChild.nodeValue=(st.m==='ps'?'Doanh số ký bán theo dự án':'LN theo lợi ích theo dự án')+' (tỷ VND) ';
+  }
+  const nextMs=p=>{const now=new Date().getFullYear();const r=p.pipe.filter(x=>+x.year>=now);return r.find(x=>/kỳ vọng|dự kiến|kế tiếp|chuẩn bị/i.test(x.event))||r[0]||null;};
+  const msTxt=x=>x?`${esc(String(x.event).split('—')[0].trim())} <small>${esc(x.year)}</small>`:'—';
+  const pctTxt=(o,k)=>o&&o[k]!=null?fmt(o[k])+'%'+(o.estimate?'*':''):'—';
+  function table(){
+    const v=vis(), lnTot=sum(P.filter(p=>p.ix&&p===P.find(q=>q.ix===p.ix)).map(p=>p.lnW));
+    const pj=p=>`<button type="button" class="ro-pj" data-p="${esc(p.name)}">${esc(p.name)}</button><br><small>${esc(p.r.region||p.reg.name)}</small>`;
+    const merged=p=>p.ix&&shared(p.ix.name)&&p!==P.find(q=>q.ix===p.ix);
+    const est=(p,val)=>merged(p)?`<small>gộp trong ${esc(p.ix.name)}</small>`:p.ix?fmt(val)+'*':'—';
+    let h,rows;
+    if(st.view==='list'){
+      h=['Dự án','Sở hữu','Trạng thái','GDV còn lại','LN '+WL,'Tỷ trọng LN','Mốc kế tiếp'];
+      rows=v.map(p=>`<tr><td>${pj(p)}</td><td class="num">${p.r.ownership!=null?fmt(p.r.ownership,1)+'%':'—'}</td><td>${esc(p.r.status||'—')}</td><td class="num">${est(p,p.gdv)}</td><td class="num">${est(p,p.lnW)}</td><td class="num">${p.ix&&!merged(p)&&lnTot?fmt(p.lnW/lnTot*100,1)+'%':'—'}</td><td>${msTxt(nextMs(p))}</td></tr>`);
+    }else if(st.view==='contrib'){
+      h=['Dự án',...Y.map(y=>'LN '+y),'Giá trị PV',...B.map(b=>b.broker+' (RNAV)')];
+      rows=v.map(p=>`<tr><td>${pj(p)}</td>${Y.map((y,i)=>`<td class="num">${merged(p)?'':p.ix?fmt(p.ix.profit[i]):'—'}</td>`).join('')}<td class="num">${est(p,p.val)}</td>${p.bench.map(b=>`<td class="num">${merged(p)?'':fmt(b.v)}</td>`).join('')}</tr>`);
+    }else{
+      h=['Dự án','Vùng','Diện tích','Sản phẩm','% đã bán','% bàn giao','Giá chào bán'];
+      rows=v.map(p=>{const m=p.mp||{};return `<tr><td>${pj(p)}</td><td>${esc(p.reg.name)}</td><td class="num">${p.r.areaHa!=null?fmt(p.r.areaHa,1)+' ha':'—'}</td><td>${esc(m.products||'—')}</td><td class="num">${pctTxt(m.units,'soldPct')}</td><td class="num">${pctTxt(m.handover,'handedPct')}</td><td><small>${esc(m.price&&m.price.text||'—')}</small></td></tr>`;});
+    }
+    return `<div class="tbl-wrap"><table><tr>${h.map((x,i)=>`<th${i&&!/Sở hữu|Trạng thái|Mốc|Vùng|Sản phẩm|Giá chào/.test(x)?' class="num"':''}>${esc(x)}</th>`).join('')}</tr>${rows.join('')}</table></div>`;
+  }
+  function watch(){
+    const r=ranked().filter(p=>p.ix);
+    return r.map(p=>{const ms=nextMs(p), ver=ms&&ms.estimate===false&&!/kỳ vọng|chưa khóa/i.test(ms.event);
+      const txt=ms?String(ms.event).split('—').slice(1).join('—').trim()||ms.event:'Chưa có mốc trong lịch dự án';
+      return `<div><div class="t"><button type="button" class="ro-pj" data-p="${esc(p.name)}">${esc(p.ix.name)}</button><span class="ro-chip ${ver?'ok':'est'}">${ver?'Mốc đã công bố':'Mốc kỳ vọng'}</span></div>
+        <div>${ms?esc(ms.year)+' · ':''}${esc(txt)}</div><small>Ước tính phụ thuộc: LN theo lợi ích ${WL} ${fmt(p.lnW)} tỷ* · doanh số ${Y[0]}–${Y[2]} ${fmt(p.psW)} tỷ*</small></div>`;}).join('');
+  }
+
+  // ---- Hồ sơ dự án (panel phải, 4 mục) ----
+  const T=o=>o==null?null:typeof o==='object'?(o.text?esc(o.text)+(o.estimate?'*':'')+(o.asOf?` <small>(${dmy(o.asOf)})</small>`:''):null):esc(o);
+  const srcOf=(...o)=>[...new Set(o.filter(x=>x&&x.src).map(x=>x.src))].join('; ');
+  const km=(a,b)=>{const R=6371,r=x=>x*Math.PI/180,dl=r(b[0]-a[0]),dg=r(b[1]-a[1]);const h=Math.sin(dl/2)**2+Math.cos(r(a[0]))*Math.cos(r(b[0]))*Math.sin(dg/2)**2;return 2*R*Math.asin(Math.sqrt(h));};
+  const NV='Chưa xác minh';
+  function pane(p,tab){
+    const m=p.mp||{}, u=m.units||{}, r=p.r;
+    if(tab==='loc') return `<table>
+        <tr><th>Vùng</th><td>${esc(p.reg.name)} · ${esc(r.region||'')}</td></tr><tr><th>Diện tích</th><td>${r.areaHa!=null?fmt(r.areaHa,1)+' ha':NV}</td></tr>
+        <tr><th>Loại / phạm vi</th><td>${esc(r.type||NV)}</td></tr><tr><th>Sở hữu ${esc(TK)}</th><td>${r.ownership!=null?fmt(r.ownership,2)+'%':NV}</td></tr>
+        <tr><th>Đối tác</th><td>${esc(m.partner||'—')}</td></tr><tr><th>Sản phẩm</th><td>${esc(m.products||NV)}</td></tr><tr><th>Trạng thái</th><td>${esc(r.status||NV)}</td></tr></table>
+        ${r.note?`<p>${esc(r.note)}</p>`:''}${m.lat?`<p><small>Vị trí trên bản đồ dự án cùng tab (tọa độ ${m.approx?'ước định':'đã xác minh'}).</small></p>`:''}
+        <p><small>Nguồn dữ liệu</small>${info('Nguồn: '+([(RP.projects||{}).src,M.src].filter(Boolean).join('; ')))}</p>`;
+    if(tab==='prog'){
+      const ROWS=[['Pháp lý / giấy phép bán hàng',m.legal,'Giới hạn nguồn hàng có thể mở bán'],['Thi công',m.construction,'Cơ sở lịch bàn giao'],['Bàn giao',m.handover,'Thời điểm ghi nhận doanh thu'],['Sổ hồng',null,'Hoàn tất nghĩa vụ, thu tiền đợt cuối']];
+      const pk=m.legal&&/sổ hồng/i.test(m.legal.text||'')?m.legal:null;
+      return `<div class="k">Ma trận mốc pháp lý & triển khai</div><table><tr><th>Mốc</th><th>Thực tế</th><th>Tác động tới ước tính</th></tr>
+        ${ROWS.map(([n,o,role])=>`<tr><td>${n}</td><td>${T(n==='Sổ hồng'?pk:o)||NV}</td><td><small>${role}</small></td></tr>`).join('')}</table>
+        <div class="ro-mini"><div><div class="l">% đã bán</div><div class="v">${pctTxt(u,'soldPct')}</div></div><div><div class="l">% đã bàn giao</div><div class="v">${pctTxt(m.handover,'handedPct')}</div></div><div><div class="l">Tổng căn</div><div class="v">${fmt(u.total)}</div></div></div>
+        ${p.pipe.length?`<div class="k">Lịch triển khai</div><table><tr><th>Năm</th><th>Sự kiện</th></tr>${p.pipe.map(x=>`<tr><td>${esc(x.year)}</td><td>${esc(x.event)}${x.estimate?'*':''}</td></tr>`).join('')}</table>`:''}
+        ${m.note?`<p><small>${esc(m.note)}</small></p>`:''}<p><small>Nguồn dữ liệu</small>${info('Nguồn: '+(srcOf(m.legal,m.construction,m.handover,u)||M.src||''))}</p>`;
+    }
+    if(tab==='sale'){
+      const comp=m.lat?(M.competitors||[]).map(c=>({c,d:km([m.lat,m.lng],[c.lat,c.lng])})).filter(x=>isFinite(x.d)&&x.d<=15).sort((a,b)=>a.d-b.d).slice(0,6):[];
+      const mkts=(M.markets||[]).filter(x=>/nam bộ|tp\.?hcm/i.test(x.area)&&p.reg.id!=='north'||norm(x.area).includes(head(p.reg.name))||(p.reg.id==='west'&&/tây/i.test(x.area))||(p.reg.id==='east'&&/đồng nai|đông/i.test(x.area))||(p.reg.id==='north'&&/hải phòng|bắc/i.test(x.area))||(p.reg.id==='mekong'&&/cần thơ|mekong|tây nam/i.test(x.area)));
+      return `<div class="ro-mini"><div><div class="l">Tổng căn</div><div class="v">${fmt(u.total)}</div></div><div><div class="l">Đã mở bán</div><div class="v">${fmt(u.launched)}</div></div><div><div class="l">% đã bán</div><div class="v">${pctTxt(u,'soldPct')}</div></div></div>
+        <table><tr><th>Giá chào bán</th><td>${T(m.price)||NV}</td></tr></table>
+        ${(m.phases||[]).length?`<div class="k">Phân khu đang bán</div><table><tr><th>Phân khu</th><th>Mở bán</th><th class="num">Căn</th><th class="num">% bán</th><th>Giá</th></tr>${m.phases.map(f=>`<tr><td>${esc(f.name)}</td><td>${dmy(f.launch)||'—'}</td><td class="num">${fmt(f.units)}</td><td class="num">${f.soldPct!=null?fmt(f.soldPct)+'%':'—'}</td><td><small>${esc(f.price||'—')}</small></td></tr>`).join('')}</table>`:''}
+        <div class="k">Dự án cạnh tranh trong bán kính 15 km</div>${comp.length?`<table><tr><th>Dự án</th><th>Chủ đầu tư</th><th class="num">Cách</th><th>Giá</th></tr>${comp.map(({c,d})=>`<tr><td>${esc(c.name)}</td><td><small>${esc(c.developer||'—')}</small></td><td class="num">${fmt(d,1)} km</td><td><small>${T(c.price)||'—'}</small></td></tr>`).join('')}</table>`:`<p><small>Chưa có dự án đối thủ đã định vị trong bán kính 15 km.</small></p>`}
+        ${mkts.length?`<div class="k">Thị trường khu vực</div><ul>${mkts.map(x=>`<li>${esc(x.metric)} <small>(${dmy(x.asOf)})</small></li>`).join('')}</ul>`:''}
+        <p><small>Nguồn dữ liệu</small>${info('Nguồn: '+([srcOf(m.price,u,...(m.phases||[])),...new Set(comp.map(x=>x.c.price&&x.c.price.src).filter(Boolean)),...new Set(mkts.map(x=>x.src))].filter(Boolean).join('; ')||M.src||''))}</p>`;
+    }
+    if(!p.ix) return `<p>Chưa có ước tính FinSuccess riêng cho dự án này.</p>`;
+    const ix=p.ix, pace=(X.pace||[]).filter(s=>norm(s).startsWith(head(ix.name))), pricing=(X.pricing||[]).filter(s=>norm(s).startsWith(head(ix.name)));
+    const note=[...pricing.map(s=>'Giá: '+s),...pace.map(s=>'Nhịp bán & biên: '+s)].join('\n');
+    return `${shared(ix.name)?`<p><small>Ước tính gộp cho ${esc(ix.name)} (gồm các phân khu cùng dự án).</small></p>`:''}
+      <div class="ro-mini"><div><div class="l">GDV còn lại</div><div class="v">${fmt(ix.gdvBn)}*</div><small>tỷ VND · 100% dự án</small></div><div><div class="l">Giá trị PV</div><div class="v">${fmt(ix.valueBn)}*</div><small>tỷ VND · phần ${esc(TK)}</small></div><div><div class="l">LN ${WL}</div><div class="v">${fmt(p.lnW)}*</div><small>tỷ VND · theo lợi ích</small></div></div>
+      <div class="k">Ước tính FinSuccess theo năm${info(note+(note?'\n':'')+how)}</div>
+      <table><tr><th></th>${Y.map(y=>`<th class="num">${y}</th>`).join('')}</tr><tr><td>Doanh số ký bán <small>(100%)</small></td>${Y.map((y,i)=>`<td class="num">${fmt(ix.presales[i])}</td>`).join('')}</tr><tr><td>LN theo lợi ích</td>${Y.map((y,i)=>`<td class="num">${fmt(ix.profit[i])}</td>`).join('')}</tr></table>
+      ${B.length?`<div class="k">So với định giá dự án của CTCK</div><table><tr><th>Nguồn</th><th>Ngày</th><th class="num">Giá trị dự án (tỷ VND)</th></tr><tr><td><b>FinSuccess</b> <small>(PV lợi nhuận)</small></td><td>${dmy(X.asOf)}</td><td class="num">${fmt(ix.valueBn)}*</td></tr>${p.bench.map(b=>`<tr><td>${esc(b.broker)} <small>(RNAV)</small></td><td>${esc(b.date)}</td><td class="num">${fmt(b.v)}</td></tr>`).join('')}</table>`:''}
+      <p><small>* Ước tính FinSuccess. LN theo lợi ích chưa trừ chi phí quản lý chung cấp công ty; không phải LNST mẹ.</small></p>`;
+  }
+  const TABS=[['loc','Vị trí & quy mô'],['prog','Tiến độ & pháp lý'],['sale','Bán hàng & cạnh tranh'],['est','Ước tính & đóng góp']];
+  function openPanel(name,tab){
+    const p=P.find(x=>x.name===name); if(!p)return;
+    let pn=document.getElementById('reObsPanel');
+    if(!pn){pn=document.createElement('aside');pn.id='reObsPanel';pn.className='fs-panel';pn.setAttribute('role','dialog');pn.setAttribute('aria-label','Hồ sơ dự án');document.body.append(pn);
+      addEventListener('keydown',e=>{if(e.key==='Escape')pn.classList.remove('on');});
+      pn.addEventListener('click',e=>{if(e.target.closest('.x'))pn.classList.remove('on');const b=e.target.closest('.ro-tabs button');if(b)openPanel(pn.dataset.p,b.dataset.t);});}
+    tab=tab||'est'; pn.dataset.p=name;
+    pn.innerHTML=`<button type="button" class="x" aria-label="Đóng">×</button><div class="k">Hồ sơ dự án · ${esc(p.reg.name)}</div><h3>${esc(p.name)}</h3>
+      <small>${esc(p.r.region||'')}${p.r.areaHa!=null?' · '+fmt(p.r.areaHa,1)+' ha':''}${p.r.ownership!=null?' · sở hữu '+fmt(p.r.ownership,1)+'%':''}</small>
+      <div class="ro-tabs">${TABS.map(([k,l])=>`<button type="button" data-t="${k}" aria-pressed="${k===tab}">${l}</button>`).join('')}</div><div>${pane(p,tab)}</div>`;
+    pn.classList.add('on');
+  }
+
+  function refresh(root){
+    root.querySelector('.ro-kpi').innerHTML=kpis(); root.querySelector('#roRank').innerHTML=rank();
+    root.querySelector('#roRankT').firstChild.nodeValue=METRICS[st.m].label+' (tỷ VND) ';
+    root.querySelector('#roTbl').innerHTML=table(); root.querySelector('.ro-watch').innerHTML=watch();
+    root.querySelectorAll('.ro-views button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===st.view)));
+    const r=ranked(), g=METRICS[st.m].get, tot=sum(r.map(g)), top=sum(r.slice(0,3).map(g));
+    root.querySelector('h2.sec').innerHTML=`Dự án nào dẫn dắt tăng trưởng — ${r.length>=3&&tot>0?`3 dự án lớn chiếm ${fmt(top/tot*100)}% ${esc(METRICS[st.m].label.replace(/ \d{4}.*$/,''))}`:'xếp hạng theo ước tính FinSuccess'}`;
+    stack();
+  }
+  const run=()=>{
+    const host=document.getElementById('backlog'); if(!host||document.getElementById('reObs'))return;
+    const regs=[...new Map(P.map(p=>[p.reg.id,p.reg.name]))];
+    const d=document.createElement('div'); d.id='reObs';
+    d.innerHTML=CSS+`<h2 class="sec">Dự án nào dẫn dắt tăng trưởng</h2>
+      <div class="ro-bar"><input type="search" placeholder="Tìm dự án…" aria-label="Tìm dự án"><select data-k="reg" aria-label="Khu vực"><option value="all">Tất cả khu vực</option>${regs.map(([k,n])=>`<option value="${k}">${esc(n)}</option>`).join('')}</select>
+        <select data-k="m" aria-label="Xếp hạng theo">${Object.entries(METRICS).map(([k,o])=>`<option value="${k}">Xếp theo: ${esc(o.label)}</option>`).join('')}</select><button type="button" class="ro-reset">Đặt lại bộ lọc</button></div>
+      <div class="ro-kpi"></div>
+      <div class="ro-grid"><div class="card"><h3 class="sub" id="roRankT">x ${info(Object.values(METRICS).map(o=>o.label+': '+o.note).join('\n')+'\nBấm tên dự án để mở hồ sơ.\n'+how)}</h3><div id="roRank"></div></div>
+        <div class="card"><h3 class="sub" id="roStackT">x ${info(`Ước tính FinSuccess theo năm, mỗi màu một dự án; theo bộ lọc phía trên. Khi xếp theo doanh số thì hiện doanh số ký bán (100% dự án), các chỉ tiêu khác hiện LN theo lợi ích.\n`+how)}</h3><div class="chart tall"><canvas id="roStack"></canvas></div></div></div>
+      <div class="card" style="margin-top:16px"><div class="ro-head"><h3 class="sub" style="margin:0">Danh mục dự án${info('Ô có dấu * là ước tính FinSuccess. GDV còn lại cấp dự án 100%; LN theo lợi ích là phần của '+TK+'. Mốc kế tiếp lấy từ lịch triển khai dự án.\nNguồn: '+[(RP.projects||{}).src,(RP.pipeline||{}).src,'Ước tính FinSuccess'].filter(Boolean).join('; '))}</h3>
+        <div class="ro-views"><button type="button" data-v="list">Danh mục</button><button type="button" data-v="contrib">Đóng góp & định giá</button><button type="button" data-v="loc">Vị trí & bán hàng</button></div></div><div id="roTbl"></div></div>
+      <div class="card" style="margin-top:16px"><h3 class="sub">Cần theo dõi & tác động tới ước tính${info('Mỗi dự án: mốc kế tiếp trong lịch triển khai và phần ước tính phụ thuộc vào mốc đó. "Mốc kỳ vọng" là lịch chưa khóa theo DN/CTCK. Nhận định của chuyên viên ghi ở mục Catalyst & điểm cần theo dõi (tab Catalyst & Sự kiện).')}</h3><div class="ro-watch"></div>
+        <p style="margin:12px 0 0"><a href="#events" class="ro-cat">Ghi chú chuyên viên: Catalyst & điểm cần theo dõi →</a></p></div>`;
+    const anchor=[...host.children].find(c=>!c.classList.contains('fs-perall')&&c.tagName!=='STYLE');anchor?host.insertBefore(d,anchor):host.appendChild(d);
+    d.addEventListener('click',e=>{const b=e.target.closest('.ro-pj');if(b)openPanel(b.dataset.p);const v=e.target.closest('.ro-views button');if(v){st.view=v.dataset.v;refresh(d);}
+      if(e.target.closest('.ro-reset')){st.q='';st.reg='all';st.m='ln';d.querySelector('input').value='';d.querySelectorAll('select').forEach(s=>s.selectedIndex=0);refresh(d);}});
+    d.querySelectorAll('select').forEach(s=>s.addEventListener('change',()=>{st[s.dataset.k]=s.value;refresh(d);}));
+    d.querySelector('input').addEventListener('input',e=>{st.q=e.target.value;refresh(d);});
+    refresh(d);
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(run,0));else setTimeout(run,0);
+})();
+
 
 </script>
 <script>
@@ -10787,7 +11003,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='gsp',BUILD='e98856b65b4c',URL_JSON='../version.json';
+  const PAGE='gsp',BUILD='d8e34b78d5ad',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
