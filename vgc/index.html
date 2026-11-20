@@ -10585,7 +10585,7 @@ function convert(c,card){
     scales:{x:{beginAtZero:true,ticks:{callback:v=>Number(v).toLocaleString('vi-VN')}},y:{ticks:{autoSkip:false,font:{size:12}}}}}});
 }
 // Khối nợ/trái phiếu → tab Tài chính › Bảng cân đối › nhóm 4 "Nợ vay & thanh khoản" (người dùng chốt 20/11/2026), thứ tự tổng → chi tiết.
-const DEBT=[/cơ cấu nợ vay|nợ vay theo loại/i,/trái phiếu.*(đại lý|tổ chức)/i,/đáo hạn/i,/lãi vay vốn hóa|thế chấp/i];
+const DEBT=[/cơ cấu nợ vay|nợ vay theo loại/i,/tái cấu trúc nợ/i,/trái phiếu.*(đại lý|tổ chức)/i,/đáo hạn/i,/lãi vay vốn hóa|thế chấp/i];
 function moveDebt(){if(typeof window.fsBsPlace!=='function')return false;
   const cs=[...document.querySelectorAll('#backlog .card[data-reac]')].map(k=>{const t=(k.querySelector('h3.sub')||{}).textContent||'';return {k,r:DEBT.findIndex(re=>re.test(t))};}).filter(x=>x.r>=0).sort((a,b)=>a.r-b.r);
   let prev=null;cs.forEach(({k})=>{if(k.querySelector('canvas')){window.fsBsPlace(k);}else if(prev&&prev.parentNode)prev.parentNode.insertBefore(k,prev.nextSibling);else window.fsBsPlace(k);prev=k;});
@@ -11175,7 +11175,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='vgc',BUILD='0d31f55a0c88',URL_JSON='../version.json';
+  const PAGE='vgc',BUILD='112e1a491501',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
