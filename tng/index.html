@@ -3959,6 +3959,26 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{try{go();}catch
 (function(){let n=0;const go=()=>{const r=document.getElementById('rePack'),p=document.querySelector('#seg .subpane[data-k="main"]');if(r&&p){if(r.parentNode!==p)p.appendChild(r);r.classList.remove('re-sub-off');[...document.querySelectorAll('#reSubnav,#reDebtGo')].forEach(x=>x.remove());const pg=document.getElementById('reProg');if(pg&&r.contains(pg)){const h=pg.previousElementSibling;if(h&&h.matches('h2.sec')&&/^Tiến độ dự án/.test(h.textContent.trim()))h.remove();const bl=document.getElementById('backlog');pg.querySelectorAll('.card').forEach(c=>bl&&bl.appendChild(c));pg.remove();}return;}if(++n<40)setTimeout(go,250);};
 document.addEventListener('DOMContentLoaded',()=>[400,1400,2800,4800].forEach(t=>setTimeout(()=>{n=0;go();},t)));})();
 
+/* Doanh thu & chi phí tài chính theo khoản mục — thuyết minh BCTN/BCTC kiểm toán TNG 2016–2025 (tỷ VND). */
+(function(){
+const Y=['2016','2017','2018','2019','2020','2021','2022','2023','2024','2025'];
+const S={dep:[0.20,0.17,0.03,0.52,4.29,2.09,2.71,15.61,7.16,20.13],fxg:[15.43,14.18,27.68,20.56,29.38,58.03,118.37,82.92,117.90,90.56],
+ int:[67.12,73.97,91.50,101.23,120.83,124.97,159.53,192.36,184.43,212.15],fxl:[21.06,16.09,44.69,14.36,13.88,34.66,113.72,82.04,134.48,45.43],oth:[0,0,0,20.81,9.76,10.28,28.41,51.29,52.20,58.11]};
+const neg=a=>a.map(v=>v==null?null:-v),r2=v=>Math.round(v*100)/100;
+const net=Y.map((_,i)=>r2(S.dep[i]+S.fxg[i]-S.int[i]-S.fxl[i]-S.oth[i])),fxn=Y.map((_,i)=>r2(S.fxg[i]-S.fxl[i]));
+const src='Thuyết minh BCTC kiểm toán trong BCTN TNG 2017, 2019, 2020, 2021, 2022, 2023, 2024, 2025';
+function go(t){const p=document.getElementById('bs');if(!p||document.getElementById('tngFinItems'))return;if(typeof mkTS!=='function'){if((t||0)<40)setTimeout(()=>go((t||0)+1),250);return;}
+ const e=document.createElement('div');e.className='card';e.dataset.source=src;e.style.marginTop='16px';
+ e.innerHTML='<h3 class="sub">Doanh thu & chi phí tài chính theo khoản mục (tỷ VND)</h3><div class="chart tall"><canvas id="tngFinItems"></canvas></div><p class="note">Cột dương: doanh thu tài chính (lãi tiền gửi/cho vay, lãi chênh lệch tỷ giá). Cột âm: chi phí tài chính (lãi vay & chi phí phát hành trái phiếu, lỗ chênh lệch tỷ giá, chi phí tài chính khác). Đường: LN tài chính ròng = doanh thu − chi phí tài chính; tỷ giá ròng = lãi − lỗ chênh lệch tỷ giá (bật ở chú giải). Số theo thuyết minh năm, chỉ có chu kỳ Năm; 2016–2018 TNG không tách chi phí tài chính khác (ghi 0 theo thuyết minh). Năm 2020 lãi vay theo thuyết minh 120,8 tỷ (KQKD ghi "trong đó lãi vay" 101,2 tỷ).</p>';
+ p.appendChild(e);
+ const ds=[{label:'Lãi tiền gửi, cho vay',data:S.dep,backgroundColor:'#59C5C8',stack:'s'},{label:'Lãi chênh lệch tỷ giá',data:S.fxg,backgroundColor:'#2938A8',stack:'s'},
+  {label:'Lãi vay',data:neg(S.int),backgroundColor:'#861C52',stack:'s'},{label:'Lỗ chênh lệch tỷ giá',data:neg(S.fxl),backgroundColor:'#8997D6',stack:'s'},{label:'Chi phí tài chính khác',data:neg(S.oth),backgroundColor:'#B3BDE8',stack:'s'},
+  {type:'line',label:'LN tài chính ròng',data:net,borderColor:'#1D2678',backgroundColor:'#1D2678',pointRadius:3,stack:'n'},
+  {type:'line',label:'Tỷ giá ròng',data:fxn,borderColor:'#D4A72C',backgroundColor:'#D4A72C',borderDash:[5,4],pointRadius:2,stack:'f',hidden:true}];
+ mkTS('tngFinItems',{def:'y',noShare:true,y:{labels:Y,datasets:ds},cfg:(labels,datasets)=>({type:'bar',data:{labels,datasets},options:baseOpts({interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+(c.parsed.y==null?'—':c.parsed.y.toLocaleString('vi-VN',{maximumFractionDigits:1}))+' tỷ VND'}}},scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,title:{display:true,text:'Tỷ VND'}}}})})});}
+document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{try{go();}catch(err){console.error('fin-items',err);}},600));
+})();
+
 </script>
 <script>window.FINANCE_INPUTS = {
   "PVT": {
@@ -11369,7 +11389,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='tng',BUILD='998204b77014',URL_JSON='../version.json';
+  const PAGE='tng',BUILD='74c070d1d1f1',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
