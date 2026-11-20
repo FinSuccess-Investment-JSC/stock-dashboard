@@ -10272,7 +10272,7 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
     const RE=/^(Milestone|Mốc |Tiến độ|Lịch triển khai)/i;
     const cards=[...tab.querySelectorAll('.card')].filter(c=>!pk.contains(c)&&!c.closest('#reTop,#reObs,#reMap,#tab3Stores')&&!c.parentElement.closest('.card')&&RE.test(((c.querySelector('h3')||{}).textContent||'').trim()));
     // Card nợ vay/trái phiếu riêng của mã → tab Tài chính › Bảng cân đối (fsBsPlace xếp theo tiêu đề, nhóm 4).
-    if(typeof window.fsBsPlace==='function')[...tab.querySelectorAll('.card')].filter(c=>!c.closest('#reTop,#reObs,#rePack,#tab3Stores')&&!c.parentElement.closest('.card')&&(c.querySelector('canvas')||c.querySelector('table'))&&/nợ vay|tái cấu trúc nợ|nguồn tài trợ|trái phiếu|đáo hạn/i.test(((c.querySelector('h3')||{}).textContent||''))).forEach(c=>{
+    if(typeof window.fsBsPlace==='function')[...tab.querySelectorAll('.card')].filter(c=>!c.closest('#reTop,#reObs,#rePack,#tab3Stores')&&!c.parentElement.closest('.card')&&(c.querySelector('canvas')||c.querySelector('table'))&&/nợ vay|vay ngân hàng|tái cấu trúc nợ|nguồn tài trợ|trái phiếu|đáo hạn/i.test(((c.querySelector('h3')||{}).textContent||''))).forEach(c=>{
       if(c.querySelector('canvas')){window.fsBsPlace(c);return;}
       const g=[...document.querySelectorAll('#bs .pow-kg')].find(x=>/Nợ vay/.test((x.querySelector('h2')||{}).textContent||''));const gr=g&&g.querySelector('.grid');if(gr){c.style.gridColumn='1/-1';gr.appendChild(c);g.hidden=false;}});
     if(!cards.length)return;
@@ -10876,7 +10876,10 @@ function convert(c,card){
   if(!numCols.length||typeof mk!=='function')return;
   const txt=H.map((_,j)=>j>0&&!numCols.includes(j)?j:-1).filter(j=>j>0);
   const tot=R.filter(r=>TOT.test(String(r[0]))),body=R.filter(r=>!TOT.test(String(r[0])));
-  const labels=body.map(r=>[r[0],...txt.map(j=>r[j])].filter(x=>x!=null&&x!=='').join(' · '));
+  // Cột chữ chỉ ghép vào nhãn khi tên ở cột đầu bị trùng (vd cùng đại lý, khác kỳ hạn); còn lại hiện trong tooltip.
+  const dup=new Set(body.map(r=>r[0])).size<body.length;
+  const labels=body.map(r=>(dup?[r[0],...txt.map(j=>r[j])]:[r[0]]).filter(x=>x!=null&&x!=='').join(' · '));
+  const extra=dup?[]:txt;
   const order=numCols.slice().reverse(); // kỳ mới thường ở cột trái → vẽ kỳ cũ trước
   const ds=order.map((j,i)=>({label:String(H[j]),data:body.map(r=>num(r[j])?r[j]:null),backgroundColor:PAL[Math.max(0,PAL.length-order.length+i)],borderRadius:3,maxBarThickness:16}));
   if(ds.length===1)ds[0].backgroundColor=body.map(()=>'#2938A8'); // mảng màu: trục là thực thể, không tô đậm "kỳ cuối"
@@ -10885,14 +10888,17 @@ function convert(c,card){
   wrap.outerHTML=(tot.length?`<div style="font-size:13px;color:#64748B;margin:2px 0 6px">${tot.map(r=>`${esc(r[0])}: ${numCols.map(j=>`<b style="color:#243878">${f(r[j])}</b> (${esc(H[j])})`).join(' · ')}`).join('<br>')}</div>`:'')+`<div class="chart" style="height:${h}px"><canvas id="${id}"></canvas></div>`;
   const unit=(String(c.title).match(/\(([^()]+)\)\s*$/)||[])[1]||'';
   mk(id,{type:'bar',data:{labels,datasets:ds},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
-    plugins:{legend:{display:ds.length>1,position:'bottom',labels:{boxWidth:12}},tooltip:{callbacks:{label:t=>t.dataset.label+': '+f(t.parsed.x)+(unit?' '+unit.replace(/^%.*/,'%'):'')}}},
+    plugins:{legend:{display:ds.length>1,position:'bottom',labels:{boxWidth:12}},tooltip:{callbacks:{label:t=>t.dataset.label+': '+f(t.parsed.x)+(unit?' '+unit.replace(/^%.*/,'%'):''),afterBody:it=>{const r=body[it[0].dataIndex];return extra.map(j=>H[j]+': '+(r[j]==null?'—':r[j]));}}}},
     scales:{x:{beginAtZero:true,ticks:{callback:v=>Number(v).toLocaleString('vi-VN')}},y:{ticks:{autoSkip:false,font:{size:12}}}}}});
 }
 // Khối nợ/trái phiếu → tab Tài chính › Bảng cân đối › nhóm 4 "Nợ vay & thanh khoản" (người dùng chốt 20/11/2026), thứ tự tổng → chi tiết.
-const DEBT=[/cơ cấu nợ vay|nợ vay theo loại/i,/tái cấu trúc nợ/i,/trái phiếu.*(đại lý|tổ chức)/i,/đáo hạn/i,/lãi vay vốn hóa|thế chấp/i];
+const DEBT=[/cơ cấu nợ vay|nợ vay theo loại|^nợ vay/i,/tái cấu trúc nợ/i,/vay ngân hàng theo dự án|vay theo dự án/i,/trái phiếu.*(đại lý|tổ chức)/i,/đáo hạn/i,/lãi vay vốn hóa|thế chấp/i];
 function moveDebt(){if(typeof window.fsBsPlace!=='function')return false;
   const cs=[...document.querySelectorAll('#backlog .card[data-reac]')].map(k=>{const t=(k.querySelector('h3.sub')||{}).textContent||'';return {k,r:DEBT.findIndex(re=>re.test(t))};}).filter(x=>x.r>=0).sort((a,b)=>a.r-b.r);
-  let prev=null;cs.forEach(({k})=>{if(k.querySelector('canvas')){window.fsBsPlace(k);}else if(prev&&prev.parentNode)prev.parentNode.insertBefore(k,prev.nextSibling);else window.fsBsPlace(k);prev=k;});
+  const g4=()=>{const g=[...document.querySelectorAll('#bs .pow-kg')].find(x=>/Nợ vay/.test((x.querySelector('h2')||{}).textContent||''));if(g)g.hidden=false;return g&&g.querySelector('.grid');};
+  let prev=null;cs.forEach(({k})=>{if(k.querySelector('canvas'))window.fsBsPlace(k);else{const gr=g4();if(gr){k.style.gridColumn='1/-1';gr.appendChild(k);}}prev=k;});
+  // Ô số đã nằm sẵn ở tab Dự án (card trước đó do re-pack chuyển) cũng phải sang nhóm 4.
+  [...document.querySelectorAll('#backlog .card[data-reac]')].filter(k=>!k.querySelector('canvas')&&/lãi vay vốn hóa|thế chấp/i.test((k.querySelector('h3.sub')||{}).textContent||'')).forEach(k=>{const gr=g4();if(gr){k.style.gridColumn='1/-1';gr.appendChild(k);}});
   return true;}
 function run(){let left=0;
   A.cards.filter(c=>c.type==='table').forEach(c=>{const card=[...document.querySelectorAll('.card')].find(k=>{const h=k.querySelector('h3.sub');return h&&h.textContent.trim().startsWith(String(c.title).trim());});
@@ -11479,7 +11485,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='msh',BUILD='110a0f1388f5',URL_JSON='../version.json';
+  const PAGE='msh',BUILD='1b595ee05623',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
