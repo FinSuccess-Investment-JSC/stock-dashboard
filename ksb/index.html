@@ -9894,9 +9894,10 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
       if(pk.length){
         const sum=k=>pk.reduce((s,r)=>s+(+r[k]||0),0),com=sum('commercialHa'),lea=sum('leasedHa'),rem=pk.some(r=>r.remainingHa!=null)?sum('remainingHa'):(com&&lea?com-lea:null);
         const kp=(l,v)=>`<div><div class="kpi-l">${l}</div><div style="font-size:28px;font-weight:650">${v}</div></div>`;
-        h+=`<div class="card"><div style="display:flex;gap:28px;flex-wrap:wrap">${kp('Đất thương phẩm'+(K.asOf?' · '+dd(K.asOf):''),fmt(com,1)+' ha')}${kp('Đã cho thuê',fmt(lea,1)+' ha')}${kp('Còn lại cho thuê',fmt(rem,1)+' ha')}${kp('Lấp đầy bình quân',com&&lea?fmt(lea/com*100,1)+'%':'—')}</div></div>`;
-        h+=card('Diện tích đã cho thuê và còn lại theo KCN (ha)',K,chart('reKcnPark'),'Lấp đầy = đã cho thuê ÷ đất công nghiệp thương phẩm cùng KCN.');
-        mkChart('reKcnPark',{type:'bar',data:{labels:pk.map(r=>r.name),datasets:[{label:'Đã cho thuê',data:pk.map(r=>r.leasedHa),backgroundColor:PAL[1],stack:'s'},{label:'Còn lại',data:pk.map(r=>r.remainingHa!=null?r.remainingHa:(r.commercialHa!=null&&r.leasedHa!=null?+(r.commercialHa-r.leasedHa).toFixed(1):null)),backgroundColor:PAL[2],stack:'s'}]},options:{indexAxis:'y',maintainAspectRatio:false,scales:{x:{stacked:true,beginAtZero:true},y:{stacked:true}},plugins:{tooltip:tip('ha')}}});
+        const hasArea=pk.some(r=>r.commercialHa!=null||r.leasedHa!=null);
+        if(hasArea)h+=`<div class="card"><div style="display:flex;gap:28px;flex-wrap:wrap">${kp('Đất thương phẩm'+(K.asOf?' · '+dd(K.asOf):''),fmt(com,1)+' ha')}${kp('Đã cho thuê',fmt(lea,1)+' ha')}${kp('Còn lại cho thuê',fmt(rem,1)+' ha')}${kp('Lấp đầy bình quân',com&&lea?fmt(lea/com*100,1)+'%':'—')}</div></div>`;
+        if(hasArea){h+=card('Diện tích đã cho thuê và còn lại theo KCN (ha)',K,chart('reKcnPark'),'Lấp đầy = đã cho thuê ÷ đất công nghiệp thương phẩm cùng KCN.');
+        mkChart('reKcnPark',{type:'bar',data:{labels:pk.map(r=>r.name),datasets:[{label:'Đã cho thuê',data:pk.map(r=>r.leasedHa),backgroundColor:PAL[1],stack:'s'},{label:'Còn lại',data:pk.map(r=>r.remainingHa!=null?r.remainingHa:(r.commercialHa!=null&&r.leasedHa!=null?+(r.commercialHa-r.leasedHa).toFixed(1):null)),backgroundColor:PAL[2],stack:'s'}]},options:{indexAxis:'y',maintainAspectRatio:false,scales:{x:{stacked:true,beginAtZero:true},y:{stacked:true}},plugins:{tooltip:tip('ha')}}});}
         h+=card('Danh mục KCN',K,tbl('reKcnTbl',[['KCN'],['Vùng'],['Tổng DT (ha)',1],['Đất thương phẩm (ha)',1],['Đã cho thuê (ha)',1],['Còn lại (ha)',1],['Lấp đầy',1],['Sở hữu',1],['Giá thuê'],['Trạng thái']],pk.map(r=>{const occ=r.occupancy!=null?r.occupancy:(r.commercialHa&&r.leasedHa!=null?r.leasedHa/r.commercialHa*100:null);return '<tr>'+td(esc(r.name))+td(esc(r.region||'—'))+td(fmt(r.totalHa,1),1)+td(fmt(r.commercialHa,1),1)+td(fmt(r.leasedHa,1),1)+td(fmt(r.remainingHa!=null?r.remainingHa:(r.commercialHa!=null&&r.leasedHa!=null?r.commercialHa-r.leasedHa:null),1),1)+td(occ==null?'—':fmt(occ,1)+'%',1)+td(r.ownership==null?'—':fmt(r.ownership,1)+'%',1)+td(esc(r.price==null?'—':r.price))+td(esc(r.status||'—'))+'</tr>';})));
       }
       const Ls=K.leased;
@@ -10547,7 +10548,7 @@ html.dark #reObs .ro-watch>div,html.dark #reObsPanel .ro-mini>div{background:#1E
    Bảng "Chỉ tiêu" × năm (đơn vị khác nhau) → ô số: số kỳ mới lớn, kỳ trước nhỏ. Bảng gốc vẫn ở nút Chart/Bảng. */
 (function(){
 'use strict';
-const D=window.PVS_DATA,A=D&&D.reAddon;if(!A||!(A.cards||[]).length)return;
+const D=window.PVS_DATA,A=(D&&D.reAddon)||{cards:[]};if(!D)return;
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const num=v=>typeof v==='number'&&isFinite(v);
 const f=v=>v==null?'—':num(v)?v.toLocaleString('vi-VN',{maximumFractionDigits:2}):esc(v);
@@ -10581,6 +10582,35 @@ function convert(c,card){
     plugins:{legend:{display:ds.length>1,position:'bottom',labels:{boxWidth:12}},tooltip:{callbacks:{label:t=>t.dataset.label+': '+f(t.parsed.x)+(unit?' '+unit.replace(/^%.*/,'%'):''),afterBody:it=>{const r=body[it[0].dataIndex];return extra.map(j=>H[j]+': '+(r[j]==null?'—':r[j]));}}}},
     scales:{x:{beginAtZero:true,ticks:{callback:v=>Number(v).toLocaleString('vi-VN')}},y:{ticks:{autoSkip:false,font:{size:12}}}}}});
 }
+
+// Bảng số dựng sẵn ở tab Dự án (enhancements/profile từng mã) → chart, đọc thẳng từ DOM (người dùng chốt 20/11/2026).
+const vn=t=>{t=String(t||'').trim().replace(/%$/,'');if(!t||t==='—')return null;const x=Number(t.replace(/\./g,'').replace(',','.').replace(/^\+/,''));return isFinite(x)?x:null;};
+const DSPEC=[
+ {re:/^Doanh số bán nhà/,f:(H,R)=>{const r=R.filter(x=>!/^Lũy kế/.test(x[0])),lk=R.filter(x=>/^Lũy kế/.test(x[0]));return {sub:lk.map(x=>`${x[0]}: <b style="color:#243878">${x[1]}</b> tỷ · ${x[2]} SP`).join('<br>'),labels:r.map(x=>x[0]),ds:[{type:'bar',label:'Giá trị (tỷ VND)',data:r.map(x=>vn(x[1])),backgroundColor:'#2938A8',yAxisID:'y',order:2},{type:'line',label:'Số sản phẩm',data:r.map(x=>vn(x[2])),borderColor:'#59C5C8',backgroundColor:'#59C5C8',yAxisID:'y1',order:1,spanGaps:false}],y1:'Số sản phẩm'};}},
+ {re:/^Doanh số theo dự án/,f:(H,R)=>{const r=R.filter(x=>!/^Tổng/.test(x[0])),t=R.find(x=>/^Tổng/.test(x[0]));return {sub:t?`${t[0]}: <b style="color:#243878">${t[1]}</b> (${H[1]}) · <b style="color:#243878">${t[2]}</b> (${H[2]})`:'',h:1,labels:r.map(x=>x[0]),ds:[{label:H[1],data:r.map(x=>vn(x[1])),backgroundColor:'#B3BDE8'},{label:H[2],data:r.map(x=>vn(x[2])),backgroundColor:'#1D2678'}]};}},
+ {re:/^Bán lẻ và bán lô lớn/,f:(H,R)=>({h:1,stack:1,pct:1,labels:R.map(x=>x[0]+' · '+x[1]+' tỷ'),ds:[{label:H[2],data:R.map(x=>vn(x[2])),backgroundColor:'#2938A8'},{label:H[3],data:R.map(x=>vn(x[3])),backgroundColor:'#59C5C8'}]})},
+ {re:/^Kế hoạch tiền thu/,f:(H,R)=>{const leaf=R.filter(x=>!/^(Tổng|Tiền thu từ bán BĐS)/.test(x[0])),t=R.find(x=>/^Tổng/.test(x[0]));const P=['#1D2678','#2938A8','#4354B7','#8997D6','#59C5C8'];return {stack:1,labels:H.slice(1),ds:leaf.map((x,i)=>({label:x[0],data:x.slice(1).map(vn),backgroundColor:P[i%P.length]})),tot:t?t.slice(1).map(vn):null};}},
+ {re:/^Tồn kho BĐS theo dự án/,f:(H,R)=>{const r=R.filter(x=>!/^Tổng/.test(x[0])),t=R.find(x=>/^Tổng/.test(x[0]));return {sub:t?`${t[0]}: <b style="color:#243878">${t[2]}</b> (${H[2]}) · <b style="color:#243878">${t[3]}</b> (${H[3]})`:'',h:1,labels:r.map(x=>x[0]+' · '+x[1]),ds:[{label:H[2],data:r.map(x=>vn(x[2])),backgroundColor:'#B3BDE8'},{label:H[3],data:r.map(x=>vn(x[3])),backgroundColor:'#1D2678'}]};}},
+ {re:/^Diện tích KCN/,f:(H,R)=>({h:1,labels:R.map(x=>x[0]+(x[5]&&x[5]!=='—'?' · lấp đầy '+x[5]:'')),ds:[{label:H[2],data:R.map(x=>vn(x[2])),backgroundColor:'#B3BDE8'},{label:H[3],data:R.map(x=>vn(x[3])),backgroundColor:'#1D2678'},{label:H[4],data:R.map(x=>vn(x[4])),backgroundColor:'#59C5C8'}]})}
+];
+let dn=0;
+function domConvert(){if(typeof mk!=='function')return false;let any=false;
+  document.querySelectorAll('#backlog .card h3.sub').forEach(h3=>{const card=h3.closest('.card');if(!card||card.dataset.reac)return;
+    const t=h3.textContent.trim(),sp=DSPEC.find(s=>s.re.test(t));if(!sp||card.querySelector('canvas'))return;
+    const tb=card.querySelector('table');if(!tb)return;const rows=[...tb.rows].map(r=>[...r.cells].map(c=>c.textContent.trim()));if(rows.length<2)return;
+    let o;try{o=sp.f(rows[0],rows.slice(1));}catch(e){console.error('re-addon-charts',e);return;}
+    if(!o||!o.labels.length)return;card.dataset.reac='1';any=true;
+    const id='reacd'+(++dn),hor=!!o.h,h=hor?Math.max(220,o.labels.length*(o.ds.length>1?32:24)+80):320;
+    const host=tb.closest('details.dd')||tb.closest('.tbl-wrap')||tb;
+    const keep=`<details class="dd"><summary>Bảng chi tiết (${rows.length-1} dòng)</summary><div class="tbl-wrap">${tb.outerHTML}</div></details>`;
+    host.outerHTML=(o.sub?`<div style="font-size:13px;color:#64748B;margin:2px 0 6px">${o.sub}</div>`:'')+`<div class="chart" style="height:${h}px"><canvas id="${id}"></canvas></div>`+keep;
+    const va=hor?'x':'y',ca=hor?'y':'x',sc={};
+    sc[va]={beginAtZero:true,stacked:!!o.stack,max:o.pct?100:undefined,ticks:{callback:v=>Number(v).toLocaleString('vi-VN')+(o.pct?'%':'')}};
+    sc[ca]={stacked:!!o.stack,ticks:{autoSkip:false,font:{size:12}}};
+    if(o.y1)sc.y1={position:'right',beginAtZero:true,grid:{display:false},title:{display:true,text:o.y1},ticks:{callback:v=>Number(v).toLocaleString('vi-VN')}};
+    mk(id,{type:'bar',data:{labels:o.labels,datasets:o.ds.map(d=>Object.assign({borderRadius:3,maxBarThickness:hor?16:40},d))},options:{indexAxis:hor?'y':'x',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:o.ds.length>1,position:'bottom',labels:{boxWidth:12}},tooltip:{callbacks:{label:x=>x.dataset.label+': '+(x.raw==null?'—':Number(x.raw).toLocaleString('vi-VN',{maximumFractionDigits:2}))+(o.pct?'%':''),footer:it=>o.tot&&o.tot[it[0].dataIndex]!=null?'Tổng: '+o.tot[it[0].dataIndex].toLocaleString('vi-VN'):''}}}},scales:sc});
+  });return any;}
 // Khối nợ/trái phiếu → tab Tài chính › Bảng cân đối › nhóm 4 "Nợ vay & thanh khoản" (người dùng chốt 20/11/2026), thứ tự tổng → chi tiết.
 const DEBT=[/cơ cấu nợ vay|nợ vay theo loại|^nợ vay/i,/tái cấu trúc nợ/i,/vay ngân hàng theo dự án|vay theo dự án/i,/trái phiếu.*(đại lý|tổ chức)/i,/đáo hạn/i,/lãi vay vốn hóa|thế chấp/i];
 function moveDebt(){if(typeof window.fsBsPlace!=='function')return false;
@@ -10594,7 +10624,7 @@ function run(){let left=0;
   A.cards.filter(c=>c.type==='table').forEach(c=>{const card=[...document.querySelectorAll('.card')].find(k=>{const h=k.querySelector('h3.sub');return h&&h.textContent.trim().startsWith(String(c.title).trim());});
     if(card){try{convert(c,card);}catch(e){console.error('re-addon-charts',e);}}else left++;});
   return !left;}
-let k=0,moved=false;const t=setInterval(()=>{const ok=run();if(ok&&!moved)moved=moveDebt();if((ok&&moved)||++k>40)clearInterval(t);},400);
+let k=0,moved=false;const t=setInterval(()=>{domConvert();const ok=run();if(ok&&!moved)moved=moveDebt();if(++k>40)clearInterval(t);},400);
 })();
 
 
@@ -11175,7 +11205,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='ksb',BUILD='1a9707549abb',URL_JSON='../version.json';
+  const PAGE='ksb',BUILD='99c4d2e7adae',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
