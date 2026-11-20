@@ -9921,7 +9921,39 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
     const pk=document.getElementById('rePack');if(pk){
       const seq=[/^Khu công nghiệp/,/^Tiến độ dự án/,/^Pipeline/,/^Bán sỉ/,/^Sở hữu/];
       const units=seq.map(re=>{const h=[...pk.querySelectorAll(':scope>h2.sec')].find(x=>re.test(x.textContent.trim()));if(!h)return null;const u=[h];let e=h.nextElementSibling;while(e&&!e.matches('h2.sec')&&e.id!=='reMap'&&e.id!=='reObs'){u.push(e);e=e.nextElementSibling;}return u;}).filter(Boolean);
-      units.forEach(u=>u.forEach(el=>pk.appendChild(el)));}};
+      units.forEach(u=>u.forEach(el=>pk.appendChild(el)));}
+    subtabs(tab);};
+  // Sub-tab (người dùng chốt 20/11/2026): "Kết quả kinh doanh" (số BCTC: doanh số, lợi nhuận, tiền nhận trước) · "Dự án".
+  // Nợ vay & trái phiếu nằm ở tab Tài chính › Bảng cân đối › nhóm 4; cuối sub-tab 1 có nút mở thẳng nhóm đó.
+  const SK='fs_re_sub_v1|'+location.pathname;
+  function splitEl(tab){let e=document.getElementById('reObs')||document.getElementById('reMap')||document.getElementById('rePack');while(e&&e.parentNode!==tab)e=e.parentNode;return e;}
+  function subtabs(tab){
+    const split=splitEl(tab);if(!split)return;
+    let nav=document.getElementById('reSubnav');
+    if(!nav){
+      const st=document.createElement('style');st.textContent='.re-sub-off{display:none!important}@media print{.re-sub-off{display:revert!important}#reSubnav{display:none}}';document.head.appendChild(st);
+      nav=document.createElement('div');nav.id='reSubnav';nav.className='fin-subnav';
+      const kcn=!!(window.PVS_DATA&&window.PVS_DATA.rePack&&window.PVS_DATA.rePack.kcn);
+      nav.innerHTML=`<button type="button" data-p="kq">Kết quả kinh doanh</button><button type="button" data-p="da">${kcn?'Khu công nghiệp & dự án':'Dự án'}</button>`;
+      nav.addEventListener('click',e=>{const b=e.target.closest('button[data-p]');if(b){try{localStorage.setItem(SK,b.dataset.p)}catch(x){}show(tab,b.dataset.p);}});
+      const go=document.createElement('div');go.id='reDebtGo';go.style.cssText='margin:18px 0 4px;text-align:right';
+      go.innerHTML='<button type="button" class="fs-golink" style="background:#fff;border:1px solid #D6DDE8;border-radius:10px;padding:9px 14px;font:600 13.5px Inter,sans-serif;color:#243878;cursor:pointer">Xem nợ vay &amp; trái phiếu →</button>';
+      go.querySelector('button').onclick=()=>{const tb=document.querySelector('.tabs button[data-tab="bs"]');if(tb)tb.click();
+        setTimeout(()=>{const fb=document.querySelector('#finSubnav button[data-pane="balance"]');if(fb)fb.click();
+          setTimeout(()=>{const h=[...document.querySelectorAll('#bs h2.sec')].find(x=>/Nợ vay/.test(x.textContent)&&x.offsetParent);if(h)h.scrollIntoView({behavior:'smooth',block:'start'});},250);},250);};
+      tab.insertBefore(go,split);
+    }
+    const pa=tab.querySelector(':scope>.fs-perall');
+    if(pa){if(nav.nextElementSibling!==pa)tab.insertBefore(nav,pa);}else if(tab.firstElementChild!==nav)tab.insertBefore(nav,tab.firstElementChild);
+    const go=document.getElementById('reDebtGo');if(go&&go.nextElementSibling!==split)tab.insertBefore(go,split);
+    let cur='kq';try{cur=localStorage.getItem(SK)||'kq'}catch(x){}
+    show(tab,cur);}
+  function show(tab,p){
+    const nav=document.getElementById('reSubnav'),split=splitEl(tab);if(!nav||!split)return;
+    let side='kq';[...tab.children].forEach(el=>{if(el===nav||el.matches('.fs-perall,style,script'))return;if(el===split)side='da';
+      if(el.id==='tab3Stores')return;el.classList.toggle('re-sub-off',side!==p);});
+    nav.querySelectorAll('button').forEach(b=>{const on=b.dataset.p===p;b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on));});
+    Object.values(window.charts||{}).forEach(c=>{try{c.resize()}catch(e){}});}
   window.FSReOrder=order;
   [300,1200,2600,4500].forEach(t=>setTimeout(order,t));
 })();
@@ -10496,11 +10528,17 @@ function convert(c,card){
     plugins:{legend:{display:ds.length>1,position:'bottom',labels:{boxWidth:12}},tooltip:{callbacks:{label:t=>t.dataset.label+': '+f(t.parsed.x)+(unit?' '+unit.replace(/^%.*/,'%'):'')}}},
     scales:{x:{beginAtZero:true,ticks:{callback:v=>Number(v).toLocaleString('vi-VN')}},y:{ticks:{autoSkip:false,font:{size:12}}}}}});
 }
+// Khối nợ/trái phiếu → tab Tài chính › Bảng cân đối › nhóm 4 "Nợ vay & thanh khoản" (người dùng chốt 20/11/2026), thứ tự tổng → chi tiết.
+const DEBT=[/cơ cấu nợ vay|nợ vay theo loại/i,/trái phiếu.*(đại lý|tổ chức)/i,/đáo hạn/i,/lãi vay vốn hóa|thế chấp/i];
+function moveDebt(){if(typeof window.fsBsPlace!=='function')return false;
+  const cs=[...document.querySelectorAll('#backlog .card[data-reac]')].map(k=>{const t=(k.querySelector('h3.sub')||{}).textContent||'';return {k,r:DEBT.findIndex(re=>re.test(t))};}).filter(x=>x.r>=0).sort((a,b)=>a.r-b.r);
+  let prev=null;cs.forEach(({k})=>{if(k.querySelector('canvas')){window.fsBsPlace(k);}else if(prev&&prev.parentNode)prev.parentNode.insertBefore(k,prev.nextSibling);else window.fsBsPlace(k);prev=k;});
+  return true;}
 function run(){let left=0;
   A.cards.filter(c=>c.type==='table').forEach(c=>{const card=[...document.querySelectorAll('.card')].find(k=>{const h=k.querySelector('h3.sub');return h&&h.textContent.trim().startsWith(String(c.title).trim());});
     if(card){try{convert(c,card);}catch(e){console.error('re-addon-charts',e);}}else left++;});
   return !left;}
-let k=0;const t=setInterval(()=>{if(run()||++k>30)clearInterval(t);},400);
+let k=0,moved=false;const t=setInterval(()=>{const ok=run();if(ok&&!moved)moved=moveDebt();if((ok&&moved)||++k>40)clearInterval(t);},400);
 })();
 
 
@@ -11081,7 +11119,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='pc1',BUILD='b61457a5cda8',URL_JSON='../version.json';
+  const PAGE='pc1',BUILD='c2a008e8505e',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
