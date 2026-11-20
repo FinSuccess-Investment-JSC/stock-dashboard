@@ -10699,6 +10699,49 @@ html.dark #reObs .ro-watch>div,html.dark #reObsPanel .ro-mini>div{background:#1E
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(run,0));else setTimeout(run,0);
 })();
 
+/* Bảng bổ sung BĐS (PVS_DATA.reAddon.cards, type table) → chart/ô số (người dùng chốt 19/11/2026: hạn chế chữ).
+   Bảng thực thể × kỳ → thanh ngang (mỗi kỳ một chuỗi, kỳ mới đậm); dòng "Tổng…" đưa lên tiêu đề phụ.
+   Bảng "Chỉ tiêu" × năm (đơn vị khác nhau) → ô số: số kỳ mới lớn, kỳ trước nhỏ. Bảng gốc vẫn ở nút Chart/Bảng. */
+(function(){
+'use strict';
+const D=window.PVS_DATA,A=D&&D.reAddon;if(!A||!(A.cards||[]).length)return;
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const num=v=>typeof v==='number'&&isFinite(v);
+const f=v=>v==null?'—':num(v)?v.toLocaleString('vi-VN',{maximumFractionDigits:2}):esc(v);
+const TOT=/^(Tổng|Trong đó|Năm dự án trên)/;
+const PAL=['#B3BDE8','#8997D6','#4354B7','#1D2678'];
+let n=0;
+function convert(c,card){
+  if(card.dataset.reac)return;card.dataset.reac='1';
+  const H=c.head||[],R=c.rows||[];if(!R.length)return;
+  const numCols=H.map((_,j)=>j>0&&R.some(r=>num(r[j]))&&R.every(r=>r[j]==null||num(r[j])||r[j]==='')).map((b,j)=>b?j:-1).filter(j=>j>0);
+  const wrap=card.querySelector('.tbl-wrap');if(!wrap)return;
+  if(/^Chỉ tiêu/i.test(String(H[0]||''))){ // ô số
+    const last=H.length-1;
+    wrap.outerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:8px">${R.map(r=>`<div style="background:#F8FAFC;border:1px solid #E1E6EE;border-radius:10px;padding:12px 14px"><div style="font:600 12.5px Inter,sans-serif;color:#64748B;line-height:1.35">${esc(r[0])}</div><div style="font:650 24px Inter,sans-serif;color:#243878;margin-top:6px;font-variant-numeric:tabular-nums">${f(r[last])}</div><div style="font-size:12.5px;color:#64748B">${esc(H[last])}${last>1?` · ${esc(H[last-1])}: ${f(r[last-1])}`:''}</div></div>`).join('')}</div>`;
+    return;}
+  if(!numCols.length||typeof mk!=='function')return;
+  const txt=H.map((_,j)=>j>0&&!numCols.includes(j)?j:-1).filter(j=>j>0);
+  const tot=R.filter(r=>TOT.test(String(r[0]))),body=R.filter(r=>!TOT.test(String(r[0])));
+  const labels=body.map(r=>[r[0],...txt.map(j=>r[j])].filter(x=>x!=null&&x!=='').join(' · '));
+  const order=numCols.slice().reverse(); // kỳ mới thường ở cột trái → vẽ kỳ cũ trước
+  const ds=order.map((j,i)=>({label:String(H[j]),data:body.map(r=>num(r[j])?r[j]:null),backgroundColor:PAL[Math.max(0,PAL.length-order.length+i)],borderRadius:3,maxBarThickness:16}));
+  if(ds.length===1)ds[0].backgroundColor=body.map(()=>'#2938A8'); // mảng màu: trục là thực thể, không tô đậm "kỳ cuối"
+  const id='reac'+(++n);
+  const h=Math.max(220,body.length*(numCols.length>1?30:24)+70);
+  wrap.outerHTML=(tot.length?`<div style="font-size:13px;color:#64748B;margin:2px 0 6px">${tot.map(r=>`${esc(r[0])}: ${numCols.map(j=>`<b style="color:#243878">${f(r[j])}</b> (${esc(H[j])})`).join(' · ')}`).join('<br>')}</div>`:'')+`<div class="chart" style="height:${h}px"><canvas id="${id}"></canvas></div>`;
+  const unit=(String(c.title).match(/\(([^()]+)\)\s*$/)||[])[1]||'';
+  mk(id,{type:'bar',data:{labels,datasets:ds},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:ds.length>1,position:'bottom',labels:{boxWidth:12}},tooltip:{callbacks:{label:t=>t.dataset.label+': '+f(t.parsed.x)+(unit?' '+unit.replace(/^%.*/,'%'):'')}}},
+    scales:{x:{beginAtZero:true,ticks:{callback:v=>Number(v).toLocaleString('vi-VN')}},y:{ticks:{autoSkip:false,font:{size:12}}}}}});
+}
+function run(){let left=0;
+  A.cards.filter(c=>c.type==='table').forEach(c=>{const card=[...document.querySelectorAll('.card')].find(k=>{const h=k.querySelector('h3.sub');return h&&h.textContent.trim().startsWith(String(c.title).trim());});
+    if(card){try{convert(c,card);}catch(e){console.error('re-addon-charts',e);}}else left++;});
+  return !left;}
+let k=0;const t=setInterval(()=>{if(run()||++k>30)clearInterval(t);},400);
+})();
+
 
 </script>
 <script>
@@ -11277,7 +11320,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='pvt',BUILD='9a62d709cc27',URL_JSON='../version.json';
+  const PAGE='pvt',BUILD='458238aae1a9',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
