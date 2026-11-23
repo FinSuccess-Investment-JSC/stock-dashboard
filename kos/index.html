@@ -9983,13 +9983,13 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
     {const sp=splitEl(tab),bh=pk&&[...pk.querySelectorAll(':scope>h2.sec')].find(x=>/^Bán sỉ/.test(x.textContent.trim()));
      if(sp&&bh){const u=[bh];let e=bh.nextElementSibling;while(e&&!e.matches('h2.sec')){u.push(e);e=e.nextElementSibling;}const go=document.getElementById('reDebtGo');u.forEach(el=>tab.insertBefore(el,go&&go.parentNode===tab?go:sp));}}
     advInv(tab);moveProgress(tab);subtabs(tab);};
-  // Người mua trả trước & tồn kho BĐS cho mọi mã BĐS nhà ở (người dùng chốt 23/11/2026, theo NLG/VHM). Dựng từ BCTC hợp nhất (coreFs); mã KCN bỏ qua; mã đã có card cùng câu hỏi thì không lặp.
+  // Người mua trả trước & tồn kho BĐS chỉ cho mã BĐS nhà ở (có rePack; sửa 23/11/2026: trước đó dựng cả mã ngoài BĐS) (người dùng chốt 23/11/2026, theo NLG/VHM). Dựng từ BCTC hợp nhất (coreFs); mã KCN bỏ qua; mã đã có card cùng câu hỏi thì không lặp.
   function advInv(tab){
     const D=window.PVS_DATA||{},CF=D.coreFs,RP=D.rePack||{};
     const own=[...tab.querySelectorAll('.card h3')].some(h=>!h.closest('#reAdvInvCard')&&/^Người mua trả (tiền )?trước (&|và) tồn kho/i.test(h.textContent.trim()));
     const mine=document.getElementById('reAdvInvCard');
     if(own){if(mine){const cv=document.getElementById('reAdvInv');try{const ch=cv&&window.Chart&&Chart.getChart(cv);if(ch)ch.destroy();}catch(e){}mine.remove();}return;} // mã có card riêng dựng muộn → gỡ bản chung
-    if(!CF||RP.kcn||mine||typeof window.mkTS!=='function')return;
+    if(!CF||!D.rePack||RP.kcn||mine||typeof window.mkTS!=='function')return;
     const yk=Object.keys(CF.annual||{}).sort(),qk=Object.keys(CF.quarterly||{}).sort((a,b)=>{const f=k=>{const m=/^Q(\d)\/(\d{4})$/.exec(k);return m?+m[2]*4+ +m[1]:0;};return f(a)-f(b);});
     const ser=(o,ks,lab)=>{const adv=ks.map(k=>{const v=(o[k]||{}).advances;return v==null?null:+v;}),inv=ks.map(k=>{const v=(o[k]||{}).inventory;return v==null?null:+v;});
       const n=ks.findIndex((_,i)=>adv[i]!=null&&inv[i]!=null);if(n<0)return null;
@@ -11255,7 +11255,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='kos',BUILD='7c3cb726fc3f',URL_JSON='../version.json';
+  const PAGE='kos',BUILD='2b6643202e48',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
