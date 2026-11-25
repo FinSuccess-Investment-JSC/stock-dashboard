@@ -9670,12 +9670,16 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
   const st=document.createElement('style');st.textContent=`
 @media screen{.fin-subnav,section>.subnav,.tab>.subnav,#fsNav{position:sticky!important;top:var(--fs-stick-top,0px);z-index:40;box-shadow:0 0 0 6px var(--bg,#F9FAFD)}
 .fs-perall{position:sticky;top:calc(var(--fs-stick-top,0px) + var(--fs-sub-h,0px) + 8px);z-index:39;box-shadow:0 0 0 5px var(--bg,#F9FAFD)}
-html[data-theme=dark] :is(.fin-subnav,#fsNav,.fs-perall,section>.subnav){box-shadow:0 0 0 6px #0A0A0A}}`;
+:is(.fin-subnav,#fsNav,section>.subnav,.fs-perall){box-shadow:none!important;isolation:isolate}
+:is(.fin-subnav,#fsNav,section>.subnav)::before{content:'';position:absolute;left:-100vw;right:-100vw;top:-8px;bottom:-4px;background:var(--fs-page-bg,#F9FAFD);z-index:-2;pointer-events:none}
+:is(.fin-subnav,#fsNav,section>.subnav)::after{content:'';position:absolute;inset:0;border-radius:inherit;background:inherit;z-index:-1;pointer-events:none}
+.fs-perall::before{content:'';position:absolute;left:-100vw;right:-100vw;top:-5px;bottom:-6px;background:var(--fs-page-bg,#F9FAFD);z-index:-2;pointer-events:none}
+.fs-perall::after{content:'';position:absolute;inset:0;border-radius:inherit;background:inherit;z-index:-1}}`;
   document.head.appendChild(st);
   let raf=0;
   function upd(){raf=0;const H=document.documentElement,nav=document.querySelector('nav.tabs');
     let top=0;if(nav){const r=nav.getBoundingClientRect();if(r.bottom<innerHeight/2&&r.height)top=Math.max(0,r.bottom);}
-    H.style.setProperty('--fs-stick-top',top+'px');
+    H.style.setProperty('--fs-stick-top',top+'px');H.style.setProperty('--fs-page-bg',getComputedStyle(document.body).backgroundColor);
     const sub=[...document.querySelectorAll('.fin-subnav,#fsNav,section>.subnav')].find(e=>e.offsetParent);
     H.style.setProperty('--fs-sub-h',(sub?sub.offsetHeight:0)+'px');}
   const q=()=>{if(!raf)raf=requestAnimationFrame(upd);};
@@ -11264,7 +11268,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='fcn',BUILD='899f842081a6',URL_JSON='../version.json';
+  const PAGE='fcn',BUILD='82813fcad3ae',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
