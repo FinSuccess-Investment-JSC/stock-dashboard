@@ -9637,11 +9637,13 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
   let raf=0;
   function upd(){raf=0;const H=document.documentElement,nav=document.querySelector('nav.tabs');
     let top=0;if(nav){const r=nav.getBoundingClientRect();if(r.bottom<innerHeight/2&&r.height)top=Math.max(0,r.bottom);}
+    const cr=document.querySelector('.fs-crumb');if(cr&&top&&cr.offsetParent&&cr.textContent.trim()){const b=cr.getBoundingClientRect();if(b.height&&b.bottom<innerHeight/2)top=Math.max(top,b.bottom);}
     H.style.setProperty('--fs-stick-top',top+'px');H.style.setProperty('--fs-page-bg',getComputedStyle(document.body).backgroundColor);
     const sub=[...document.querySelectorAll('.fin-subnav,#fsNav,section>.subnav')].find(e=>e.offsetParent);
     H.style.setProperty('--fs-sub-h',(sub?sub.offsetHeight:0)+'px');}
   const q=()=>{if(!raf)raf=requestAnimationFrame(upd);};
   addEventListener('scroll',q,{passive:true});addEventListener('resize',q);addEventListener('click',()=>setTimeout(q,50));setTimeout(upd,500);
+  setTimeout(()=>{const cr=document.querySelector('.fs-crumb');if(cr)new MutationObserver(q).observe(cr,{childList:true,subtree:true,characterData:true});},1500);
 })();
 
 /* Consensus RNAV (người dùng chốt 12/11/2026): tab Consensus CTCK của mã BĐS/KCN có khối tổng hợp
@@ -11226,7 +11228,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='pdv',BUILD='7860b2aab9de',URL_JSON='../version.json';
+  const PAGE='pdv',BUILD='caf2545de0db',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
