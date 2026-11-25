@@ -3716,38 +3716,39 @@ const line=(label,data,color,axis='y')=>({label,data,type:'line',borderColor:col
 function renderSeg(){
   const title=document.getElementById('segTitle');if(!title)return;
   const host=document.createElement('div');host.className='grid g2';host.style.marginBottom='16px';title.after(host);
-  const s=X.spread;
-  card(host,'Giá bán và giá vốn urê (triệu đồng/tấn)','dcmSpread','Giá bán = doanh thu urê ÷ sản lượng tiêu thụ urê (không gồm đạm chức năng); giá vốn = giá vốn urê ÷ cùng sản lượng; nội địa, xuất khẩu tách riêng. Đường biên gộp urê (%, trục phải). Doanh thu, giá vốn theo BCTC riêng công ty mẹ, sản lượng theo số công bố; Q4/25 để trống (chưa có số năm 2025 riêng mẹ theo sản phẩm).');
-  mkTS('dcmSpread',{def:'q',noShare:true,q:{labels:s.labels,datasets:[{label:'Giá bán bình quân',data:s.asp,backgroundColor:C.blue,yAxisID:'y'},{label:'Giá vốn',data:s.cost,backgroundColor:C.purple,yAxisID:'y'},line('Giá bán nội địa',s.dom,C.green),line('Giá xuất khẩu',s.exp,C.gold),line('Biên gộp urê',s.gm,C.navy,'y1')]},cfg:(labels,datasets)=>({type:'bar',data:{labels,datasets},options:opts('Triệu đồng/tấn','%',' triệu đồng/tấn','%')})});
-  const v=X.vol;
-  card(host,'Sản lượng tiêu thụ (nghìn tấn)','dcmVol','Urê nội địa + xuất khẩu chồng (không gồm đạm chức năng); NPK, phân bón tự doanh và urê sản xuất là đường riêng. Số công bố của PVCFC; quý 2026 suy từ lũy kế công bố. Tổng 2025 lệch BCTN 0,25%. Urê sản xuất Q4/25–Q2/26 là tổng sản lượng tháng do analyst FinSuccess cung cấp (theo bản tin IR tháng); Q3/26 trống vì chưa có số tháng 9. Dừng bảo dưỡng tổng thể 20/09–07/10/2026.');
-  mkTS('dcmVol',{def:'q',noShare:true,q:{labels:v.labels,datasets:[{label:'Urê nội địa',data:v.dom,backgroundColor:C.blue,stack:'u'},{label:'Urê xuất khẩu',data:v.exp,backgroundColor:C.green,stack:'u'},line('NPK',v.npk,C.purple),line('Tự doanh',v.td,C.gold),line('Urê sản xuất',v.prod,C.navy)]},cfg:(labels,datasets)=>({type:'bar',data:{labels,datasets},options:opts('Nghìn tấn',null,' nghìn tấn','',true)})});
-  // Sản lượng theo tháng (analyst nhập từ bản tin IR tháng) — thực tế vs kế hoạch tháng công ty công bố.
-  const M=X.model&&X.model.volM,PL=X.model&&X.model.volPlan;
-  if(M&&M.labels&&M.labels.length){
-    const ml=M.labels.map(l=>'T'+(+l.slice(5))+'/'+l.slice(2,4)),MSRC='Bản tin IR tháng của PVCFC (analyst FinSuccess tổng hợp)';
-    const pl=k=>PL&&PL[k]?M.labels.map(l=>{const i=(PL.labels||M.labels).indexOf(l);return i<0?null:PL[k][i];}):M.labels.map(()=>null);
-    const dash=(l,d,c)=>({...line(l,d,c),borderDash:[5,4],pointRadius:0});
-    card(host,'Urê sản xuất & tiêu thụ theo tháng (nghìn tấn)','dcmUreaM','Cột: sản lượng thực tế theo bản tin IR tháng; đường nét đứt: kế hoạch tháng công ty công bố ở bản tin tháng trước. Tiêu thụ urê không gồm đạm chức năng. Tháng dừng bảo dưỡng tổng thể (T8/25, T9–T10/26) sản xuất thấp.',MSRC);
-    mkTS('dcmUreaM',{def:'m',noShare:true,m:{labels:ml,datasets:[{label:'Urê sản xuất',data:M.urProd,backgroundColor:C.navy},{label:'Urê tiêu thụ',data:M.urSales,backgroundColor:C.green},dash('KH sản xuất',pl('urProd'),C.blue),dash('KH tiêu thụ',pl('urSales'),C.gold)]},cfg:(labels,datasets)=>({type:'bar',data:{labels,datasets},options:opts('Nghìn tấn',null,' nghìn tấn','')})});
+  // Sub-tab (người dùng chốt 25/11/2026): Tổng quan · Đầu vào & sản lượng · Đầu ra. card() gắn data-dcm-sub.
+  const IN='Đầu vào & sản lượng',OUT='Đầu ra',OV='Tổng quan';
+  const cd=(sub,t,id,note,src)=>{const e=card(host,t,id,note);e.dataset.dcmSub=sub;if(src)e.dataset.source=src;return e;};
+  const s=X.spread,v=X.vol,M=X.model&&X.model.volM,MSRC='Bản tin IR tháng của PVCFC (analyst FinSuccess tổng hợp)';
+  const ml=M&&M.labels?M.labels.map(l=>'T'+(+l.slice(5))+'/'+l.slice(2,4)):[];
+  // ---- Tổng quan: sản xuất vs tiêu thụ
+  if(ml.length){
+    cd(OV,'Sản xuất & tiêu thụ theo tháng (nghìn tấn)','dcmProdSales','Cột liền: sản xuất; cột nhạt: tiêu thụ, cùng sản phẩm đặt cạnh nhau. Urê tiêu thụ không gồm đạm chức năng; NPK là nhà máy NPK Cà Mau (công ty mẹ, chưa gồm KVF). Chênh sản xuất − tiêu thụ dương là tích kho.',MSRC);
+    mkTS('dcmProdSales',{def:'m',noShare:true,m:{labels:ml,datasets:[{label:'Urê sản xuất',data:M.urProd,backgroundColor:C.navy},{label:'Urê tiêu thụ',data:M.urSales,backgroundColor:'#8997D6'},{label:'NPK sản xuất',data:M.npkProd,backgroundColor:C.purple},{label:'NPK tiêu thụ',data:M.npk,backgroundColor:'#D8A9BF'}]},cfg:(labels,datasets)=>({type:'bar',data:{labels,datasets},options:opts('Nghìn tấn',null,' nghìn tấn','')})});
+  }
+  // ---- Đầu vào & sản lượng
+  cd(IN,'Giá vốn urê (triệu đồng/tấn)','dcmCost','Giá vốn urê ÷ sản lượng urê tiêu thụ (không gồm đạm chức năng), BCTC riêng công ty mẹ; Q4/25 = 12T kiểm toán − 9T (gồm điều chỉnh cuối năm). Khí chiếm phần lớn giá vốn: PM3-CAA 46% HSFO, Petronas 12,7% Brent.');
+  mkTS('dcmCost',{def:'q',noShare:true,q:{labels:s.labels,datasets:[{label:'Giá vốn urê/tấn',data:s.cost,backgroundColor:C.purple}]},cfg:(labels,datasets)=>({type:'bar',data:{labels,datasets},options:opts('Triệu đồng/tấn',null,' triệu đồng/tấn','')})});
+  if(ml.length){
+    const pct=(a,cap)=>a.map(x=>x==null?null:Math.round(x/cap*1000)/10);
+    cd(IN,'Sản lượng sản xuất & % công suất thiết kế','dcmCapUse','Cột: sản lượng sản xuất tháng (nghìn tấn). Đường (%, trục phải): sản lượng ÷ công suất thiết kế tháng — urê 800 nghìn tấn/năm (66,7/tháng), NPK Cà Mau 300 nghìn tấn/năm (25/tháng). Urê vượt 100% vì nhà máy chạy trên công suất thiết kế (BCTN 2025: 966,73 nghìn tấn quy đổi). Đạm chức năng chưa có công suất công bố nên không tính %. KVF (360 nghìn tấn/năm) không có số tháng.',MSRC);
+    mkTS('dcmCapUse',{def:'m',noShare:true,m:{labels:ml,datasets:[{label:'Urê sản xuất',data:M.urProd,backgroundColor:C.navy},{label:'NPK sản xuất',data:M.npkProd,backgroundColor:C.purple},{label:'Đạm chức năng sản xuất',data:M.dcnProd,backgroundColor:'#B3BDE8'},{...line('% công suất urê',pct(M.urProd,800/12),C.blue,'y1'),unit:'%'},{...line('% công suất NPK',pct(M.npkProd,25),C.gold,'y1'),unit:'%'}]},cfg:(labels,datasets)=>({type:'bar',data:{labels,datasets},options:opts('Nghìn tấn','% công suất',' nghìn tấn','%')})});
+  }
+  // ---- Đầu ra: giá bán & tiêu thụ
+  cd(OUT,'Giá bán urê (triệu đồng/tấn)','dcmAsp','Giá bán = doanh thu urê ÷ sản lượng tiêu thụ urê (không gồm đạm chức năng), nội địa và xuất khẩu tách riêng; BCTC riêng công ty mẹ, sản lượng theo số công bố. Q4/25 = 12T kiểm toán − 9T.');
+  mkTS('dcmAsp',{def:'q',noShare:true,q:{labels:s.labels,datasets:[{label:'Giá bán bình quân',data:s.asp,backgroundColor:C.blue},line('Giá bán nội địa',s.dom,C.green),line('Giá xuất khẩu',s.exp,C.gold)]},cfg:(labels,datasets)=>({type:'bar',data:{labels,datasets},options:opts('Triệu đồng/tấn',null,' triệu đồng/tấn','')})});
+  cd(OUT,'Sản lượng tiêu thụ (nghìn tấn)','dcmVol','Urê nội địa + xuất khẩu chồng (không gồm đạm chức năng); NPK và phân bón tự doanh là đường riêng. Số công bố của PVCFC; quý 2026 suy từ lũy kế công bố. Tổng 2025 lệch BCTN 0,25%.');
+  mkTS('dcmVol',{def:'q',noShare:true,q:{labels:v.labels,datasets:[{label:'Urê nội địa',data:v.dom,backgroundColor:C.blue,stack:'u'},{label:'Urê xuất khẩu',data:v.exp,backgroundColor:C.green,stack:'u'},line('NPK',v.npk,C.purple),line('Tự doanh',v.td,C.gold)]},cfg:(labels,datasets)=>({type:'bar',data:{labels,datasets},options:opts('Nghìn tấn',null,' nghìn tấn','',true)})});
+  if(ml.length){
     const mix=M.urDom.map((d,i)=>d!=null&&M.urExp[i]!=null&&d+M.urExp[i]>0?M.urExp[i]/(d+M.urExp[i])*100:null);
-    card(host,'Urê tiêu thụ nội địa / xuất khẩu theo tháng','dcmMixM','Nghìn tấn (cột chồng) và tỷ trọng xuất khẩu trên tổng urê tiêu thụ (%, trục phải). Cách chia kênh theo bản tin tháng có thể khác số quý công bố (vd Q1/25), tổng khớp.',MSRC);
+    cd(OUT,'Urê tiêu thụ nội địa / xuất khẩu theo tháng','dcmMixM','Nghìn tấn (cột chồng) và tỷ trọng xuất khẩu trên tổng urê tiêu thụ (%, trục phải). Cách chia kênh theo bản tin tháng có thể khác số quý công bố (vd Q1/25), tổng khớp.',MSRC);
     mkTS('dcmMixM',{def:'m',noShare:true,m:{labels:ml,datasets:[{label:'Nội địa',data:M.urDom,backgroundColor:C.blue,stack:'s'},{label:'Xuất khẩu',data:M.urExp,backgroundColor:C.green,stack:'s'},{...line('Tỷ trọng xuất khẩu',mix,C.purple,'y1'),unit:'%'}]},cfg:(labels,datasets)=>({type:'bar',data:{labels,datasets},options:opts('Nghìn tấn','%',' nghìn tấn','%',true)})});
-    card(host,'NPK, đạm chức năng & phân bón tự doanh theo tháng (nghìn tấn)','dcmOtherM','NPK, đạm chức năng: sản xuất (cột) và tiêu thụ (đường); phân bón tự doanh: tiêu thụ. Đường nét đứt: kế hoạch tiêu thụ tháng. Số tháng cộng lại có thể khác BCTN do khác phạm vi (BCTN gồm công ty con).',MSRC);
-    mkTS('dcmOtherM',{def:'m',noShare:true,m:{labels:ml,datasets:[{label:'NPK sản xuất',data:M.npkProd,backgroundColor:C.purple},{label:'Đạm chức năng sản xuất',data:M.dcnProd,backgroundColor:'#B3BDE8'},line('NPK tiêu thụ',M.npk,C.navy),line('Đạm chức năng tiêu thụ',M.dcnSales,C.blue),line('Tự doanh tiêu thụ',M.td,C.gold),dash('KH NPK tiêu thụ',pl('npk'),C.green),dash('KH tự doanh',pl('td'),'#B04A7A')]},cfg:(labels,datasets)=>({type:'bar',data:{labels,datasets},options:opts('Nghìn tấn',null,' nghìn tấn','')})});
-    const N=X.model.volNotes||{},AP=X.model.annualPlan||{},y=M.labels.filter(l=>l.startsWith('2026')).map(l=>M.labels.indexOf(l)),sum=k=>y.reduce((a,i)=>a+(M[k][i]||0),0);
-    const n=y.length,rowsP=[['Urê sản xuất','urProd','urProd'],['Urê tiêu thụ','urSales','urSales'],['  · nội địa','urDom','urDom'],['  · xuất khẩu','urExp','urExp'],['NPK tiêu thụ','npk','npk'],['Tự doanh tiêu thụ','td','td']];
-    const tb=`<table><tr><th>Chỉ tiêu (nghìn tấn)</th><th class="num">${n}T/2026</th><th class="num">KH 2026</th><th class="num">% KH</th></tr>${rowsP.map(r=>{const a=sum(r[1]),k=AP[r[2]];return `<tr><td>${r[0]}</td><td class="num">${fmt(a,1)}</td><td class="num">${fmt(k,1)}</td><td class="num">${k?fmt(a/k*100,1)+'%':'—'}</td></tr>`;}).join('')}</table>`;
-    const e=document.createElement('div');e.className='card';e.dataset.source=MSRC;
-    e.innerHTML=`<h3 class="sub">Thực hiện kế hoạch năm & ghi chú vận hành</h3>${tb}<p class="note">Vạch so sánh: ${n}/12 = ${fmt(n/12*100,0)}% thời gian năm. Kế hoạch năm theo bản tin IR tháng gần nhất.</p><ul style="margin:8px 0 0;padding-left:18px;line-height:1.6">${N.maintenance?`<li>${esc(N.maintenance)}</li>`:''}${N.nextPlan!=null?`<li>Kế hoạch urê sản xuất tháng kế tiếp: ${fmt(N.nextPlan,2)} nghìn tấn.</li>`:''}${N.ops?`<li>${esc(String(N.ops).split(/\n+/)[0])}</li>`:''}</ul>`;
-    /* bỏ theo người dùng 25/11/2026 */
+    cd(OUT,'NPK, đạm chức năng & tự doanh tiêu thụ theo tháng (nghìn tấn)','dcmOtherSales','Tiêu thụ theo bản tin IR tháng; số tháng cộng lại có thể khác BCTN do khác phạm vi (BCTN gồm công ty con).',MSRC);
+    mkTS('dcmOtherSales',{def:'m',noShare:true,m:{labels:ml,datasets:[{label:'NPK',data:M.npk,backgroundColor:C.purple,stack:'o'},{label:'Đạm chức năng',data:M.dcnSales,backgroundColor:'#B3BDE8',stack:'o'},{label:'Tự doanh',data:M.td,backgroundColor:C.gold,stack:'o'}]},cfg:(labels,datasets)=>({type:'bar',data:{labels,datasets},options:opts('Nghìn tấn',null,' nghìn tấn','',true)})});
   }
   const p=X.price;
-  card(host,'Giá urê thị trường (proxy)','dcmPrice',`Urê hạt đục Trung Đông, hợp đồng tương lai CME (USD/tấn) và urê Cà Mau trong nước (nghìn đồng/kg), giá ngày cuối tháng. Mốc mới nhất Trung Đông ${fmt(p.latest.me,1)} USD/tấn ngày ${p.latest.date.split('-').reverse().join('/')}. Đây là proxy thị trường, không phải doanh thu hay giá bán của DCM; giá bán thực xem chart giá bán và giá vốn.`);
+  cd(OUT,'Giá urê thị trường (proxy)','dcmPrice',`Urê hạt đục Trung Đông, hợp đồng tương lai CME (USD/tấn) và urê Cà Mau trong nước (nghìn đồng/kg), giá ngày cuối tháng. Mốc mới nhất Trung Đông ${fmt(p.latest.me,1)} USD/tấn ngày ${p.latest.date.split('-').reverse().join('/')}. Proxy thị trường, không phải giá bán của DCM.`);
   mkTS('dcmPrice',{def:'m',m:{labels:p.labels,datasets:[line('Urê Trung Đông (USD/tấn)',p.me,C.blue),line('Urê Cà Mau (nghìn đồng/kg)',p.cm,C.purple,'y1')]},cfg:(labels,datasets)=>({type:'line',data:{labels,datasets},options:opts('USD/tấn','Nghìn đồng/kg',' USD/tấn',' nghìn đồng/kg')})});
-  const g=X.gas,e=document.createElement('div');e.className='card';e.id='dcmGasCard';e.dataset.source=D.sourceNotes.dcmGasCard;
-  e.innerHTML=`<h3 class="sub">Cơ chế giá khí đầu vào</h3><div class="tbl-wrap"><table><thead><tr><th>Nguồn khí</th><th>Giá</th><th>Tình trạng</th></tr></thead><tbody>${g.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div><p class="note">Giá trị mua khí từ Chi nhánh Khí Tây Nam Bộ (PV GAS) 9T/2026 ${fmt(g.pvgas9T26,1)} tỷ; 9T/2025 mua qua PVN ${fmt(g.pvn9T25,1)} tỷ. Chưa có giá khí thực trả từng kỳ.</p>`;
-  /* bỏ theo người dùng 25/11/2026 */
 }
 function renderFin(){
   const bs=document.getElementById('bs');if(!bs)return;
@@ -3882,13 +3883,13 @@ document.addEventListener('DOMContentLoaded',()=>{let n=0;const iv=setInterval((
 })();
 /* Sub-tab Mảng kinh doanh: Đầu vào · Đầu giữa · Đầu ra (người dùng chốt 25/11/2026). Chỉ ẩn/hiện card, không dời DOM. */
 (function(){
-const RULES=[['Đầu vào',/giá vốn urê|giá khí|nguồn khí|đầu vào/i],['Đầu giữa',/sản xuất|công suất|bảo dưỡng|^NPK, đạm chức năng/i]];
-const DEF='Đầu ra',ORDER=['Đầu vào','Đầu giữa','Đầu ra'],KEY='dcm_seg_sub_v1';
+const RULES=[['Đầu vào & sản lượng',/giá khí|giá vốn urê|công suất/i]];
+const DEF='Tổng quan',ORDER=['Tổng quan','Đầu vào & sản lượng','Đầu ra'],KEY='dcm_seg_sub_v2';
 function go(){
   const seg=document.getElementById('seg');if(!seg||seg.querySelector('.dcm-subnav'))return true;
   const cards=[...seg.querySelectorAll('.card')].filter(c=>c.querySelector('h3')&&c.offsetParent!==null&&!c.closest('.dcm-subnav'));
   if(cards.length<6)return false;
-  cards.forEach(c=>{const t=c.querySelector('h3').textContent;const r=RULES.find(x=>x[1].test(t));c.dataset.dcmSub=r?r[0]:DEF;});
+  cards.forEach(c=>{if(c.dataset.dcmSub)return;const t=c.querySelector('h3').textContent;const r=RULES.find(x=>x[1].test(t));c.dataset.dcmSub=r?r[0]:DEF;});
   const nav=document.createElement('div');nav.className='subnav fin-subnav dcm-subnav';
   ORDER.forEach((k,i)=>{const b=document.createElement('button');b.type='button';b.dataset.k=k;b.textContent=(i+1)+' · '+k;nav.appendChild(b);});
   const anchor=seg.querySelector('h2.sec');(anchor?anchor.parentNode:seg).insertBefore(nav,anchor?anchor.nextSibling:seg.firstChild);
@@ -3913,11 +3914,11 @@ const act=GAS.map((v,i)=>i<4?v:null),est=GAS.map((v,i)=>i>=4?v:null);
 function go(){
   if(document.getElementById('dcmGasPrice')||typeof mkTS!=='function')return !!document.getElementById('dcmGasPrice');
   const seg=document.getElementById('seg');if(!seg)return false;
-  const ref=[...seg.querySelectorAll('.card')].find(c=>/giá vốn urê/i.test(c.querySelector('h3')?.textContent||''));if(!ref)return false;
+  const ref=document.getElementById('dcmCost')?.closest('.card');if(!ref)return false;
   const e=document.createElement('div');e.className='card';
   e.dataset.source='PDF báo cáo CTCK (Rồng Việt, 04/2025)';
   e.innerHTML='<h3 class="sub">Giá khí đầu vào (USD/MMBtu)</h3><div class="chart tall"><canvas id="dcmGasPrice"></canvas></div><p class="note">Giá khí bình quân DCM mua (USD/MMBtu), cột đậm 2021–2024 theo số CTCK tổng hợp; cột nhạt 2025F–2029F là ước tính CTCK, không phải số công bố. Đường Brent (USD/thùng, trục phải) là giả định CTCK. Cơ chế giá: PM3-CAA 46% HSFO, Petronas 12,7% Brent (13,7% từ 2027); Lô B – Ô Môn dự kiến 12–14 USD/MMBtu nếu phải dùng từ 2029. DCM không công bố giá khí thực trả từng kỳ.</p>';
-  ref.after(e);e.dataset.dcmSub='Đầu vào';const on=document.querySelector('.dcm-subnav button.on');if(on&&on.dataset.k!=='Đầu vào')e.style.display='none';
+  ref.after(e);e.dataset.dcmSub='Đầu vào & sản lượng';const on=document.querySelector('.dcm-subnav button.on');if(on&&on.dataset.k!=='Đầu vào & sản lượng')e.style.display='none';
   mkTS('dcmGasPrice',{y:{labels:L,datasets:[
     {label:'Giá khí (thực tế)',data:act,backgroundColor:'#1D2678',stack:'g',unit:'USD/MMBtu'},
     {label:'Giá khí (ước tính CTCK)',data:est,backgroundColor:'#B3BDE8',stack:'g',unit:'USD/MMBtu'},
@@ -3929,6 +3930,11 @@ function go(){
 }
 document.addEventListener('DOMContentLoaded',()=>{let n=0;const iv=setInterval(()=>{let ok=false;try{ok=go();}catch(err){console.error('dcmGas',err);ok=true;}if(ok||++n>40)clearInterval(iv);},300);});
 })();
+
+/* Tổng quan DCM: bỏ Checklist + Có gì mới 45 ngày + Điểm cần theo dõi (người dùng chốt 25/11/2026). */
+(function(){function go(){const c=document.getElementById('checklist');if(c){const g=c.closest('.grid');if(g)g.style.display='none';}
+document.querySelectorAll('.gov-section h4').forEach(h=>{if(/Điểm cần theo dõi/.test(h.textContent))h.parentElement.style.display='none';});}
+document.addEventListener('DOMContentLoaded',()=>{let n=0;const iv=setInterval(()=>{try{go();}catch(e){}if(++n>30)clearInterval(iv);},400);});})();
 
 </script>
 <script>window.FINANCE_INPUTS = {
@@ -10268,7 +10274,12 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
   const info=it=>{const t=tipText(it);return t?` <span class="info" tabindex="0" role="note" data-tip="${esc(t)}" aria-label="${esc(t)}">ⓘ</span>`:'';};
   const colorsFor=(n,stack)=>Array.from({length:n},(_,i)=>stack&&window.stackColor?stackColor(i,n):PAL[i%PAL.length]);
 
+  const TEAL='#59C5C8';
+  const rgba=(hex,a)=>{const n=parseInt(hex.slice(1),16);return `rgba(${n>>16},${(n>>8)&255},${n&255},${a})`;};
   function sets(c,ds){
+    if(c.qCluster){const n=ds.length;return ds.map((d,i)=>({type:'bar',label:d.label,data:d.data.slice(),yAxisID:'y',unit:c.unit,
+      backgroundColor:i===n-1?TEAL:rgba('#1D2678',0.25+0.6*i/Math.max(1,n-2))}));}
+    if(c.gantt)return ds.map((d,i)=>({type:'bar',label:d.label,data:d.data.slice(),yAxisID:'y',backgroundColor:i?rgba('#FFD45D',0.8):TEAL,borderSkipped:false,borderRadius:3,barPercentage:0.6}));
     const bars=ds.filter(d=>!d.line), col=colorsFor(bars.length,c.stack&&bars.length>1);
     let bi=0;
     return ds.map(d=>{
@@ -10279,6 +10290,12 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
     });
   }
   function cfgFor(c){
+    if(c.gantt)return (labels,datasets)=>{
+      const all=datasets.flatMap(d=>d.data).filter(Boolean).flat();const now=new Date();const nowY=now.getFullYear()+now.getMonth()/12;
+      return {type:'bar',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+        plugins:{legend:{position:'bottom',display:datasets.length>1},tooltip:{callbacks:{label:x=>(c.tips||[])[x.dataIndex]||''}}},
+        scales:{x:{type:'linear',min:Math.floor(Math.min(...all)),max:Math.ceil(Math.max(nowY,...all)),ticks:{stepSize:1,callback:v=>String(v)},title:{display:true,text:'Năm'}},
+          y:{grid:{display:false},stacked:true}}}};};
     return (labels,datasets)=>{
       const hasY1=datasets.some(d=>d.yAxisID==='y1'), hb=!!c.hbar;
       const valAx=hb?'x':'y', catAx=hb?'y':'x';
@@ -10308,7 +10325,8 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
       spec.def=c.def||(spec.y?'y':'q');
       if(c.ytd&&spec.q)spec.ytd=true;
       try{
-        if(typeof window.mkTS==='function'&&!c.hbar&&!c.cat)window.mkTS(c.id,spec);
+        if(c.gantt&&window.Chart){const p=spec.y;new Chart(document.getElementById(c.id),spec.cfg(p.labels,p.datasets));}
+        else if(typeof window.mkTS==='function'&&!c.hbar&&!c.cat)window.mkTS(c.id,spec);
         else if(typeof window.mk==='function'){const p=spec[spec.def];window.mk(c.id,spec.cfg(p.labels,p.datasets));}
         else if(window.Chart){const p=spec[spec.def];new Chart(document.getElementById(c.id),spec.cfg(p.labels,p.datasets));}
       }catch(e){console.warn('pharma-pack',c.id,e);}
@@ -10339,8 +10357,10 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
       t.rows.map(r=>`<li><span class="ph-tl-d">${esc(r[0])}</span><span class="ph-tl-g" style="--c:${PAL[groups.indexOf(r[1])%PAL.length]}">${esc(r[1])}</span><b>${esc(r[2])}</b><p>${esc(r[3])}</p></li>`).join('')}</ol></div>`;
   }
   function cardsHtml(t){
-    return `<div class="card ph-card ph-full" data-source="${esc(t.src||'')}"><h3 class="sub">${esc(t.title)}${info(t)}</h3><div class="ph-cards">${
-      t.cards.map(c=>`<div class="ph-mini"><b>${esc(c.title)}</b><dl>${c.fields.map(f=>`<dt>${esc(f[0])}</dt><dd>${esc(f[1])}</dd>`).join('')}</dl></div>`).join('')}</div></div>`;
+    const sumy=t.cards.some(c=>c.big||c.line);
+    return `<div class="card ph-card ph-full" data-source="${esc(t.src||'')}"><h3 class="sub">${esc(t.title)}${info(t)}</h3>${sumy?'<p class="ph-cap">Bấm vào từng thẻ để xem chi tiết.</p>':''}<div class="ph-cards">${
+      t.cards.map(c=>sumy?`<details class="ph-mini ph-nm"><summary><b>${esc(c.title)}</b>${c.big?`<span class="ph-big">${esc(c.big)}</span>`:''}${c.line?`<span class="ph-ln">${esc(c.line)}</span>`:''}<span class="ph-more">Bấm để xem chi tiết</span></summary><dl>${c.fields.map(f=>`<dt>${esc(f[0])}</dt><dd>${esc(f[1])}</dd>`).join('')}</dl></details>`
+        :`<div class="ph-mini"><b>${esc(c.title)}</b><dl>${c.fields.map(f=>`<dt>${esc(f[0])}</dt><dd>${esc(f[1])}</dd>`).join('')}</dl></div>`).join('')}</div></div>`;
   }
   const itemHtml=(it,full)=>it.kind==='chart'?chartHtml(it,full):it.kind==='table'?tableHtml(it):it.kind==='status'?statusHtml(it):it.kind==='timeline'?timelineHtml(it):it.kind==='cards'?cardsHtml(it):'';
   function sectionsHtml(secs,startNo){
@@ -10372,6 +10392,7 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
       +'.ph-mini b{color:#1D2678;display:block;margin-bottom:6px}.ph-mini dl{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:0;font-size:13px}.ph-mini dt{color:#64748B}.ph-mini dd{margin:0}'
       +'html[data-theme="dark"] .ph-mini{background:#1c1c1c;border-color:#2A2A2A}html[data-theme="dark"] .ph-mini b,html[data-theme="dark"] .ph-tl-d{color:#59C5C8}html[data-theme="dark"] .ph-tl p,html[data-theme="dark"] .ph-moc{color:#A3A3A3}'
       +'.ph-subnav{display:flex;gap:6px;margin:4px 0 16px;flex-wrap:wrap}.ph-subnav button{border:1px solid var(--line,#E3E8F0);background:#fff;color:var(--navy,#1D2678);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:700;line-height:1.5;cursor:pointer}.ph-subnav button.on{background:var(--navy,#1D2678);border-color:var(--navy,#1D2678);color:#fff}.ph-sec[hidden],.ph-pane[hidden]{display:none!important}.ph-pane>.ph-sec:first-child>.ph-row:first-child,.ph-pane>.ph-sec:first-child>.ph-grid:first-child{margin-top:0}@media print{.ph-subnav{display:none}}'
+      +'.ph-cap{margin:-4px 0 10px;font-size:12.5px;color:#64748B}.ph-nm summary{list-style:none;cursor:pointer;display:flex;flex-direction:column;gap:4px}.ph-nm summary::-webkit-details-marker{display:none}.ph-big{font-size:20px;font-weight:650;color:#27AF95}.ph-ln{font-size:12.5px;color:#64748B}.ph-more{font-size:12px;color:#2938A8;font-weight:600}.ph-nm[open] .ph-more{display:none}.ph-nm dl{margin-top:10px}.ph-cards{align-items:start}'
       +'@media(max-width:760px){.ph-cards{grid-template-columns:1fr}}';
     document.head.appendChild(s);
   }
@@ -11632,7 +11653,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='dcm',BUILD='9c127aa61423',URL_JSON='../version.json';
+  const PAGE='dcm',BUILD='688ae14429d1',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;

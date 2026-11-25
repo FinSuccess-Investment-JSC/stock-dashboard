@@ -10122,7 +10122,12 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
   const info=it=>{const t=tipText(it);return t?` <span class="info" tabindex="0" role="note" data-tip="${esc(t)}" aria-label="${esc(t)}">ⓘ</span>`:'';};
   const colorsFor=(n,stack)=>Array.from({length:n},(_,i)=>stack&&window.stackColor?stackColor(i,n):PAL[i%PAL.length]);
 
+  const TEAL='#59C5C8';
+  const rgba=(hex,a)=>{const n=parseInt(hex.slice(1),16);return `rgba(${n>>16},${(n>>8)&255},${n&255},${a})`;};
   function sets(c,ds){
+    if(c.qCluster){const n=ds.length;return ds.map((d,i)=>({type:'bar',label:d.label,data:d.data.slice(),yAxisID:'y',unit:c.unit,
+      backgroundColor:i===n-1?TEAL:rgba('#1D2678',0.25+0.6*i/Math.max(1,n-2))}));}
+    if(c.gantt)return ds.map((d,i)=>({type:'bar',label:d.label,data:d.data.slice(),yAxisID:'y',backgroundColor:i?rgba('#FFD45D',0.8):TEAL,borderSkipped:false,borderRadius:3,barPercentage:0.6}));
     const bars=ds.filter(d=>!d.line), col=colorsFor(bars.length,c.stack&&bars.length>1);
     let bi=0;
     return ds.map(d=>{
@@ -10133,6 +10138,12 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
     });
   }
   function cfgFor(c){
+    if(c.gantt)return (labels,datasets)=>{
+      const all=datasets.flatMap(d=>d.data).filter(Boolean).flat();const now=new Date();const nowY=now.getFullYear()+now.getMonth()/12;
+      return {type:'bar',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+        plugins:{legend:{position:'bottom',display:datasets.length>1},tooltip:{callbacks:{label:x=>(c.tips||[])[x.dataIndex]||''}}},
+        scales:{x:{type:'linear',min:Math.floor(Math.min(...all)),max:Math.ceil(Math.max(nowY,...all)),ticks:{stepSize:1,callback:v=>String(v)},title:{display:true,text:'Năm'}},
+          y:{grid:{display:false},stacked:true}}}};};
     return (labels,datasets)=>{
       const hasY1=datasets.some(d=>d.yAxisID==='y1'), hb=!!c.hbar;
       const valAx=hb?'x':'y', catAx=hb?'y':'x';
@@ -10162,7 +10173,8 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
       spec.def=c.def||(spec.y?'y':'q');
       if(c.ytd&&spec.q)spec.ytd=true;
       try{
-        if(typeof window.mkTS==='function'&&!c.hbar&&!c.cat)window.mkTS(c.id,spec);
+        if(c.gantt&&window.Chart){const p=spec.y;new Chart(document.getElementById(c.id),spec.cfg(p.labels,p.datasets));}
+        else if(typeof window.mkTS==='function'&&!c.hbar&&!c.cat)window.mkTS(c.id,spec);
         else if(typeof window.mk==='function'){const p=spec[spec.def];window.mk(c.id,spec.cfg(p.labels,p.datasets));}
         else if(window.Chart){const p=spec[spec.def];new Chart(document.getElementById(c.id),spec.cfg(p.labels,p.datasets));}
       }catch(e){console.warn('pharma-pack',c.id,e);}
@@ -10193,8 +10205,10 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
       t.rows.map(r=>`<li><span class="ph-tl-d">${esc(r[0])}</span><span class="ph-tl-g" style="--c:${PAL[groups.indexOf(r[1])%PAL.length]}">${esc(r[1])}</span><b>${esc(r[2])}</b><p>${esc(r[3])}</p></li>`).join('')}</ol></div>`;
   }
   function cardsHtml(t){
-    return `<div class="card ph-card ph-full" data-source="${esc(t.src||'')}"><h3 class="sub">${esc(t.title)}${info(t)}</h3><div class="ph-cards">${
-      t.cards.map(c=>`<div class="ph-mini"><b>${esc(c.title)}</b><dl>${c.fields.map(f=>`<dt>${esc(f[0])}</dt><dd>${esc(f[1])}</dd>`).join('')}</dl></div>`).join('')}</div></div>`;
+    const sumy=t.cards.some(c=>c.big||c.line);
+    return `<div class="card ph-card ph-full" data-source="${esc(t.src||'')}"><h3 class="sub">${esc(t.title)}${info(t)}</h3>${sumy?'<p class="ph-cap">Bấm vào từng thẻ để xem chi tiết.</p>':''}<div class="ph-cards">${
+      t.cards.map(c=>sumy?`<details class="ph-mini ph-nm"><summary><b>${esc(c.title)}</b>${c.big?`<span class="ph-big">${esc(c.big)}</span>`:''}${c.line?`<span class="ph-ln">${esc(c.line)}</span>`:''}<span class="ph-more">Bấm để xem chi tiết</span></summary><dl>${c.fields.map(f=>`<dt>${esc(f[0])}</dt><dd>${esc(f[1])}</dd>`).join('')}</dl></details>`
+        :`<div class="ph-mini"><b>${esc(c.title)}</b><dl>${c.fields.map(f=>`<dt>${esc(f[0])}</dt><dd>${esc(f[1])}</dd>`).join('')}</dl></div>`).join('')}</div></div>`;
   }
   const itemHtml=(it,full)=>it.kind==='chart'?chartHtml(it,full):it.kind==='table'?tableHtml(it):it.kind==='status'?statusHtml(it):it.kind==='timeline'?timelineHtml(it):it.kind==='cards'?cardsHtml(it):'';
   function sectionsHtml(secs,startNo){
@@ -10226,6 +10240,7 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
       +'.ph-mini b{color:#1D2678;display:block;margin-bottom:6px}.ph-mini dl{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:0;font-size:13px}.ph-mini dt{color:#64748B}.ph-mini dd{margin:0}'
       +'html[data-theme="dark"] .ph-mini{background:#1c1c1c;border-color:#2A2A2A}html[data-theme="dark"] .ph-mini b,html[data-theme="dark"] .ph-tl-d{color:#59C5C8}html[data-theme="dark"] .ph-tl p,html[data-theme="dark"] .ph-moc{color:#A3A3A3}'
       +'.ph-subnav{display:flex;gap:6px;margin:4px 0 16px;flex-wrap:wrap}.ph-subnav button{border:1px solid var(--line,#E3E8F0);background:#fff;color:var(--navy,#1D2678);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:700;line-height:1.5;cursor:pointer}.ph-subnav button.on{background:var(--navy,#1D2678);border-color:var(--navy,#1D2678);color:#fff}.ph-sec[hidden],.ph-pane[hidden]{display:none!important}.ph-pane>.ph-sec:first-child>.ph-row:first-child,.ph-pane>.ph-sec:first-child>.ph-grid:first-child{margin-top:0}@media print{.ph-subnav{display:none}}'
+      +'.ph-cap{margin:-4px 0 10px;font-size:12.5px;color:#64748B}.ph-nm summary{list-style:none;cursor:pointer;display:flex;flex-direction:column;gap:4px}.ph-nm summary::-webkit-details-marker{display:none}.ph-big{font-size:20px;font-weight:650;color:#27AF95}.ph-ln{font-size:12.5px;color:#64748B}.ph-more{font-size:12px;color:#2938A8;font-weight:600}.ph-nm[open] .ph-more{display:none}.ph-nm dl{margin-top:10px}.ph-cards{align-items:start}'
       +'@media(max-width:760px){.ph-cards{grid-template-columns:1fr}}';
     document.head.appendChild(s);
   }
@@ -11486,7 +11501,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='hvn',BUILD='6ae4fb847404',URL_JSON='../version.json';
+  const PAGE='hvn',BUILD='1d306ec9e1f8',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
