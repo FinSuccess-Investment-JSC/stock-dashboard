@@ -1852,6 +1852,18 @@ html[data-theme="dark"] .re-gt-name,html[data-theme="dark"] .re-gt-grp{color:#59
 /* Card trong lưới 2+ cột luôn thẳng mép trên: bỏ margin-top kế thừa khi card được dời vào hàng (người dùng chốt 25/11/2026) */
 :is(.grid,.fs-arr-grid,.fs-kq-own)>.card{margin-top:0!important}
 
+/* Hai cỡ khung chart cố định (người dùng chốt 25/11/2026): khung 1/2 màn hình và khung full.
+   Card chart cạnh nhau trong một hàng luôn cùng chiều cao; vùng vẽ giãn lấp phần còn lại, không để khoảng trắng.
+   Vùng vẽ: 1/2 màn hình tối thiểu 340px, full tối thiểu 420px. Chiều cao do người dùng kéo ở "Bố cục" (inline) vẫn được giữ. */
+@media screen and (min-width:761px){
+  :is(.grid,.fs-arr-grid,.fs-kq-own){align-items:stretch!important}
+  :is(.grid,.fs-arr-grid,.fs-kq-own)>.card:has(canvas){display:flex;flex-direction:column}
+  :is(.grid,.fs-arr-grid,.fs-kq-own)>.card:has(canvas)>.chart{flex:1 1 auto;height:auto;min-height:340px}
+  :is(.grid.g1,.grid:not(.g2):not(.g3):not(.g4))>.card:has(canvas)>.chart,
+  :is(.grid,.fs-arr-grid,.fs-kq-own)>.card:has(canvas):only-child>.chart,
+  section>.card:has(canvas)>.chart{min-height:420px}
+}
+
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet"><style>
 .stock-search{max-width:1440px;margin:16px auto 0;padding:0 24px}
@@ -11279,7 +11291,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='tlg',BUILD='6cc4bfc4ff3f',URL_JSON='../version.json';
+  const PAGE='tlg',BUILD='bf95d5a5660b',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
