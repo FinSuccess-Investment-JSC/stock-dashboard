@@ -3740,14 +3740,14 @@ function renderSeg(){
     const tb=`<table><tr><th>Chỉ tiêu (nghìn tấn)</th><th class="num">${n}T/2026</th><th class="num">KH 2026</th><th class="num">% KH</th></tr>${rowsP.map(r=>{const a=sum(r[1]),k=AP[r[2]];return `<tr><td>${r[0]}</td><td class="num">${fmt(a,1)}</td><td class="num">${fmt(k,1)}</td><td class="num">${k?fmt(a/k*100,1)+'%':'—'}</td></tr>`;}).join('')}</table>`;
     const e=document.createElement('div');e.className='card';e.dataset.source=MSRC;
     e.innerHTML=`<h3 class="sub">Thực hiện kế hoạch năm & ghi chú vận hành</h3>${tb}<p class="note">Vạch so sánh: ${n}/12 = ${fmt(n/12*100,0)}% thời gian năm. Kế hoạch năm theo bản tin IR tháng gần nhất.</p><ul style="margin:8px 0 0;padding-left:18px;line-height:1.6">${N.maintenance?`<li>${esc(N.maintenance)}</li>`:''}${N.nextPlan!=null?`<li>Kế hoạch urê sản xuất tháng kế tiếp: ${fmt(N.nextPlan,2)} nghìn tấn.</li>`:''}${N.ops?`<li>${esc(String(N.ops).split(/\n+/)[0])}</li>`:''}</ul>`;
-    host.appendChild(e);
+    /* bỏ theo người dùng 25/11/2026 */
   }
   const p=X.price;
   card(host,'Giá urê thị trường (proxy)','dcmPrice',`Urê hạt đục Trung Đông, hợp đồng tương lai CME (USD/tấn) và urê Cà Mau trong nước (nghìn đồng/kg), giá ngày cuối tháng. Mốc mới nhất Trung Đông ${fmt(p.latest.me,1)} USD/tấn ngày ${p.latest.date.split('-').reverse().join('/')}. Đây là proxy thị trường, không phải doanh thu hay giá bán của DCM; giá bán thực xem chart giá bán và giá vốn.`);
   mkTS('dcmPrice',{def:'m',m:{labels:p.labels,datasets:[line('Urê Trung Đông (USD/tấn)',p.me,C.blue),line('Urê Cà Mau (nghìn đồng/kg)',p.cm,C.purple,'y1')]},cfg:(labels,datasets)=>({type:'line',data:{labels,datasets},options:opts('USD/tấn','Nghìn đồng/kg',' USD/tấn',' nghìn đồng/kg')})});
   const g=X.gas,e=document.createElement('div');e.className='card';e.id='dcmGasCard';e.dataset.source=D.sourceNotes.dcmGasCard;
   e.innerHTML=`<h3 class="sub">Cơ chế giá khí đầu vào</h3><div class="tbl-wrap"><table><thead><tr><th>Nguồn khí</th><th>Giá</th><th>Tình trạng</th></tr></thead><tbody>${g.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div><p class="note">Giá trị mua khí từ Chi nhánh Khí Tây Nam Bộ (PV GAS) 9T/2026 ${fmt(g.pvgas9T26,1)} tỷ; 9T/2025 mua qua PVN ${fmt(g.pvn9T25,1)} tỷ. Chưa có giá khí thực trả từng kỳ.</p>`;
-  host.appendChild(e);
+  /* bỏ theo người dùng 25/11/2026 */
 }
 function renderFin(){
   const bs=document.getElementById('bs');if(!bs)return;
@@ -3822,10 +3822,10 @@ function section(tabId,title){
 }
 function go(){
   const O=(window.PVS_DATA||{}).chOps;if(!O||document.querySelector('.ch-ops'))return;
-  const seg=section('seg',O.segTitle||'Sản lượng & dự án'),bs=section('bs','Thuyết minh vốn lưu động — tồn kho, phải thu, trả trước');
+  const seg=(O.charts||[]).some(c=>c.tab!=='bs')?section('seg',O.segTitle||'Sản lượng & dự án'):null,bs=section('bs','Thuyết minh vốn lưu động — tồn kho, phải thu, trả trước');
   (O.charts||[]).forEach(c=>{const h=c.tab==='bs'?bs:seg;if(h)chart(h,c,c.src);});
-  (O.tables||[]).forEach(t=>{if(seg)table(seg,t);});
-  if(seg&&(O.facts||[]).length){const e=document.createElement('div');e.className='card';e.dataset.source=O.source;e.style.gridColumn='1/-1';
+  /* bảng năm + dữ kiện vận hành: bỏ theo người dùng 25/11/2026 */
+  if(false){const e=document.createElement('div');e.className='card';e.dataset.source=O.source;e.style.gridColumn='1/-1';
     e.innerHTML=`<h3 class="sub">${esc(O.title)}</h3><div class="tbl-wrap"><table><tr><th>Mốc</th><th>Nhóm</th><th>Dữ kiện</th></tr>${O.facts.map(r=>`<tr title="${esc(r[3])}"><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td>${esc(r[2])}</td></tr>`).join('')}</table></div>`;seg.appendChild(e);}
 }
 document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{try{go();}catch(e){console.error('ch-ops',e);document.documentElement.dataset.customError=e.message;}},0));
@@ -11566,7 +11566,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='dcm',BUILD='558126bec6cc',URL_JSON='../version.json';
+  const PAGE='dcm',BUILD='f6854f1888d1',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
