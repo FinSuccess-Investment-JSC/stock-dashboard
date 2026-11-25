@@ -5324,14 +5324,29 @@ window.FS_ANALYST_VAULT={"iter": 600000, "salt": "1J1KSPRXSLtd3z2nYwmUpA==", "iv
     const datedTrades=trades.filter(x=>!ownershipChanges.includes(x));
     const hasPrices=Array.isArray(g.adjustedPrices)&&g.adjustedPrices.length>0;
     const missing=[!owners.length&&'cơ cấu cổ đông',!lead.length&&'cơ cấu quản trị',!entities.length&&'công ty con / LDLK',!datedTrades.length&&!g.insiderTrades?.length&&'giao dịch cổ đông lớn / nội bộ có ngày'].filter(Boolean);
+
+    // Pie tỷ trọng cổ đông lớn (người dùng chốt 25/11/2026): phần còn lại = cổ đông khác; tổng >100,5% (nhóm chồng nhau) thì chỉ giữ bảng.
+    const ownerPie=a=>{const sl=a.filter(x=>Number.isFinite(Number(x.percent))&&Number(x.percent)>0).map(x=>({n:x.name,v:Number(x.percent)}));const sum=sl.reduce((t,x)=>t+x.v,0);
+      if(!sl.length||sum>100.5)return '';if(sum<99.5)sl.push({n:'Cổ đông khác',v:100-sum,other:true});
+      const pal=['#1D2678','#2938A8','#59C5C8','#861C52','#FFD45D','#4354B7','#8997D6','#B3BDE8'];let ang=-Math.PI/2;const R=80,r=48,c=90;
+      const arcs=sl.map((x,i)=>{const col=x.other?'#D9DEF4':pal[i%pal.length],a0=ang,a1=ang+x.v/100*2*Math.PI;ang=a1;const big=a1-a0>Math.PI?1:0,P=(rad,t)=>[(c+rad*Math.cos(t)).toFixed(2),(c+rad*Math.sin(t)).toFixed(2)];
+        if(x.v>=99.99)return `<circle cx="${c}" cy="${c}" r="${(R+r)/2}" fill="none" stroke="${col}" stroke-width="${R-r}"><title>${esc(x.n)}: ${val(x.v,'%',2)}</title></circle>`;
+        const [x0,y0]=P(R,a0),[x1,y1]=P(R,a1),[x2,y2]=P(r,a1),[x3,y3]=P(r,a0);x.col=col;
+        return `<path d="M${x0} ${y0}A${R} ${R} 0 ${big} 1 ${x1} ${y1}L${x2} ${y2}A${r} ${r} 0 ${big} 0 ${x3} ${y3}Z" fill="${col}" stroke="#fff" stroke-width="1.5"><title>${esc(x.n)}: ${val(x.v,'%',2)}</title></path>`;}).join('');
+      sl.forEach((x,i)=>{x.col=x.col||(x.other?'#D9DEF4':pal[i%pal.length]);});
+      const top=sl.filter(x=>!x.other).reduce((t,x)=>t+x.v,0);
+      return `<div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin:4px 0 10px"><svg viewBox="0 0 180 180" width="170" height="170" role="img" aria-label="Tỷ trọng cổ đông lớn">${arcs}<text x="90" y="86" text-anchor="middle" font-size="20" font-weight="650" fill="#243878">${val(top,'%',1)}</text><text x="90" y="104" text-anchor="middle" font-size="10.5" fill="#64748B">cổ đông lớn</text></svg><div style="flex:1;min-width:200px;display:grid;gap:6px">${sl.map(x=>`<div style="display:flex;gap:8px;align-items:baseline;font-size:13.5px"><i style="flex:none;width:10px;height:10px;border-radius:2px;background:${x.col};transform:translateY(1px)"></i><span style="flex:1">${esc(x.n)}</span><b style="font-variant-numeric:tabular-nums">${val(x.v,'%',2)}</b></div>`).join('')}<div class="note" style="margin:2px 0 0">Ngày chốt: ${esc([...new Set(a.map(x=>x.asOf).filter(Boolean))].join(', ')||'—')}</div></div></div>`;};
+    // 5 người chủ chốt: Chủ tịch → TGĐ/CEO → Phó Chủ tịch → KTT/GĐ tài chính → Trưởng BKS/UBKT; còn lại vào dropdown.
+    const keyLead=a=>{const rk=x=>{const t=String(x.role||'');return /^chủ tịch hđqt|^chủ tịch hội đồng/i.test(t)?0:/tổng giám đốc|ceo/i.test(t)&&!/phó tổng/i.test(t)?1:/phó chủ tịch/i.test(t)?2:/kế toán trưởng|giám đốc tài chính|cfo/i.test(t)?3:/trưởng ban kiểm soát|chủ tịch ủy ban kiểm toán|chủ tịch uỷ ban kiểm toán/i.test(t)?4:9;};
+      return a.map((x,i)=>({x,i,k:rk(x)})).sort((p,q)=>p.k-q.k||p.i-q.i).slice(0,5).sort((p,q)=>p.k-q.k||p.i-q.i).map(o=>o.x);};
     const tradeHeads=['Người / quan hệ','Đăng ký','Thực hiện','Ngày công bố / hoàn tất','Sau đăng ký 1M · 3M · 1Y','Sau hoàn tất 1M · 3M · 1Y'];
     box.innerHTML='<h3 class="sub">Quản trị & sở hữu</h3>'+
       '<div class="note">Cơ cấu sở hữu và giao dịch phản ánh mốc công bố, không mặc nhiên là cơ cấu hiện tại. '+(g.asOf?'Phạm vi: '+esc(String(g.asOf).replace(/[;,]?\s*nguồn công khai\b/gi,''))+'.':'')+'</div>'+
       (missing.length?'<div class="note">Chưa đối chiếu: '+esc(missing.join('; '))+'.</div>':'')+
       (!owners.length&&!lead.length&&!entities.length&&!trades.length?'<div class="note">Chưa có dữ liệu quản trị đã đối chiếu cho mã này.</div>':'')+
       '<div class="gov-grid">'+
-      section('Cơ cấu cổ đông',owners,a=>table(['Cổ đông','Sở hữu','Tỷ lệ','Ngày chốt'],a,x=>`<tr><td>${esc(x.name)}</td><td>${val(x.shares,' CP')}</td><td>${val(x.percent,'%',2)}</td><td>${esc(x.asOf||'—')}</td></tr>`))+
-      section('Cơ cấu quản trị',lead,a=>table(['Họ tên','Vai trò','Mốc bổ nhiệm'],a,x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.role)}</td><td>${esc(x.since||'—')}</td></tr>`))+
+      section('Cơ cấu cổ đông',owners,a=>ownerPie(a)+'<details class="dd"><summary>Bảng chi tiết cổ đông</summary>'+table(['Cổ đông','Sở hữu','Tỷ lệ','Ngày chốt'],a,x=>`<tr><td>${esc(x.name)}</td><td>${val(x.shares,' CP')}</td><td>${val(x.percent,'%',2)}</td><td>${esc(x.asOf||'—')}</td></tr>`)+'</details>')+
+      section('Cơ cấu quản trị',lead,a=>{const k=keyLead(a),rest=a.filter(x=>!k.includes(x)),row=x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.role)}</td><td>${esc(x.since||'—')}</td></tr>`,H=['Họ tên','Vai trò','Mốc bổ nhiệm'];return table(H,k,row)+(rest.length?`<details class="dd"><summary>Thành viên khác (${rest.length})</summary>`+table(H,rest,row)+'</details>':'');})+
       section('Công ty con · LDLK',entities,a=>table(['Đơn vị','Loại','Sở hữu','Ngày chốt'],a,x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.type||'—')}</td><td>${val(x.ownership,'%',2)}</td><td>${esc(x.asOf||'—')}</td></tr>`))+'</div>'+
       (Array.isArray(g.insiderTrades)&&g.insiderTrades.length?'<div id="insiderTradeExplorer" class="gov-section"></div>':section('Giao dịch cổ đông lớn & người nội bộ',datedTrades,a=>table(tradeHeads,a,x=>`<tr><td>${esc(x.name)}<div class="note">${esc(x.relation||'')}</div></td><td>${x.registered==null?'—':esc(x.side||'')+' '+val(x.registered,' CP')}</td><td>${x.executed==null?'—':esc(x.side||'')+' '+val(x.executed,' CP')}</td><td>${esc(x.period||'')}${x.period&&x.announced?' · ':''}${esc(x.announced||'')}${x.completed?' / '+esc(x.completed):''}${!x.period&&!x.announced&&!x.completed?'—':''}</td><td>${[1,3,12].map(n=>priceMove(x.announced,n,g.adjustedPrices)).join(' · ')}</td><td>${[1,3,12].map(n=>priceMove(x.completed,n,g.adjustedPrices)).join(' · ')}</td></tr>`)))+
       section('Biến động sở hữu theo báo cáo năm',ownershipChanges,a=>'<div class="note">Chỉ có số dư đầu và cuối năm; chưa có ngày và khối lượng từng lệnh để tính biến động giá 1M / 3M / 1Y.</div>'+table(['Người / quan hệ','Đầu kỳ','Cuối kỳ','Kỳ'],a,x=>`<tr><td>${esc(x.name)}<div class="note">${esc(x.relation||'')}</div></td><td>${val(x.opening,' CP')}</td><td>${val(x.closing,' CP')}</td><td>${esc(x.period||'—')}</td></tr>`))+
@@ -10184,7 +10199,8 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
       const flush=()=>{if(row.length){html+=`<div class="grid g2 ph-grid">${row.join('')}</div>`;row=[];}};
       s.items.forEach(it=>{if(it.kind==='chart'){row.push(itemHtml(it));if(row.length===2)flush();}else{flush();html+=`<div class="ph-row">${itemHtml(it,true)}</div>`;}});
       flush();
-      return `<div class="ph-sec">${s.title?`<h2 class="sec">${n?(++n-1)+'. ':''}${esc(s.title)}</h2>`:''}${html}</div>`;
+      const num=n&&(s.sub||'Kinh doanh')==='Kinh doanh'&&s.title;
+      return `<div class="ph-sec" data-sub="${esc(s.sub||'Kinh doanh')}">${s.title?`<h2 class="sec">${num?(++n-1)+'. ':''}${esc(s.title)}</h2>`:''}${html}</div>`;
     }).join('');
   }
   function style(){
@@ -10203,7 +10219,7 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
       +'.ph-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}.ph-mini{border:1px solid #E1E6EE;background:#F8FAFC;border-radius:10px;padding:12px 14px}'
       +'.ph-mini b{color:#1D2678;display:block;margin-bottom:6px}.ph-mini dl{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:0;font-size:13px}.ph-mini dt{color:#64748B}.ph-mini dd{margin:0}'
       +'html[data-theme="dark"] .ph-mini{background:#1c1c1c;border-color:#2A2A2A}html[data-theme="dark"] .ph-mini b,html[data-theme="dark"] .ph-tl-d{color:#59C5C8}html[data-theme="dark"] .ph-tl p,html[data-theme="dark"] .ph-moc{color:#A3A3A3}'
-      +'.ph-subnav{display:flex;gap:6px;margin:4px 0 16px;flex-wrap:wrap}.ph-subnav button{border:1px solid var(--line,#E3E8F0);background:#fff;color:var(--navy,#1D2678);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:700;line-height:1.5;cursor:pointer}.ph-subnav button.on{background:var(--navy,#1D2678);border-color:var(--navy,#1D2678);color:#fff}.ph-sec[hidden]{display:none!important}@media print{.ph-subnav{display:none}}'
+      +'.ph-subnav{display:flex;gap:6px;margin:4px 0 16px;flex-wrap:wrap}.ph-subnav button{border:1px solid var(--line,#E3E8F0);background:#fff;color:var(--navy,#1D2678);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:700;line-height:1.5;cursor:pointer}.ph-subnav button.on{background:var(--navy,#1D2678);border-color:var(--navy,#1D2678);color:#fff}.ph-sec[hidden],.ph-pane[hidden]{display:none!important}.ph-pane>.ph-sec:first-child>.ph-row:first-child,.ph-pane>.ph-sec:first-child>.ph-grid:first-child{margin-top:0}@media print{.ph-subnav{display:none}}'
       +'@media(max-width:760px){.ph-cards{grid-template-columns:1fr}}';
     document.head.appendChild(s);
   }
@@ -10213,18 +10229,21 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
     if(where&&where.parentNode===host)host.insertBefore(w,where);else host.appendChild(w);
     return w;
   }
-  // Sub-tab trong Mảng kinh doanh: mỗi mục flow artifact một nút + "Theo BCTC" cho khối segments chung
+  // Sub-tab trong Mảng kinh doanh theo artifact: Kinh doanh · Nhà máy · Luật & chính sách.
+  // Mục numbered trong Kinh doanh; khối breakdown BCTC chung nằm cuối sub-tab Kinh doanh.
   function segSubtabs(seg,w){
     if(seg.querySelector(':scope > .ph-subnav'))return;
-    const secs=[...w.querySelectorAll(':scope > .ph-sec')]; if(secs.length<2)return;
-    const rest=[...seg.children].filter(el=>el!==w&&!el.classList.contains('fs-perall')&&!el.classList.contains('tb')&&el.tagName!=='SCRIPT'&&el.tagName!=='STYLE');
-    const panes=secs.map(x=>({el:x,label:(x.querySelector('h2')||{}).textContent||''}));
-    if(rest.length){const box=document.createElement('div');box.className='ph-sec ph-rest';rest.forEach(el=>box.appendChild(el));w.appendChild(box);panes.push({el:box,label:'Theo BCTC'});}
-    const short=l=>l.replace(/^\d+\.\s*/,'').replace(/^(Theo|Tổng)\s+/i,m=>m).replace(/\s*[:—–(].*$/,'').trim();
+    const order=[],groups={};
+    [...w.querySelectorAll(':scope > .ph-sec')].forEach(x=>{const k=x.dataset.sub||'Kinh doanh';if(!groups[k]){groups[k]=[];order.push(k);}groups[k].push(x);});
+    if(!order.includes('Kinh doanh')){order.unshift('Kinh doanh');groups['Kinh doanh']=[];}
+    const panes=order.map(k=>{const d=document.createElement('div');d.className='ph-pane';d.dataset.sub=k;groups[k].forEach(x=>d.appendChild(x));w.appendChild(d);return {k,el:d};});
+    const rest=[...seg.children].filter(el=>el!==w&&!el.classList.contains('fs-perall')&&!el.classList.contains('tb')&&!el.classList.contains('fs-next')&&el.tagName!=='SCRIPT'&&el.tagName!=='STYLE');
+    const kd=panes.find(p=>p.k==='Kinh doanh').el; rest.forEach(el=>kd.appendChild(el));
+    if(panes.length<2)return;
     const nav=document.createElement('div');nav.className='subnav fin-subnav ph-subnav';
-    panes.forEach((p,i)=>{const b=document.createElement('button');b.type='button';b.dataset.i=i;b.textContent=short(p.label)||('Mục '+(i+1));b.title=p.label;nav.appendChild(b);});
+    panes.forEach((p,i)=>{const b=document.createElement('button');b.type='button';b.dataset.i=i;b.textContent=p.k;nav.appendChild(b);});
     seg.insertBefore(nav,seg.firstChild);
-    const KEY='ph_seg_sub_v1|'+(P.ticker||'');
+    const KEY='ph_seg_sub_v2|'+(P.ticker||'');
     const show=i=>{i=Math.max(0,Math.min(panes.length-1,+i||0));panes.forEach((p,k)=>{p.el.hidden=k!==i;});
       nav.querySelectorAll('button').forEach((b,k)=>{b.classList.toggle('on',k===i);b.setAttribute('aria-pressed',String(k===i));});
       try{localStorage.setItem(KEY,String(i));}catch(e){}
@@ -11461,7 +11480,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='dbc',BUILD='539c034c5c88',URL_JSON='../version.json';
+  const PAGE='dbc',BUILD='2caf0218a0cc',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
