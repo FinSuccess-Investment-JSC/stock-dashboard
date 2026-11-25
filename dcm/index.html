@@ -3830,6 +3830,44 @@ function go(){
 }
 document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{try{go();}catch(e){console.error('ch-ops',e);document.documentElement.dataset.customError=e.message;}},0));
 })();
+/* Năng lực sản xuất (Tổng quan, ngay dưới Thông tin doanh nghiệp) — 25/11/2026.
+   Công suất: báo chí trích thông tin công ty (thitruongtaichinhtiente.vn 11/2025), KVF: FPTS 25/07/2025.
+   Cơ cấu 9T/2026: thuyết minh DT/GV BCTC riêng công ty mẹ (sources/segments-bctc.json); sản lượng: sources/volumes.json. */
+(function(){
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pct=v=>v.toLocaleString('vi-VN',{maximumFractionDigits:1})+'%';
+const plants=[
+ ['Nhà máy Đạm Cà Mau','KCN Khánh An, Cà Mau · DCM (mẹ)','Urê hạt đục (NH3 tự sản xuất từ khí)','800.000 tấn/năm','Urê sản xuất 2025: 966,73 nghìn tấn (BCTN 2025), ~121% thiết kế'],
+ ['Nhà máy NPK Cà Mau','Cà Mau · DCM (mẹ)','NPK','300.000 tấn/năm','NPK sản xuất 2025 (gồm KVF): 347,23 nghìn tấn (BCTN 2025)'],
+ ['Nhà máy NPK Hàn – Việt','KVF · sở hữu 100% từ 01/04/2024','NPK','360.000 tấn/năm','Gộp vào số NPK sản xuất ở trên'],
+ ['Bao bì Dầu khí Việt Nam','PBP · sở hữu 51,03%','Bao bì phân bón','—','Chờ đối chiếu công suất'],
+ ['Kho cảng Nhơn Trạch (kế hoạch)','Đồng Nai · DCM','Kho cảng, trung tâm phân phối phía Nam','—','Chủ trương đầu tư 21/06/2024; GCN đăng ký đầu tư 19/08/2024']];
+// 9T/2026, tỷ VND, công ty mẹ, trước giảm trừ
+const R={dom:4154.9,exp:5288.89,npk:2379.02,td:4525.23,kh:717.45},C={urea:5533.43,npk:1952.96,td:4235.14,kh:460.34};
+const tot=Object.values(R).reduce((a,b)=>a+b,0);
+const gp={urea:R.dom+R.exp-C.urea,npk:R.npk-C.npk,td:R.td-C.td,kh:R.kh-C.kh};const gtot=Object.values(gp).reduce((a,b)=>a+b,0);
+const rows=[
+ ['Urê – trong nước','Nhà phân phối, đại lý tại ĐBSCL, Đông Nam Bộ, Tây Nguyên; thị phần urê ĐBSCL 60–65% (công ty tự nêu, BCTN 2021)','327,80',pct(R.dom/tot*100),null],
+ ['Urê – xuất khẩu','~20 quốc gia; Campuchia là thị trường chính; có chứng chỉ xuất hàng rời sang Úc (đến 03/2028)','413,21',pct(R.exp/tot*100),null],
+ ['NPK','Nông dân qua hệ thống phân phối trong nước, tập trung Tây Nam Bộ','176,83',pct(R.npk/tot*100),pct(gp.npk/gtot*100)],
+ ['Phân bón tự doanh','Cùng hệ thống phân phối; hàng mua ngoài (DAP, kali…)','300,51',pct(R.td/tot*100),pct(gp.td/gtot*100)],
+ ['Khác','Phế phẩm, thành phẩm khác, dịch vụ','—',pct(R.kh/tot*100),pct(gp.kh/gtot*100)]];
+rows[0][4]=rows[1][4]=null;
+function go(){
+ const info=document.getElementById('companyFacts');if(!info||document.getElementById('dcmCapacity'))return;
+ const box=document.createElement('div');box.id='dcmCapacity';box.className='card';box.style.marginTop='16px';
+ box.dataset.source='BCTN 2021, 2025; BCTC riêng công ty mẹ 9T/2026; bản tin sản lượng PVCFC; báo chí trích thông tin công ty; FPTS';
+ const t=(h,b)=>'<div class="tbl-wrap"><table><thead><tr>'+h.map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+b+'</tbody></table></div>';
+ box.innerHTML='<h3 class="sub">Năng lực sản xuất</h3><div class="gov-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px">'+
+ '<div class="gov-section"><h4>Nhà máy & công suất</h4>'+t(['Nhà máy','Sản phẩm','Công suất thiết kế','Vận hành'],plants.map(p=>`<tr><td><b>${esc(p[0])}</b><br><span class="muted" style="font-size:12.5px">${esc(p[1])}</span></td><td>${esc(p[2])}</td><td>${esc(p[3])}</td><td>${esc(p[4])}</td></tr>`).join(''))+
+ '<div class="note">Tổng công suất phân bón ~1,46 triệu tấn/năm (urê 800 nghìn + NPK 660 nghìn). Công suất NH3 và công suất bao bì chờ đối chiếu BCTN. Bảo dưỡng tổng thể gần nhất 20/09–07/10/2026.</div></div>'+
+ '<div class="gov-section"><h4>Khách hàng & đóng góp (9T/2026)</h4>'+t(['Nhóm khách hàng','Thông tin','Tiêu thụ (nghìn tấn)','% doanh thu','% LN gộp'],rows.map((r,i)=>`<tr><td><b>${esc(r[0])}</b></td><td>${esc(r[1])}</td><td>${r[2]}</td><td>${r[3]}</td>${i===0?`<td rowspan="2" style="vertical-align:middle">${pct(gp.urea/gtot*100)}<br><span class="muted" style="font-size:12px">cả urê</span></td>`:i===1?'':`<td>${r[4]}</td>`}</tr>`).join(''))+
+ '<div class="note">Xuất khẩu chiếm 55,8% sản lượng urê và 56% doanh thu urê 9T/2026 (9T/2025: 46,9%). Nhà cung cấp khí là PV GAS (Chi nhánh Khí Tây Nam Bộ), không phải khách hàng. BCTC không công bố khách hàng lớn theo tên hay tỷ trọng.</div></div></div>'+
+ '<p class="note">Doanh thu, giá vốn theo thuyết minh BCTC riêng công ty mẹ, trước giảm trừ, chưa gồm KVF, PBP; LN gộp urê không tách được trong nước/xuất khẩu. Công suất KVF theo báo cáo CTCK 07/2025.</p>';
+ info.after(box);
+}
+document.addEventListener('DOMContentLoaded',()=>{let n=0;const iv=setInterval(()=>{try{go();}catch(e){console.error('dcmCap',e);}if(document.getElementById('dcmCapacity')||++n>40)clearInterval(iv);},250);});
+})();
 
 </script>
 <script>window.FINANCE_INPUTS = {
@@ -10256,6 +10294,7 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
       +'.ph-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}.ph-mini{border:1px solid #E1E6EE;background:#F8FAFC;border-radius:10px;padding:12px 14px}'
       +'.ph-mini b{color:#1D2678;display:block;margin-bottom:6px}.ph-mini dl{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:0;font-size:13px}.ph-mini dt{color:#64748B}.ph-mini dd{margin:0}'
       +'html[data-theme="dark"] .ph-mini{background:#1c1c1c;border-color:#2A2A2A}html[data-theme="dark"] .ph-mini b,html[data-theme="dark"] .ph-tl-d{color:#59C5C8}html[data-theme="dark"] .ph-tl p,html[data-theme="dark"] .ph-moc{color:#A3A3A3}'
+      +'.ph-subnav{display:flex;gap:6px;margin:4px 0 16px;flex-wrap:wrap}.ph-subnav button{border:1px solid var(--line,#E3E8F0);background:#fff;color:var(--navy,#1D2678);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:700;line-height:1.5;cursor:pointer}.ph-subnav button.on{background:var(--navy,#1D2678);border-color:var(--navy,#1D2678);color:#fff}.ph-sec[hidden]{display:none!important}@media print{.ph-subnav{display:none}}'
       +'@media(max-width:760px){.ph-cards{grid-template-columns:1fr}}';
     document.head.appendChild(s);
   }
@@ -10265,12 +10304,35 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
     if(where&&where.parentNode===host)host.insertBefore(w,where);else host.appendChild(w);
     return w;
   }
+  // Sub-tab trong Mảng kinh doanh: mỗi mục flow artifact một nút + "Theo BCTC" cho khối segments chung
+  function segSubtabs(seg,w){
+    if(seg.querySelector(':scope > .ph-subnav'))return;
+    const secs=[...w.querySelectorAll(':scope > .ph-sec')]; if(secs.length<2)return;
+    const rest=[...seg.children].filter(el=>el!==w&&!el.classList.contains('fs-perall')&&!el.classList.contains('tb')&&el.tagName!=='SCRIPT'&&el.tagName!=='STYLE');
+    const panes=secs.map(x=>({el:x,label:(x.querySelector('h2')||{}).textContent||''}));
+    if(rest.length){const box=document.createElement('div');box.className='ph-sec ph-rest';rest.forEach(el=>box.appendChild(el));w.appendChild(box);panes.push({el:box,label:'Theo BCTC'});}
+    const short=l=>l.replace(/^\d+\.\s*/,'').replace(/^(Theo|Tổng)\s+/i,m=>m).replace(/\s*[:—–(].*$/,'').trim();
+    const nav=document.createElement('div');nav.className='subnav fin-subnav ph-subnav';
+    panes.forEach((p,i)=>{const b=document.createElement('button');b.type='button';b.dataset.i=i;b.textContent=short(p.label)||('Mục '+(i+1));b.title=p.label;nav.appendChild(b);});
+    seg.insertBefore(nav,seg.firstChild);
+    const KEY='ph_seg_sub_v1|'+(P.ticker||'');
+    const show=i=>{i=Math.max(0,Math.min(panes.length-1,+i||0));panes.forEach((p,k)=>{p.el.hidden=k!==i;});
+      nav.querySelectorAll('button').forEach((b,k)=>{b.classList.toggle('on',k===i);b.setAttribute('aria-pressed',String(k===i));});
+      try{localStorage.setItem(KEY,String(i));}catch(e){}
+      if(window.Chart)setTimeout(()=>panes[i].el.querySelectorAll('canvas').forEach(c=>{const ch=Chart.getChart(c);if(ch)ch.resize();}),30);};
+    nav.addEventListener('click',e=>{const b=e.target.closest('button[data-i]');if(b)show(b.dataset.i);});
+    let saved=0;try{saved=localStorage.getItem(KEY)||0;}catch(e){}
+    show(saved);
+    addEventListener('beforeprint',()=>panes.forEach(p=>p.el.hidden=false));
+    addEventListener('afterprint',()=>show(nav.querySelector('.on')?.dataset.i||0));
+  }
   function run(){
     style();
     // Mảng kinh doanh: flow artifact đặt đầu tab, khối segments chung ở sau
     const seg=document.getElementById('seg');
     if(seg&&T.seg){const w=mount(seg,seg.firstElementChild,T.seg,'phPackSeg',true);
-      const t=document.getElementById('segTitle');if(w&&t)t.textContent='Breakdown mảng kinh doanh theo BCTC — số thực tế đã công bố';}
+      const t=document.getElementById('segTitle');if(w&&t)t.textContent='Breakdown mảng kinh doanh theo BCTC — số thực tế đã công bố';
+      if(w)segSubtabs(seg,w);}
     // Tổng quan
     const ov=document.getElementById('overview');
     if(ov&&T.ov)mount(ov,null,T.ov,'phPackOv',false);
@@ -11490,7 +11552,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='dcm',BUILD='19e41c3c837f',URL_JSON='../version.json';
+  const PAGE='dcm',BUILD='59d9ae858aec',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
