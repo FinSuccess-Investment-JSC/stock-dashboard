@@ -3855,8 +3855,8 @@ const rows=[
 rows[0][4]=rows[1][4]=null;
 function go(){
  const info=document.getElementById('companyFacts');if(!info||document.getElementById('dcmCapacity'))return;
- const box=document.createElement('div');box.id='dcmCapacity';box.className='card';box.style.marginTop='16px';
- box.dataset.source='BCTN 2021, 2025; BCTC riêng công ty mẹ 9T/2026; bản tin sản lượng PVCFC; báo chí trích thông tin công ty; FPTS';
+ const box=document.createElement('div');box.id='dcmCapacity';box.style.cssText='margin-top:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(420px,100%),1fr));gap:16px;align-items:stretch';
+
  const t=(h,b)=>'<div class="tbl-wrap"><table><thead><tr>'+h.map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+b+'</tbody></table></div>';
  const nf=v=>v.toLocaleString('vi-VN',{maximumFractionDigits:1});
  const tile=(n,sub,cap,unit,act,actLbl,col)=>{const u=act!=null?act/cap*100:null;return `<div style="border:1px solid #E1E6EE;background:#F8FAFC;border-radius:10px;padding:14px 16px"><div style="font-weight:650;color:#243878">${esc(n)}</div><div class="muted" style="font-size:12.5px">${esc(sub)}</div><div style="font-size:26px;font-weight:650;font-variant-numeric:tabular-nums;margin:6px 0 2px">${cap==null?'—':nf(cap)}<span style="font-size:13px;font-weight:500;color:#64748B"> ${unit}</span></div>`+(u!=null?`<div style="height:8px;background:#E3E8F0;border-radius:4px;overflow:hidden;margin:6px 0 4px"><div style="height:100%;width:${Math.min(u,100)}%;background:${col}"></div></div><div style="font-size:12.5px;color:#64748B">${esc(actLbl)}: <b style="color:#334155">${nf(act)}</b> · <b style="color:${u>=100?'#27AF95':'#334155'}">${nf(u)}%</b> thiết kế</div>`:`<div style="font-size:12.5px;color:#64748B">${esc(actLbl)}</div>`)+'</div>';};
@@ -3866,18 +3866,16 @@ function go(){
  const leg=items=>'<div style="display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;margin-top:-4px">'+items.map(x=>`<span><i style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${x[2]};margin-right:5px"></i>${esc(x[0])}</span>`).join('')+'</div>';
  const xk=[['9T/2025',2932.65/(2932.65+3324.24)*100],['9T/2026',R.exp/(R.exp+R.dom)*100]];
  const kpi=(l,v,s)=>`<div style="flex:1;min-width:120px;border:1px solid #E1E6EE;background:#F8FAFC;border-radius:10px;padding:10px 12px"><div style="font-size:12px;font-weight:600;color:#64748B;letter-spacing:.5px">${l}</div><div style="font-size:22px;font-weight:650;font-variant-numeric:tabular-nums">${v}</div><div style="font-size:12px;color:#64748B">${s}</div></div>`;
- box.innerHTML='<h3 class="sub">Năng lực sản xuất</h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:20px">'+
- '<div class="gov-section"><h4>Nhà máy & công suất</h4><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">'+
+ box.innerHTML='<div class="card" data-source="BCTN 2025; báo chí trích thông tin công ty; báo cáo CTCK; CBTT"><h3 class="sub">Nhà máy & công suất</h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">'+
  tile('Nhà máy Đạm Cà Mau','Urê hạt đục · DCM (mẹ) · KCN Khánh An',800,'nghìn tấn/năm',966.73,'Sản xuất 2025','#1D2678')+
  tile('NPK Cà Mau + Hàn – Việt','NPK · DCM 300 + KVF 360 (100% từ 04/2024)',660,'nghìn tấn/năm',347.23,'Sản xuất 2025','#59C5C8')+
  tile('Bao bì Dầu khí (PBP)','Bao bì · sở hữu 51,03%',null,'',null,'Công suất chờ đối chiếu','')+
  tile('Kho cảng Nhơn Trạch','Kế hoạch · GCN đầu tư 19/08/2024',null,'',null,'Chưa vận hành','')+
- '</div><div class="note">Tổng công suất ~1,46 triệu tấn/năm. Bảo dưỡng tổng thể gần nhất 20/09–07/10/2026.</div></div>'+
- '<div class="gov-section"><h4>Khách hàng & đóng góp (9T/2026)</h4><div style="display:flex;gap:10px;flex-wrap:wrap">'+
+ '</div><div class="note">Tổng công suất ~1,46 triệu tấn/năm. Bảo dưỡng tổng thể gần nhất 20/09–07/10/2026. Công suất KVF theo báo cáo CTCK 07/2025.</div></div>'+
+ '<div class="card" data-source="BCTC riêng công ty mẹ 9T/2026; bản tin sản lượng PVCFC; BCTN 2021"><h3 class="sub">Khách hàng & đóng góp (9T/2026)</h3><div style="display:flex;gap:10px;flex-wrap:wrap">'+
  kpi('URÊ XUẤT KHẨU',nf(xk[1][1])+'%','% DT urê · 9T/2025: '+nf(xk[0][1])+'%')+kpi('THỊ TRƯỜNG XK','~20','quốc gia · chính: Campuchia')+kpi('THỊ PHẦN URÊ ĐBSCL','60–65%','công ty tự nêu · 2021')+'</div>'+
  bar('Cơ cấu doanh thu ('+nf(tot)+' tỷ)',SEG,tot)+leg(SEG)+bar('Cơ cấu LN gộp ('+nf(gtot)+' tỷ)',GPS,gtot)+leg(GPS)+
- '<div class="note">Tiêu thụ 9T/2026 (nghìn tấn): urê trong nước 327,8 · xuất khẩu 413,2 · NPK 176,8 · tự doanh 300,5. Trong nước bán qua nhà phân phối, đại lý (ĐBSCL, Đông Nam Bộ, Tây Nguyên). BCTC không công bố khách hàng lớn theo tên; PV GAS là nhà cung cấp khí.</div></div></div>'+
- '<p class="note">Doanh thu, LN gộp theo thuyết minh BCTC riêng công ty mẹ, trước giảm trừ, chưa gồm KVF, PBP; LN gộp urê không tách được trong nước/xuất khẩu. Công suất KVF theo báo cáo CTCK 07/2025.</p>';
+ '<div class="note">Tiêu thụ 9T/2026 (nghìn tấn): urê trong nước 327,8 · xuất khẩu 413,2 · NPK 176,8 · tự doanh 300,5. Trong nước bán qua nhà phân phối, đại lý (ĐBSCL, Đông Nam Bộ, Tây Nguyên). BCTC không công bố khách hàng lớn theo tên; PV GAS là nhà cung cấp khí. Doanh thu, LN gộp theo thuyết minh BCTC riêng công ty mẹ, trước giảm trừ, chưa gồm KVF, PBP; LN gộp urê không tách được trong nước/xuất khẩu.</div></div>';
  info.after(box);
 }
 document.addEventListener('DOMContentLoaded',()=>{let n=0;const iv=setInterval(()=>{try{go();}catch(e){console.error('dcmCap',e);}if(document.getElementById('dcmCapacity')||++n>40)clearInterval(iv);},250);});
@@ -11566,7 +11564,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='dcm',BUILD='f6854f1888d1',URL_JSON='../version.json';
+  const PAGE='dcm',BUILD='91dcacbd9e82',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
