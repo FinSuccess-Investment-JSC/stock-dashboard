@@ -9605,6 +9605,24 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
   addEventListener('hashchange',()=>setTimeout(scan,300));document.addEventListener('click',e=>{if(e.target.closest('.subnav button,.fin-subnav button,nav button,[data-tab],.tabs button'))setTimeout(scan,300);});
 })();
 
+// Freeze thanh sub-tab + "Chu kỳ cả mục" dưới thanh tab chính khi cuộn (người dùng chốt 25/11/2026, mọi trang).
+(function(){
+  if(window.__fsStickyBars)return;window.__fsStickyBars=1;
+  const st=document.createElement('style');st.textContent=`
+@media screen{.fin-subnav,section>.subnav,.tab>.subnav,#fsNav{position:sticky!important;top:var(--fs-stick-top,0px);z-index:40;box-shadow:0 0 0 6px var(--bg,#F9FAFD)}
+.fs-perall{position:sticky;top:calc(var(--fs-stick-top,0px) + var(--fs-sub-h,0px) + 8px);z-index:39;box-shadow:0 0 0 5px var(--bg,#F9FAFD)}
+html[data-theme=dark] :is(.fin-subnav,#fsNav,.fs-perall,section>.subnav){box-shadow:0 0 0 6px #0A0A0A}}`;
+  document.head.appendChild(st);
+  let raf=0;
+  function upd(){raf=0;const H=document.documentElement,nav=document.querySelector('nav.tabs');
+    let top=0;if(nav){const r=nav.getBoundingClientRect();if(r.bottom<innerHeight/2&&r.height)top=Math.max(0,r.bottom);}
+    H.style.setProperty('--fs-stick-top',top+'px');
+    const sub=[...document.querySelectorAll('.fin-subnav,#fsNav,section>.subnav')].find(e=>e.offsetParent);
+    H.style.setProperty('--fs-sub-h',(sub?sub.offsetHeight:0)+'px');}
+  const q=()=>{if(!raf)raf=requestAnimationFrame(upd);};
+  addEventListener('scroll',q,{passive:true});addEventListener('resize',q);addEventListener('click',()=>setTimeout(q,50));setTimeout(upd,500);
+})();
+
 /* Consensus RNAV (người dùng chốt 12/11/2026): tab Consensus CTCK của mã BĐS/KCN có khối tổng hợp
    định giá RNAV của từng CTCK và breakdown giá trị theo dự án. Dữ liệu: <MÃ>/consensus.json › rnav[]
    (build nhúng thành PVS_DATA.consensusRnav). Mỗi mục:
@@ -11187,7 +11205,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='gsp',BUILD='bd82c6141eab',URL_JSON='../version.json';
+  const PAGE='gsp',BUILD='440f05c7f1ea',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
