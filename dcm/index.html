@@ -3880,6 +3880,31 @@ function go(){
 }
 document.addEventListener('DOMContentLoaded',()=>{let n=0;const iv=setInterval(()=>{try{go();}catch(e){console.error('dcmCap',e);}if(document.getElementById('dcmCapacity')||++n>40)clearInterval(iv);},250);});
 })();
+/* Sub-tab Mảng kinh doanh: Đầu vào · Đầu giữa · Đầu ra (người dùng chốt 25/11/2026). Chỉ ẩn/hiện card, không dời DOM. */
+(function(){
+const RULES=[['Đầu vào',/giá vốn urê|giá khí|nguồn khí|đầu vào/i],['Đầu giữa',/sản xuất|công suất|bảo dưỡng|^NPK, đạm chức năng/i]];
+const DEF='Đầu ra',ORDER=['Đầu vào','Đầu giữa','Đầu ra'],KEY='dcm_seg_sub_v1';
+function go(){
+  const seg=document.getElementById('seg');if(!seg||seg.querySelector('.dcm-subnav'))return true;
+  const cards=[...seg.querySelectorAll('.card')].filter(c=>c.querySelector('h3')&&c.offsetParent!==null&&!c.closest('.dcm-subnav'));
+  if(cards.length<6)return false;
+  cards.forEach(c=>{const t=c.querySelector('h3').textContent;const r=RULES.find(x=>x[1].test(t));c.dataset.dcmSub=r?r[0]:DEF;});
+  const nav=document.createElement('div');nav.className='subnav fin-subnav dcm-subnav';
+  ORDER.forEach((k,i)=>{const b=document.createElement('button');b.type='button';b.dataset.k=k;b.textContent=(i+1)+' · '+k;nav.appendChild(b);});
+  const anchor=seg.querySelector('h2.sec');(anchor?anchor.parentNode:seg).insertBefore(nav,anchor?anchor.nextSibling:seg.firstChild);
+  const show=k=>{cards.forEach(c=>{c.style.display=c.dataset.dcmSub===k?'':'none';});
+    nav.querySelectorAll('button').forEach(b=>{const on=b.dataset.k===k;b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on));});
+    try{localStorage.setItem(KEY,k);}catch(e){}
+    if(window.Chart)setTimeout(()=>cards.forEach(c=>c.querySelectorAll('canvas').forEach(x=>{const ch=Chart.getChart(x);if(ch)ch.resize();})),30);};
+  nav.addEventListener('click',e=>{const b=e.target.closest('button[data-k]');if(b)show(b.dataset.k);});
+  let k=DEF;try{k=localStorage.getItem(KEY)||DEF;}catch(e){}
+  show(ORDER.includes(k)?k:DEF);
+  addEventListener('beforeprint',()=>cards.forEach(c=>c.style.display=''));
+  addEventListener('afterprint',()=>show(nav.querySelector('.on')?.dataset.k||DEF));
+  return true;
+}
+document.addEventListener('DOMContentLoaded',()=>{let n=0;const iv=setInterval(()=>{let ok=false;try{ok=go();}catch(e){console.error('dcmSegSub',e);ok=true;}if(ok||++n>40)clearInterval(iv);},400);});
+})();
 
 </script>
 <script>window.FINANCE_INPUTS = {
@@ -11583,7 +11608,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='dcm',BUILD='4afd7c06eaa1',URL_JSON='../version.json';
+  const PAGE='dcm',BUILD='f36dd0018c55',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
