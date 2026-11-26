@@ -9377,10 +9377,10 @@ window.fsCmpChart=function(id,o){
     c.innerHTML='<h3 class="sub">'+esc(title)+'</h3><div class="chart tall"><canvas id="'+id+'"></canvas></div><div class="note">'+esc(note+' Nguồn: '+SRC)+'</div>';
     return c;
   }
-  // Sub-tab trong Mảng kinh doanh của mã dệt may. "Khách hàng" (13/11/2026); "Thị trường xuất khẩu" và "Bối cảnh ngành"
+  // Sub-tab trong Mảng kinh doanh của mã dệt may. "Khu công nghiệp" (26/11/2026): khối re-pack.js khi mã không có tab Backlog (TNG). "Khách hàng" (13/11/2026); "Thị trường xuất khẩu" và "Bối cảnh ngành"
   // (17/11/2026): phần tử mang data-seg-sub="mkt" | "ind" (textile-macro.js, enhancements.js của mã) tự dời vào tab con.
   // Dùng .subnav sẵn có nếu mã đã chia sub-tab; chưa có thì tạo, mọi nội dung cũ vào "Mảng kinh doanh".
-  const SUBS=[['main','Mảng kinh doanh'],['mkt','Thị trường xuất khẩu'],['ind','Bối cảnh ngành'],['cust','Khách hàng']];
+  const SUBS=[['main','Mảng kinh doanh'],['mkt','Thị trường xuất khẩu'],['ind','Bối cảnh ngành'],['cust','Khách hàng'],['kcn','Khu công nghiệp']];
   const KEY='tc_seg_sub_'+location.pathname;
   function navOf(seg){
     let nav=[...seg.querySelectorAll(':scope > .subnav')][0];
@@ -9419,10 +9419,12 @@ window.fsCmpChart=function(id,o){
   function restore(seg){
     const nav=navOf(seg);if(!nav._own)return;
     let k='main';try{k=localStorage.getItem(KEY)||'main'}catch(e){}
-    const h=location.hash.match(/^#seg(cust|mkt|ind)$/);if(h)k=h[1];
+    const h=location.hash.match(/^#seg(cust|mkt|ind|kcn)$/);if(h)k=h[1];
     if(!seg.querySelector(':scope > .subpane[data-k="'+k+'"]'))k='main';
     show(seg,k);
   }
+  // Cho khối riêng của mã lấy/tạo tab con (TNG: khối KCN re-pack → "Khu công nghiệp").
+  window.fsSegSubPane=k=>{const seg=document.getElementById('seg');if(!seg||!SUBS.some(s=>s[0]===k))return null;const p=subPane(seg,k);restore(seg);return p;};
   // Dời phần tử data-seg-sub vào tab con tương ứng (giữ thứ tự xuất hiện).
   function organize(){
     const seg=document.getElementById('seg');if(!seg)return;
@@ -11562,7 +11564,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='sgn',BUILD='0adb823f23fc',URL_JSON='../version.json';
+  const PAGE='sgn',BUILD='a23e893cbfc7',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
