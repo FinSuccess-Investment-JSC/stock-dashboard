@@ -6003,11 +6003,12 @@ window.FS_INCOME_HISTORY_10Y={"MWG": {"2016": {"labels": ["Q1/2016", "Q2/2016", 
   const d=window.PVS_DATA,store=window.FS_INCOME_HISTORY_10Y;
   if(!d||!d.meta||!store)return;
   const ticker=d.meta.ticker,years=store[ticker];if(!years)return;
+  const names=d.incomeStatementLabels||{};
   const metrics=[
-    {key:'revenue',id:'income10Rev',title:'Doanh thu thuần',color:'#2938A8'},
-    {key:'grossProfit',id:'income10Gross',title:'Lợi nhuận gộp',color:'#16A6A0'},
-    {key:'operatingProfit',id:'income10Operating',title:'Lợi nhuận thuần HĐKD',color:'#6B4BB6'},
-    {key:'parentProfit',id:'income10Profit',title:'LNST thuộc cổ đông mẹ',color:'#861C52'}
+    {key:'revenue',id:'income10Rev',title:names.revenue||'Doanh thu thuần',color:'#2938A8'},
+    {key:'grossProfit',id:'income10Gross',title:names.grossProfit||'Lợi nhuận gộp',color:'#16A6A0'},
+    {key:'operatingProfit',id:'income10Operating',title:names.operatingProfit||'Lợi nhuận thuần HĐKD',color:'#6B4BB6'},
+    {key:'parentProfit',id:'income10Profit',title:names.parentProfit||'LNST thuộc cổ đông mẹ',color:'#861C52'}
   ];
   const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const firstYear=2016;
@@ -6042,22 +6043,23 @@ window.FS_INCOME_HISTORY_10Y={"MWG": {"2016": {"labels": ["Q1/2016", "Q2/2016", 
       '';
     const fmt=v=>v==null?'—':Number(v).toLocaleString('vi-VN',{maximumFractionDigits:2});
     const periodTable=(labels,read)=>'<table><thead><tr><th>Kỳ</th>'+metrics.map(m=>'<th class="num">'+esc(m.title)+'</th>').join('')+'</tr></thead><tbody>'+labels.map((label,i)=>'<tr><td>'+esc(label)+'</td>'+metrics.map(m=>'<td class="num">'+fmt(read(m.key,i))+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
-    const detail='<details class="dd"><summary>Bảng KQKD theo kỳ</summary><div class="body tbl-wrap"><h4>Năm · tỷ VND</h4>'+periodTable(annual,(key,i)=>sumYear(key,annual[i]))+'<h4>Quý · tỷ VND</h4>'+periodTable(quarterly,(key,i)=>quarterSeries(key)[i])+'</div></details>';
+    const detail=document.documentElement.dataset.chartDataTables==='off'?'':
+      '<div class="card" style="margin-top:16px"><details class="dd"><summary>Bảng KQKD theo kỳ</summary><div class="body tbl-wrap"><h4>Năm · tỷ VND</h4>'+periodTable(annual,(key,i)=>sumYear(key,annual[i]))+'<h4>Quý · tỷ VND</h4>'+periodTable(quarterly,(key,i)=>quarterSeries(key)[i])+'</div></details></div>';
     const note=text=>'<div class="note">'+text+'</div>';
     const noteProfit=note('Năm là tổng 4 quý; các quý không có số giữ khoảng trống.'),noteMargin=note('Biên = lợi nhuận ÷ doanh thu thuần cùng kỳ. Biên EBITDA = (LNTT + chi phí lãi vay + khấu hao) ÷ doanh thu, theo BCTC hợp nhất VNDirect; Lũy kế tính lại từ tổng lũy kế, không cộng tỷ lệ các kỳ.');
-    box.innerHTML=header+'<div id="income10Group" style="margin-top:12px"><div class="card"><h3 class="sub">'+'Doanh thu (tỷ VND) · tăng trưởng YoY'+'</h3><div class="chart" style="height:250px"><canvas id="income10Revenue"></canvas></div>'+note('Cột: tỷ VND, trục trái. Đường: tăng trưởng so cùng kỳ năm trước (%, trục phải), chỉ tính khi kỳ gốc dương. Năm là tổng 4 quý.')+'</div><div class="grid g2" style="margin-top:16px"><div class="card"><h3 class="sub">Lợi nhuận (tỷ VND) · tăng trưởng LNST mẹ YoY</h3><div class="chart tall"><canvas id="income10Profit"></canvas></div>'+noteProfit+'</div><div class="card"><h3 class="sub">Biên lợi nhuận (%)</h3><div class="chart tall"><canvas id="income10Margin"></canvas></div>'+noteMargin+'</div></div><div class="card" style="margin-top:16px">'+detail+'</div></div>';
+    box.innerHTML=header+'<div id="income10Group" style="margin-top:12px"><div class="card"><h3 class="sub">'+'Doanh thu (tỷ VND) · tăng trưởng YoY'+'</h3><div class="chart" style="height:250px"><canvas id="income10Revenue"></canvas></div>'+note('Cột: tỷ VND, trục trái. Đường: tăng trưởng so cùng kỳ năm trước (%, trục phải), chỉ tính khi kỳ gốc dương. Năm là tổng 4 quý.')+'</div><div class="grid g2" style="margin-top:16px"><div class="card"><h3 class="sub">Lợi nhuận (tỷ VND) · tăng trưởng LNST mẹ YoY</h3><div class="chart tall"><canvas id="income10Profit"></canvas></div>'+noteProfit+'</div><div class="card"><h3 class="sub">Biên lợi nhuận (%)</h3><div class="chart tall"><canvas id="income10Margin"></canvas></div>'+noteMargin+'</div></div>'+detail+'</div>';
     const annualValues=key=>annual.map(year=>sumYear(key,year));
     const vnm=true; // YoY trên chart doanh thu cho mọi mã (người dùng chốt 05/11/2026, mẫu Wi)
     const revenueSets=(labels,values,quarter)=>{
-      const sets=[{label:'Doanh thu thuần',data:values,backgroundColor:'#2938A8',borderColor:'#2938A8',borderRadius:3,maxBarThickness:38}];
+      const sets=[{label:metrics[0].title,data:values,backgroundColor:'#2938A8',borderColor:'#2938A8',borderRadius:3,maxBarThickness:38}];
       if(vnm)sets.push({type:'line',ytdYoY:0,label:'Tăng trưởng doanh thu YoY',data:values.map((value,i)=>{const prev=values[quarter?i-4:i-1];return value==null||prev==null||prev<=0?null:(value/prev-1)*100;}),yAxisID:'ratio',axisUnit:'%',borderColor:'#16A6A0',backgroundColor:'#16A6A0',pointRadius:3,spanGaps:false});
       return {labels,datasets:sets};
     };
     const revenueSpec={def:'y',ytd:true,y:revenueSets(annual,annualValues('revenue'),false),q:revenueSets(quarterly,quarterSeries('revenue'),true),cfg:(labels,datasets)=>({type:'bar',financialCombo:vnm,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:vnm,position:'bottom'}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,title:{display:true,text:'Tỷ VND'},grid:{color:'#EEF0F6'}},...(vnm?{ratio:{position:'right',beginAtZero:true,title:{display:true,text:'% YoY'},grid:{drawOnChartArea:false}}}:{})}}})};
     const profitSets=(gross,operating,parent,lag)=>[
-      {label:'Lợi nhuận gộp',data:gross,backgroundColor:'#16A6A0',borderColor:'#16A6A0',borderRadius:3,maxBarThickness:27},
-      {label:'Lợi nhuận HĐKD',data:operating,backgroundColor:'#6B4BB6',borderColor:'#6B4BB6',borderRadius:3,maxBarThickness:27},
-      {label:'LNST mẹ',data:parent,backgroundColor:'#861C52',borderColor:'#861C52',borderRadius:3,maxBarThickness:27},
+      {label:metrics[1].title,data:gross,backgroundColor:'#16A6A0',borderColor:'#16A6A0',borderRadius:3,maxBarThickness:27},
+      {label:names.operatingProfit||'Lợi nhuận HĐKD',data:operating,backgroundColor:'#6B4BB6',borderColor:'#6B4BB6',borderRadius:3,maxBarThickness:27},
+      {label:names.parentProfit||'LNST mẹ',data:parent,backgroundColor:'#861C52',borderColor:'#861C52',borderRadius:3,maxBarThickness:27},
       {type:'line',ytdYoY:2,label:'Tăng trưởng LNST mẹ YoY',data:parent.map((v,i)=>{const p=parent[i-lag];return v==null||p==null||p<=0?null:(v/p-1)*100;}),yAxisID:'ratio',axisUnit:'%',borderColor:'#D4A72C',backgroundColor:'#D4A72C',pointRadius:3,spanGaps:false,order:-1}
     ];
     const marginSet=(label,profit,revenue,color,hidden)=>({label,ytdRatio:{num:profit,den:revenue},data:profit.map((v,i)=>v==null||!revenue[i]?null:v/revenue[i]*100),axisUnit:'%',borderColor:color,backgroundColor:color,pointRadius:2,spanGaps:false,hidden});
@@ -7093,6 +7095,7 @@ window.FS_INCOME_HISTORY_10Y={"MWG": {"2016": {"labels": ["Q1/2016", "Q2/2016", 
 
   /* ---------- (2) Chart ⇄ Bảng trong card ---------- */
   function addTableToggles(){
+    if(document.documentElement.dataset.chartDataTables==='off')return;
     document.querySelectorAll('section.tab .card').forEach(card=>{
       if(card.dataset.fsTbl||card.parentElement.closest('.card')||card.closest('.db,.tb')) return;
       const cv=card.querySelector('canvas'), h=card.querySelector('h3'); if(!cv||!h||cv.id==='multiplesChart') return;
@@ -8433,6 +8436,7 @@ td.fsa-focus,th.fsa-focus{outline:2px solid ${TURQ};outline-offset:-2px}
   const toTSV=rows=>rows.map(r=>r.join('\t')).join('\n');
   function download(name,text){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'text/csv;charset=utf-8'}));a.download=name.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/gi,'d').replace(/[^\w.-]+/g,'-').slice(0,90);document.body.append(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
   const code=()=>{const m=(window.PVS_DATA||{}).meta||{};return m.ticker||m.code||''};
+  const showChartDataTables=document.documentElement.dataset.chartDataTables!=='off';
   function stateLink(){return location.origin+location.pathname+location.search+(location.hash||'')}
 
   /* ---------- Menu chuột phải ---------- */
@@ -8459,8 +8463,10 @@ td.fsa-focus,th.fsa-focus{outline:2px solid ${TURQ};outline-offset:-2px}
         ...(xScale(ch)?[{h:'Cách tính'},...modeItems(ch),'-',
           {t:'Mốc sự kiện',on:!!evOn[cv.id],f:()=>{if(!cv.id)return;evOn[cv.id]=!evOn[cv.id];if(!evOn[cv.id])delete evOn[cv.id];store.set('fs_chart_events_v1',evOn);ch.update('none');if(evOn[cv.id]&&!eventsFor(ch).length)toast('Không có sự kiện nào rơi vào các kỳ của chart này')}},
           ...(zoomed?[{t:'↺ Về toàn bộ kỳ',f:()=>resetZoom(ch)}]:[]),'-']:[]),
-        {t:'Xuất CSV',f:()=>download((code()?code()+'-':'')+title+'.csv',toCSV(chartCSV(ch)))},
-        {t:'Chép bảng số (dán vào Excel)',f:()=>copyText(toTSV(chartCSV(ch)),'Đã chép bảng số — dán vào Excel')},
+        ...(showChartDataTables?[
+          {t:'Xuất CSV',f:()=>download((code()?code()+'-':'')+title+'.csv',toCSV(chartCSV(ch)))},
+          {t:'Chép bảng số (dán vào Excel)',f:()=>copyText(toTSV(chartCSV(ch)),'Đã chép bảng số — dán vào Excel')}
+        ]:[]),
         ...(card&&window.FinShareImage?[{t:'Ảnh PNG · chia sẻ',k:'⛶',f:()=>FinShareImage.open(card)}]:[]),
         ...(card&&card.requestFullscreen?[{t:'Toàn màn hình',f:()=>card.requestFullscreen().catch(()=>{})}]:[]),
         {t:'Chép link trang',k:'⌘S',f:()=>copyText(stateLink(),'Đã chép link — mở lại đúng tab đang xem')}
@@ -8525,9 +8531,9 @@ td.fsa-focus,th.fsa-focus{outline:2px solid ${TURQ};outline-offset:-2px}
     const pts=seriesOfRow(t,row);if(!pts)return;closeDrawer();
     const name=row.cells[0].innerText.replace(/\s+/g,' ').trim(),card=t.closest('.card'),src=card&&card.querySelector('h3')?card.querySelector('h3').innerText.trim().split('\n')[0]:'';
     const el=drawerEl=document.createElement('aside');el.className='fsa-drawer';el.setAttribute('role','dialog');el.setAttribute('aria-label','Lịch sử '+name);
-    el.innerHTML=`<button class="x" type="button" aria-label="Đóng">×</button><h3></h3><div class="sub"></div><div class="cv"><canvas></canvas></div><table><tbody></tbody></table>`;
+    el.innerHTML=`<button class="x" type="button" aria-label="Đóng">×</button><h3></h3><div class="sub"></div><div class="cv"><canvas></canvas></div>`+(showChartDataTables?'<table><tbody></tbody></table>':'');
     el.querySelector('h3').textContent=name;el.querySelector('.sub').textContent=src+' · Esc để đóng';
-    const tb=el.querySelector('tbody');pts.forEach((p,i)=>{const j=pts.findIndex(q=>q.l===String(p.l).replace(/(\d{4}|\d{2})(?!.*\d)/,m=>m.length===4?String(+m-1):String(+m-1).padStart(2,'0')));const pv=j>=0?pts[j].v:(i?pts[i-1].v:null);const ch=p.v!=null&&pv?(p.v-pv)/Math.abs(pv)*100:null;const tr=document.createElement('tr');tr.innerHTML=`<td>${p.l}</td><td>${fmt(p.v)}</td><td style="color:${ch==null?'inherit':ch>=0?'#2B8E91':'#C0392B'}">${ch==null?'—':(ch>0?'+':'')+fmt(ch)+'%'}</td>`;tb.append(tr)});
+    const tb=el.querySelector('tbody');if(tb)pts.forEach((p,i)=>{const j=pts.findIndex(q=>q.l===String(p.l).replace(/(\d{4}|\d{2})(?!.*\d)/,m=>m.length===4?String(+m-1):String(+m-1).padStart(2,'0')));const pv=j>=0?pts[j].v:(i?pts[i-1].v:null);const ch=p.v!=null&&pv?(p.v-pv)/Math.abs(pv)*100:null;const tr=document.createElement('tr');tr.innerHTML=`<td>${p.l}</td><td>${fmt(p.v)}</td><td style="color:${ch==null?'inherit':ch>=0?'#2B8E91':'#C0392B'}">${ch==null?'—':(ch>0?'+':'')+fmt(ch)+'%'}</td>`;tb.append(tr)});
     el.querySelector('.x').onclick=closeDrawer;document.body.append(el);requestAnimationFrame(()=>el.classList.add('on'));
     if(window.Chart)dChart=new Chart(el.querySelector('canvas'),{type:'bar',data:{labels:pts.map(p=>p.l),datasets:[{label:name,data:pts.map(p=>p.v),backgroundColor:pts.map((p,i)=>i===pts.length-1?BLUE:'rgba(41,56,168,.35)'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmt(c.parsed.y)}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>fmt(v)}}}}});
     el.querySelector('.x').focus();
@@ -9329,14 +9335,15 @@ window.fsCmpChart=function(id,o){
       y:[['Hoàn thành kế hoạch LNST',vals,{colors:cols}]],q:[]});
   }
   function datasets(spec,rows){
+    const name=label=>d.coreFinanceLabels?.[label]||label;
     if(spec.kind==='custom'){let b=0;return rows.map(([label,data,o={}])=>{
       const line=!!o.line,c=line?(o.axis==='y1'?(o.points?GOLD:'#E07A00'):NAVY):(o.colors||PAL[b++%PAL.length]);
-      return {label,data:data.map(r2),type:line?'line':'bar',borderColor:c,backgroundColor:c,borderWidth:line?(o.points?0:2.5):0,pointRadius:line?(o.points?6:2.5):0,pointStyle:o.points?'rectRot':undefined,showLine:o.points?false:undefined,tension:.15,spanGaps:false,
+      return {label:name(label),data:data.map(r2),type:line?'line':'bar',borderColor:c,backgroundColor:c,borderWidth:line?(o.points?0:2.5):0,pointRadius:line?(o.points?6:2.5):0,pointStyle:o.points?'rectRot':undefined,showLine:o.points?false:undefined,tension:.15,spanGaps:false,
         yAxisID:o.axis||'y',stack:o.stack,order:line?0:1,hidden:!!o.hidden,unit:o.unit||spec.unit,axisUnit:o.axis==='y1'?o.unit:undefined};});}
     return rows.map(([label,data],i)=>{
       const c=spec.kind==='stack'?(label==='Nợ ròng'?NAVY:[BLUE,PURPLE,'#B3BDE8'][i]):COLORS[i%COLORS.length];
       const line=spec.kind==='line'||(spec.kind==='barline'&&i===2)||(spec.kind==='stack'&&label==='Nợ ròng')||(spec.kind==='bars'&&i===2);
-      return {label,data:data.map(r2),type:line?'line':'bar',borderColor:c,backgroundColor:c,borderWidth:line?2.5:0,pointRadius:line?2.5:0,tension:.15,spanGaps:false,
+      return {label:name(label),data:data.map(r2),type:line?'line':'bar',borderColor:c,backgroundColor:c,borderWidth:line?2.5:0,pointRadius:line?2.5:0,tension:.15,spanGaps:false,
         yAxisID:spec.kind==='barline'&&i===2?'y1':'y',stack:spec.kind==='stack'&&!line?'s':undefined,order:line?0:1,
         unit:spec.kind==='barline'&&i===2?spec.ratioUnit:spec.unit};
     });
@@ -11734,7 +11741,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='hag',BUILD='5f6b723ac59d',URL_JSON='../version.json';
+  const PAGE='hag',BUILD='88537a2b3196',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
