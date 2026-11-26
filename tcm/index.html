@@ -3830,6 +3830,22 @@ function go(){const O=(window.PVS_DATA||{}).texOps,p=document.getElementById('se
 document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{try{go();}catch(e){console.error('tex-ops',e);document.documentElement.dataset.texOpsError=e.message;}},0));
 })();
 
+/* Tab con "Thị trường XK & Khách hàng" (người dùng chốt 26/11/2026): dời card thị trường xuất khẩu / khách hàng khỏi Tổng quan,
+   đặt trước phần Khách hàng lớn (textile-customers.js). */
+(function(){const M=["tcmGeo", "tcmRelated", "Cơ cấu doanh thu theo thị trường"];
+const go=()=>{const seg=document.getElementById('seg');if(!seg)return;
+  const cards=[...seg.querySelectorAll('.card')].filter(c=>{const h=c.querySelector('h3');const cv=c.querySelector('canvas');return M.some(m=>(cv&&cv.id===m)||(h&&h.textContent.trim().startsWith(m)));});
+  if(!cards.length)return;
+  let h=seg.querySelector('h2.seg-mkt-own');
+  if(!h){h=document.createElement('h2');h.className='sec seg-mkt-own';h.textContent="Thị trường xuất khẩu — số đã công bố";}
+  const pane=window.fsSegSubPane&&window.fsSegSubPane('mkt');
+  if(!pane){h.dataset.segSub='mkt';cards.forEach(c=>c.dataset.segSub='mkt');if(!h.parentNode)cards[0].parentNode.insertBefore(h,cards[0]);return;}
+  const g=pane.querySelector(':scope > .seg-mkt-grid')||Object.assign(document.createElement('div'),{className:'grid g2 seg-mkt-grid'});
+  const before=pane.querySelector(':scope > .seg-cust-blk');
+  pane.insertBefore(h,before);pane.insertBefore(g,before);cards.forEach(c=>{if(c.parentNode!==g)g.appendChild(c);});
+  if(window.Chart)cards.forEach(c=>c.querySelectorAll('canvas').forEach(x=>{const ch=Chart.getChart(x);ch&&ch.resize();}));};
+document.addEventListener('DOMContentLoaded',()=>[1200,3000].forEach(t=>setTimeout(()=>{try{go();}catch(e){console.error('seg-mkt',e);}},t)));})();
+
 </script>
 <script>window.FINANCE_INPUTS = {
   "PVT": {
@@ -11622,7 +11638,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='tcm',BUILD='455c1fad22a1',URL_JSON='../version.json';
+  const PAGE='tcm',BUILD='707a132fcbe1',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
