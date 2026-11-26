@@ -3938,8 +3938,11 @@ function go(){
   if(!O||!seg||seg.querySelector('.tng-ops'))return;
   const anchor=seg.querySelector('h2.tng-mkt')||seg.querySelector('h2.tng-input');
   const ins=el=>anchor?anchor.parentNode.insertBefore(el,anchor):seg.appendChild(el);
-  const h2=document.createElement('h2');h2.className='sec tng-ops';h2.textContent='Năng lực sản xuất';ins(h2);
-  const g=document.createElement('div');g.className='grid g2 tng-ops';ins(g);
+  // Năng lực sản xuất thuộc tab con Tổng quan (người dùng chốt 26/11/2026), không theo khối thị trường xuất khẩu.
+  const mainP=seg.querySelector(':scope > .subpane[data-k="main"]');
+  const insMain=el=>{el.dataset.segSub='main';mainP?mainP.appendChild(el):ins(el);};
+  const h2=document.createElement('h2');h2.className='sec tng-ops';h2.textContent='Năng lực sản xuất';insMain(h2);
+  const g=document.createElement('div');g.className='grid g2 tng-ops';insMain(g);
   // Chart thuộc tab con Thị trường xuất khẩu (sub:'mkt') đứng riêng một khối, có tiêu đề riêng.
   let gm=null;
   const mktHost=()=>{if(gm)return gm;const h=document.createElement('h2');h.className='sec tng-ops';h.dataset.segSub='mkt';h.textContent='Xuất nhập khẩu & cơ cấu doanh thu';ins(h);
@@ -3969,7 +3972,7 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>setTimeout(()=>s
 const S=(window.PVS_DATA||{}).customerShare;if(!S)return;
 const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const f=v=>v==null?'—':Number(v).toLocaleString('vi-VN',{maximumFractionDigits:2});
-function go(t){const seg=document.getElementById('seg');if(!seg||document.getElementById('tngCustShare'))return;const p=seg.querySelector('.subpane[data-k="cust"]');if(!p){if((t||0)<40)setTimeout(()=>go((t||0)+1),250);return;}
+function go(t){const seg=document.getElementById('seg');if(!seg||document.getElementById('tngCustShare'))return;const p=seg.querySelector('.subpane[data-k="mkt"]');if(!p){if((t||0)<40)setTimeout(()=>go((t||0)+1),250);return;}
  const n=S.customers.length,cols=S.customers.map((_,i)=>i===n-1?'#CBD2E1':stackColor(i,n-1));
  const e=document.createElement('div');e.className='card textile-cust';e.dataset.source=S.source;e.setAttribute('data-keep-seg','');e.style.marginTop='16px';
  const notes=S.periods.map(x=>x.label+': '+x.note).join(' ');
@@ -9624,7 +9627,10 @@ window.fsCmpChart=function(id,o){
   // Sub-tab trong Mảng kinh doanh của mã dệt may. "Khu công nghiệp" (26/11/2026): khối re-pack.js khi mã không có tab Backlog (TNG). "Khách hàng" (13/11/2026); "Thị trường xuất khẩu" và "Bối cảnh ngành"
   // (17/11/2026): phần tử mang data-seg-sub="mkt" | "ind" (textile-macro.js, enhancements.js của mã) tự dời vào tab con.
   // Dùng .subnav sẵn có nếu mã đã chia sub-tab; chưa có thì tạo, mọi nội dung cũ vào "Mảng kinh doanh".
-  const SUBS=[['main','Mảng kinh doanh'],['mkt','Thị trường xuất khẩu'],['ind','Bối cảnh ngành'],['cust','Khách hàng'],['kcn','Khu công nghiệp']];
+  // 26/11/2026 (người dùng chốt): tab con đầu đổi tên "Tổng quan"; "Thị trường xuất khẩu" và "Khách hàng" gộp thành một tab con.
+  // Khóa 'cust' giữ làm bí danh của 'mkt' để khối cũ gắn data-seg-sub="cust" vẫn vào đúng chỗ (sau phần thị trường).
+  const SUBS=[['main','Tổng quan'],['mkt','Thị trường XK & Khách hàng'],['ind','Bối cảnh ngành'],['kcn','Khu công nghiệp']];
+  const AL=k=>k==='cust'?'mkt':k;
   const KEY='tc_seg_sub_'+location.pathname;
   function navOf(seg){
     let nav=[...seg.querySelectorAll(':scope > .subnav')][0];
@@ -9633,7 +9639,7 @@ window.fsCmpChart=function(id,o){
     nav=document.createElement('div');nav.className='subnav';nav.id='segSubNav';nav._own=true;
     const main=document.createElement('div');main.className='subpane';main.dataset.k='main';
     [...seg.children].filter(x=>x!==head&&!x.classList.contains('fs-perall')).forEach(x=>main.appendChild(x));
-    nav.innerHTML='<button type="button" data-k="main">Mảng kinh doanh</button>';
+    nav.innerHTML='<button type="button" data-k="main">Tổng quan</button>';
     (head?head.after(nav):seg.prepend(nav));nav.after(main);
     nav.addEventListener('click',e=>{const b=e.target.closest('button[data-k]');if(b&&nav._own)show(seg,b.dataset.k);});
     return nav;
@@ -9646,7 +9652,7 @@ window.fsCmpChart=function(id,o){
     if(window.Chart)setTimeout(()=>{const p=seg.querySelector(':scope > .subpane[data-k="'+k+'"]');p&&p.querySelectorAll('canvas').forEach(c=>{const ch=Chart.getChart(c);ch&&ch.resize();});},0);
   }
   function subPane(seg,k){
-    const nav=navOf(seg);
+    k=AL(k);const nav=navOf(seg);
     let pane=seg.querySelector(':scope > .subpane[data-k="'+k+'"]');if(pane)return pane;
     pane=document.createElement('div');pane.className='subpane';pane.dataset.k=k;pane.style.display='none';
     const b=document.createElement('button');b.type='button';b.dataset.k=k;b.textContent=SUBS.find(x=>x[0]===k)[1];
@@ -9663,18 +9669,19 @@ window.fsCmpChart=function(id,o){
   function restore(seg){
     const nav=navOf(seg);if(!nav._own)return;
     let k='main';try{k=localStorage.getItem(KEY)||'main'}catch(e){}
-    const h=location.hash.match(/^#seg(cust|mkt|ind|kcn)$/);if(h)k=h[1];
+    const h=location.hash.match(/^#seg(cust|mkt|ind|kcn)$/);if(h)k=AL(h[1]);k=AL(k);
     if(!seg.querySelector(':scope > .subpane[data-k="'+k+'"]'))k='main';
     show(seg,k);
   }
   // Cho khối riêng của mã lấy/tạo tab con (TNG: khối KCN re-pack → "Khu công nghiệp").
-  window.fsSegSubPane=k=>{const seg=document.getElementById('seg');if(!seg||!SUBS.some(s=>s[0]===k))return null;const p=subPane(seg,k);restore(seg);return p;};
+  window.fsSegSubPane=k=>{k=AL(k);const seg=document.getElementById('seg');if(!seg||!SUBS.some(s=>s[0]===k))return null;const p=subPane(seg,k);restore(seg);return p;};
   // Dời phần tử data-seg-sub vào tab con tương ứng (giữ thứ tự xuất hiện).
   function organize(){
     const seg=document.getElementById('seg');if(!seg)return;
     const items=[...seg.querySelectorAll('[data-seg-sub]')].filter(x=>!x.parentElement.closest('[data-seg-sub]'));
     if(!items.length){if(seg.querySelector(':scope > .subnav'))restore(seg);return;}
-    items.forEach(x=>{const k=x.dataset.segSub;if(!SUBS.some(s=>s[0]===k))return;const pane=subPane(seg,k);if(x.parentElement!==pane)pane.appendChild(x);});
+    items.forEach(x=>{const raw=x.dataset.segSub,k=AL(raw);if(!SUBS.some(s=>s[0]===k))return;const pane=subPane(seg,k);if(x.parentElement===pane)return;
+      if(k==='mkt'){x.dataset.segSub=raw;const c=raw==='mkt'&&pane.querySelector(':scope > .seg-cust-blk');if(c){pane.insertBefore(x,c);return;}if(raw==='cust')x.classList.add('seg-cust-blk');}pane.appendChild(x);});
     restore(seg);
   }
   function run(){
@@ -9704,7 +9711,7 @@ window.fsCmpChart=function(id,o){
     row.appendChild(card('tcRev','Doanh thu khách hàng (triệu USD)','Doanh thu thuần theo quý của từng khách hàng (toàn công ty). Năm = cộng 4 quý dương lịch đã quy đổi, chỉ khi đủ 4 quý.'));
     row.appendChild(card('tcGrow','Doanh thu và tồn kho svck của khách hàng (%)','Tăng trưởng so với cùng quý năm trước: đường liền = doanh thu, nét đứt = tồn kho cuối quý. Tồn kho tăng chậm hơn doanh thu nghĩa là tồn kho/doanh thu giảm.'));
     row.appendChild(card('tcGm','Biên gộp khách hàng (%)','LN gộp ÷ doanh thu thuần cùng quý (hoặc cùng năm khi xem Năm). Hãng không công bố dòng LN gộp thì = doanh thu − giá vốn.'));
-    const pane=subPane(seg,'cust');pane.appendChild(h);pane.appendChild(tb);if(nb)pane.appendChild(nb);pane.appendChild(row);
+    const pane=subPane(seg,'cust');[h,tb,nb,row].forEach(x=>{if(x){x.classList.add('seg-cust-blk');pane.appendChild(x);}});
     let drawn=false;const draw=()=>{if(drawn||pane.style.display==='none')return;drawn=true;
     const L=allQ.map(lab);
     const revQ=C.list.map(c=>at(c,'revenue')), gpQ=C.list.map(c=>at(c,'grossProfit')), invQ=C.list.map(c=>at(c,'inventory'));
@@ -11808,7 +11815,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='tng',BUILD='4812370a1087',URL_JSON='../version.json';
+  const PAGE='tng',BUILD='a2bae10a2da8',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
