@@ -4488,6 +4488,25 @@ function srcFor(card){
  if(sec==='overview')return srcJoin([D.meta&&D.meta.src,price]);
  return '';
 }
+/* Rút gọn dòng nguồn hiển thị: chỉ tên nguồn gốc, không diễn giải (người dùng chốt 26/11/2026). */
+function shortSrc(t){
+ t=String(t||'').replace(/^(\s*Nguồn\s*:\s*)+/i,'').replace(/\bNguồn\s*:\s*/gi,'');
+ const out=[];const add=x=>{x=x.trim();if(x&&!out.includes(x))out.push(x);};
+ const NAMES=[[/vndirect/i,'VNDirect'],[/vietstock/i,'Vietstock'],[/simplize/i,'Simplize'],[/cafef/i,'CafeF'],[/cảng vụ/i,'Cảng vụ Hàng hải Hải Phòng'],[/ctck/i,'Báo cáo CTCK'],[/analyst|finsuccess/i,'FinSuccess'],[/\bHOSE\b|\bHNX\b|CBTT/i,'CBTT HOSE/HNX'],[/\bBCTN\b|thường niên/i,'BCTN'],[/ĐHĐCĐ/i,'NQ ĐHĐCĐ'],[/bản tin|IR\b/i,'IR doanh nghiệp']];
+ t.split(/[;\n]/).forEach(part=>{
+  const bc=part.match(/BCTC(\s+(hợp nhất|riêng))?/i);
+  let hit=false;
+  if(bc){const ys=part.match(/\b20\d\d\b/g)||[];const y=ys.length===1?ys[0]:'';
+   add('BCTC '+((bc[2]||'hợp nhất').toLowerCase())+(y?' '+y:'')+(/\(\s*CafeF/i.test(part)?' (CafeF)':''));hit=true;
+   part=part.replace(/\([^)]*CafeF[^)]*\)/gi,'');}
+  part=part.replace(/\([^)]*\)/g,'');
+  const dom=part.match(/\b[a-z0-9-]+\.(com\.vn|vn|com)\b/i);if(dom){add(dom[0].toLowerCase());hit=true;}
+  NAMES.forEach(([re,n])=>{if(re.test(part)){add(n);hit=true;}});
+  if(!hit){const segs=part.split(':').map(x=>x.trim());const x=(segs.length>1&&!/\d/.test(segs[segs.length-1])?segs[segs.length-1]:segs[0]).split(/[,–(]/)[0].trim();if(x&&!/\d/.test(x)&&x.length<=40&&!/^(giá|số liệu|dữ liệu)$/i.test(x))add(x);}
+ });
+ // "BCTC hợp nhất" thừa khi đã có bản ghi năm
+ return out.filter(x=>!(/^BCTC \S+( \S+)?$/.test(x)&&out.some(y=>y!==x&&y.startsWith(x)))).join('; ');
+}
 function srcLine(card,text){
  const line='Nguồn: '+text;
  const head=card.querySelector('h3.sub,h3,h2,h4');
@@ -4523,7 +4542,8 @@ function srcLine(card,text){
  let vis=card.querySelector(':scope > .fs-src-line');
  if(!vis){vis=document.createElement('div');vis.className='fs-src-line';}
  if(!vis.parentNode)card.append(vis);
- if(vis.textContent!==line)vis.textContent=line;
+ const vline='Nguồn: '+(shortSrc(text)||text);
+ if(vis.textContent!==vline)vis.textContent=vline;
  return true;
 }
 function sourceNotes(){
@@ -11491,7 +11511,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='gsp',BUILD='fb4a69f6d8aa',URL_JSON='../version.json';
+  const PAGE='gsp',BUILD='00d2ec45d486',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
