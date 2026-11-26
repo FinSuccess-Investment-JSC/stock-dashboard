@@ -5875,10 +5875,10 @@ window.FS_INCOME_HISTORY_10Y={"MWG": {"2016": {"labels": ["Q1/2016", "Q2/2016", 
 // Tab Tài chính chia 6 sub-tab: KQKD · Bảng cân đối · Dòng tiền · Cổ tức & Kế hoạch · Bảng tóm tắt · Định giá.
 // Chạy sau khi mọi chart và financial-layout đã dựng xong, nên chỉ sắp xếp lại DOM có sẵn.
 (function(){
-  const GROUPS=[['kqkd','KQKD'],['balance','Bảng cân đối'],['cashflow','Dòng tiền'],['dividend','Cổ tức & Kế hoạch'],['summary','Bảng tóm tắt'],['valuation','Định giá']];
+  const GROUPS=[['kqkd','KQKD'],['balance','Bảng cân đối'],['cashflow','Dòng tiền'],['capex','Kế hoạch CAPEX'],['dividend','Cổ tức & Kế hoạch'],['summary','Bảng tóm tắt'],['valuation','Định giá']];
   const KEY='fin_subtab_v1';
   // Khối dùng chung có id ổn định; phân nhóm theo id trước, đoán theo tiêu đề sau.
-  const BY_ID={incomeHistory10y:'kqkd',isBridgeCard:'summary',finTableCard:'summary',multiplesRow:'valuation'};
+  const BY_ID={incomeHistory10y:'kqkd',isBridgeCard:'summary',finTableCard:'summary',multiplesRow:'valuation',capex:'capex'};
   // Thứ tự quan trọng: cụm hẹp trước cụm rộng, vì một tiêu đề có thể chứa nhiều từ khoá.
   const RULES=[
     ['valuation',/bội số|p\/e|p\/b|ev\/ebitda|định giá/i],
@@ -11534,7 +11534,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='ksv',BUILD='62ed3ff8b7ec',URL_JSON='../version.json';
+  const PAGE='ksv',BUILD='7c0626d8aae7',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
