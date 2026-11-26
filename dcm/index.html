@@ -4018,8 +4018,8 @@ function go(){
   <div class="filters" data-g="nd"><span style="font-size:12px;color:var(--muted);margin-right:6px">Tỷ trọng NDUM:</span>${ND.shareCases.map(c=>`<button type="button" data-v="${c.share}">${c.label.split(' (')[0]}</button>`).join('')}<button type="button" data-v="reset">Về base</button></div>
   <div id="dcmGasKpi"></div>`);
  c4.setAttribute('data-no-results-only','');{const h=c4.querySelector('h3.sub'),i=document.createElement('span');i.className='info';i.tabIndex=0;i.textContent='i';const t=`Ô nhập là giả định analyst để mô phỏng, không phải số công bố. Base: Brent theo mô hình analyst (2026 = bình quân 11 tháng EIA), NDUM 40% (kỳ vọng nêu tại ĐHĐCĐ; lượng tối thiểu hợp đồng tương đương 54,5% lượng giao năm), khí đầu tiên Q4/2028, PM3 suy giảm ${fmt(FA.pm3Decline.value*100,0)}%/năm từ 2029 (giả định theo năm hết hiệu quả kinh tế trữ lượng 2P 2032), Petronas gia hạn sau 2027 (chưa có hợp đồng). Định mức ${fmt(PL.norm.value,3)} GJ/tấn urê và sản lượng ${fmt(PROD,1)} nghìn tấn theo BCTN 2025; tỷ giá theo mô hình analyst. LNTT so base chỉ tính chênh lệch chi phí khí, giữ giá bán urê không đổi. Brent hòa vốn = mức Brent mà giá Petronas giao tại nhà máy bằng giá NDUM cùng năm. Nguồn: mô hình & giả định analyst FinSuccess; thông số hợp đồng: PVCFC.`;i.setAttribute('data-tip',t);i.setAttribute('aria-label',t);h.appendChild(i)}c4.style.gridColumn='1/-1';
- c1.style.gridColumn='1/-1';ref.after(c1);c1.after(c2);c2.after(c3);c3.after(c4);
- const on=document.querySelector('.dcm-subnav button.on');if(on&&on.dataset.k!=='Đầu vào & sản lượng')[c1,c2,c3,c4].forEach(e=>e.style.display='none');
+ c1.style.gridColumn='1/-1';ref.after(c1);c1.after(c2);c2.after(c3);c3.after(c4);c4.dataset.dcmSub='_hidden';c4.style.display='none';/* bỏ khỏi giao diện theo người dùng 26/11/2026; giữ DOM vì drawAll đọc trạng thái kịch bản */
+ const on=document.querySelector('.dcm-subnav button.on');if(on&&on.dataset.k!=='Đầu vào & sản lượng')[c1,c2,c3].forEach(e=>e.style.display='none');
  const showV=()=>c4.querySelectorAll('input[type=range]').forEach(r=>{c4.querySelector(`[data-v="${r.dataset.k}"]`).textContent=(+r.value).toLocaleString('vi-VN')+r.dataset.u});
  const syncInputs=()=>{c4.querySelectorAll('input[type=range]').forEach(r=>r.value=S[r.dataset.k]*(+r.dataset.mul));c4.querySelectorAll('select').forEach(s=>s.value=s.dataset.k==='petExtend'?(S.petExtend?'1':'0'):String(S[s.dataset.k]));c4.querySelectorAll('[data-g="scen"] [data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===S.scen));showV()};
  c4.addEventListener('input',e=>{const t=e.target;if(t.type==='range'){S[t.dataset.k]=+t.value/(+t.dataset.mul);showV();drawAll()}});
@@ -11757,7 +11757,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='dcm',BUILD='8e1b47fa0af1',URL_JSON='../version.json';
+  const PAGE='dcm',BUILD='129caab09328',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
