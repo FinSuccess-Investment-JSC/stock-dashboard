@@ -1340,6 +1340,9 @@ html[data-theme="dark"] .re-gt-name,html[data-theme="dark"] .re-gt-grp{color:#59
   :is(.grid,.fs-arr-grid,.fs-kq-own)>.card:has(canvas):only-child>.chart,
   section>.card:has(canvas)>.chart{min-height:420px}
 }
+
+/* Bỏ Checklist điều kiện mua + Có gì mới 45 ngày ở Tổng quan (người dùng chốt 26/11/2026, mọi trang) */
+.card:has(#checklist),.card:has(#recentEvents),#overview .grid.g2:has(#checklist){display:none!important}
 </style>
 <style>
 body{margin:0;background:var(--bg);color:var(--ink)}

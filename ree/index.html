@@ -1964,6 +1964,9 @@ html[data-theme="dark"] .re-gt-name,html[data-theme="dark"] .re-gt-grp{color:#59
   section>.card:has(canvas)>.chart{min-height:420px}
 }
 
+/* Bỏ Checklist điều kiện mua + Có gì mới 45 ngày ở Tổng quan (người dùng chốt 26/11/2026, mọi trang) */
+.card:has(#checklist),.card:has(#recentEvents),#overview .grid.g2:has(#checklist){display:none!important}
+
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet"><style>
 .stock-search{max-width:1440px;margin:16px auto 0;padding:0 24px}
@@ -10413,9 +10416,7 @@ html[data-theme=dark] body .fs-perall button.on{background:#2938A8;color:#fff}
 @media screen{.fin-subnav,section>.subnav,.tab>.subnav,#fsNav{position:sticky!important;top:var(--fs-stick-top,0px);z-index:40;box-shadow:0 0 0 6px var(--bg,#F9FAFD)}
 .fs-perall{position:sticky;top:calc(var(--fs-stick-top,0px) + var(--fs-sub-h,0px) + 8px);z-index:39;box-shadow:0 0 0 5px var(--bg,#F9FAFD)}
 :is(.fin-subnav,#fsNav,section>.subnav,.fs-perall){box-shadow:none!important;isolation:isolate}
-:is(.fin-subnav,#fsNav,section>.subnav)::before{content:'';position:absolute;left:-100vw;right:-100vw;top:-8px;bottom:-4px;background:var(--fs-page-bg,#F9FAFD);z-index:-2;pointer-events:none}
 :is(.fin-subnav,#fsNav,section>.subnav)::after{content:'';position:absolute;inset:0;border-radius:inherit;background:inherit;z-index:-1;pointer-events:none}
-.fs-perall::before{content:'';position:absolute;left:-100vw;right:-100vw;top:-5px;bottom:-6px;background:var(--fs-page-bg,#F9FAFD);z-index:-2;pointer-events:none}
 .fs-perall::after{content:'';position:absolute;inset:0;border-radius:inherit;background:inherit;z-index:-1}}`;
   document.head.appendChild(st);
   let raf=0;
@@ -12218,7 +12219,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='ree',BUILD='fcf3174e9f7f',URL_JSON='../version.json';
+  const PAGE='ree',BUILD='664ddf23c363',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
