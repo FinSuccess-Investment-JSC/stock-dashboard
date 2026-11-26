@@ -1865,17 +1865,16 @@ html[data-theme="dark"] .re-gt-name,html[data-theme="dark"] .re-gt-grp{color:#59
 /* Bỏ Checklist điều kiện mua + Có gì mới 45 ngày ở Tổng quan (người dùng chốt 26/11/2026, mọi trang) */
 .card:has(#checklist),.card:has(#recentEvents),#overview .grid.g2:has(#checklist){display:none!important}
 
-/* Quản trị & sở hữu: 3 ô cùng cỡ, chiều cao cố định, nội dung dài cuộn trong ô (người dùng chốt 26/11/2026) */
-#governanceBox .gov-grid{grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch}
-#governanceBox .gov-grid>.gov-section{margin-top:0;height:400px;display:flex;flex-direction:column;border:1px solid #E1E6EE;background:#F8FAFC;border-radius:10px;padding:14px 16px}
-#governanceBox .gov-grid>.gov-section>*:not(h4){min-height:0}
-#governanceBox .gov-grid>.gov-section{overflow:auto}
-#governanceBox .gov-grid>.gov-section table{font-size:13px}
-#governanceTrades>.gov-section:first-of-type{margin-top:8px}
+/* Quản trị & sở hữu: hàng trên Cổ đông (1/3) + Quản trị (2/3) cùng cao; hàng dưới Công ty con · LDLK cả chiều ngang (người dùng chốt 26/11/2026) */
+#governanceBox .gov-grid{grid-template-columns:minmax(0,1fr) minmax(0,2fr);align-items:stretch}
+#governanceBox .gov-grid>.gov-section{margin-top:0;border:1px solid #E1E6EE;background:#F8FAFC;border-radius:10px;padding:14px 16px;min-width:0}
+#governanceBox .gov-grid>.gov-section:nth-child(-n+2){height:330px;overflow:auto}
+#governanceBox .gov-grid>.gov-section:nth-child(3){grid-column:1/-1;max-height:520px;overflow:auto}
+#governanceBox .gov-section td,#governanceBox .gov-section th{white-space:nowrap}
+#governanceBox .gov-section td:nth-child(2){white-space:normal}
 #governanceTrades .it-head>h4{display:none}
-@media(max-width:1100px){#governanceBox .gov-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:700px){#governanceBox .gov-grid{grid-template-columns:1fr}#governanceBox .gov-grid>.gov-section{height:auto;max-height:420px}}
-@media print{#governanceBox .gov-grid>.gov-section{height:auto;overflow:visible}}
+@media(max-width:900px){#governanceBox .gov-grid{grid-template-columns:1fr}#governanceBox .gov-grid>.gov-section{height:auto!important;max-height:440px}}
+@media print{#governanceBox .gov-grid>.gov-section{height:auto!important;max-height:none!important;overflow:visible!important}}
 
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet"><style>
@@ -5371,6 +5370,9 @@ window.FS_ANALYST_VAULT={"iter": 600000, "salt": "1J1KSPRXSLtd3z2nYwmUpA==", "iv
       (!g.insiderTrades?.length&&datedTrades.length&&!hasPrices?'<div class="note">Chưa có chuỗi giá đóng cửa điều chỉnh đã đối chiếu; chưa tính biến động giá 1M / 3M / 1Y sau công bố và giao dịch.</div>':'')+
       (!g.insiderTrades?.length&&datedTrades.length&&hasPrices?'<div class="note">Biến động giá tính từ phiên đầu sau mốc đến phiên đầu từ ngày tương ứng sau 1/3/12 tháng, bằng giá đóng cửa đã điều chỉnh. “—” khi thiếu ngày hoặc chưa đủ thời gian; không hàm ý quan hệ nhân quả. '+(g.priceAsOf?'Giá cập nhật đến '+esc(period(g.priceAsOf))+'.':'')+'</div>':'')+
       (g.investorNotes&&g.investorNotes.length?section('Điểm cần theo dõi',g.investorNotes,a=>'<ul class="list">'+a.map(x=>`<li>${esc(x.text)}</li>`).join('')+'</ul>'):'');
+    // Ẩn cột toàn "—" trong các bảng Quản trị (26/11/2026).
+    box.querySelectorAll('.gov-grid table').forEach(t=>{const rows=[...t.rows].slice(1);if(!rows.length)return;const n=t.rows[0].cells.length;
+      for(let c=n-1;c>=0;c--)if(rows.every(r=>!r.cells[c]||/^[—\s-]*$/.test(r.cells[c].textContent)))[...t.rows].forEach(r=>r.cells[c]&&r.cells[c].remove());});
     // Tách giao dịch cổ đông/biến động sở hữu sang khung riêng ngay dưới (người dùng chốt 26/11/2026).
     {const grid=box.querySelector('.gov-grid');let tb=document.getElementById('governanceTrades');
      const rest=grid?[...box.children].slice([...box.children].indexOf(grid)+1):[];
@@ -11524,7 +11526,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='ksb',BUILD='971185514e09',URL_JSON='../version.json';
+  const PAGE='ksb',BUILD='e81bdfdf4ad6',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
