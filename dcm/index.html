@@ -3956,11 +3956,8 @@ const fgAt=s=>{const [fy,fm]=s.fg.split('-').map(Number);return ix(fy)-.5+(fm-1)
 function drawPrice(){const o=compute(S),lo=compute({...S,scen:'low'}),hi=compute({...S,scen:'high'}),fc0=ix(2026);
  const ds=[{type:'bar',label:'Giá khí thực tế (ước tính CTCK, chưa VAT)',data:HIST.map(r3),backgroundColor:C.act,stack:'g',order:2,_u:'USD/MMBtu'},
   {type:'bar',label:'Giá khí dự phóng (kịch bản đang chọn)',data:o.avg.map((v,i)=>i>=fc0?r3(v):null),backgroundColor:C.fc,stack:'g',order:2,_u:'USD/MMBtu'},
-  {type:'line',stack:'l1',label:'Kịch bản dầu thấp',data:lo.avg.map((v,i)=>i>=fc0+1?r3(v):null),borderColor:C.low,backgroundColor:C.low,borderDash:[5,4],borderWidth:2,pointRadius:0,order:1,_u:'USD/MMBtu'},
-  {type:'line',stack:'l2',label:'Kịch bản dầu cao',data:hi.avg.map((v,i)=>i>=fc0+1?r3(v):null),borderColor:C.high,backgroundColor:C.high,borderDash:[5,4],borderWidth:2,pointRadius:0,order:1,_u:'USD/MMBtu'},
-  {type:'line',stack:'l3',label:'6T/2026 (ước tính CTCK)',data:Y.map(y=>y===2026&&H6!=null?r3(H6):null),borderColor:C.act,backgroundColor:'#fff',pointStyle:'rectRot',pointRadius:7,pointBorderWidth:2,showLine:false,order:0,_u:'USD/MMBtu'},
   {type:'line',stack:'l4',label:'Brent (USD/thùng, trục phải)',data:o.brent.map(r3),yAxisID:'y1',borderColor:C.brent,backgroundColor:C.brent,borderWidth:2,pointRadius:2,order:0,_u:'USD/thùng'}];
- const mx=Math.max(...[...HIST,...o.avg,...hi.avg].filter(Number.isFinite));
+ const mx=Math.max(...[...HIST,...o.avg].filter(Number.isFinite));
  MARKS=[{at:ix(2027)-.5,label:'2027: Petronas 13,7% Brent',short:'Petronas 13,7%',color:'#6B7280'},{at:fgAt(S),label:FG[S.fg].split(' (')[0]+': khí đầu tiên NDUM',short:'NDUM',color:C.nd}];
  mk('dcmGasPrice',{type:'bar',lockChartType:true,data:{labels:YS,datasets:ds},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
   plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,font:{size:11}}},
@@ -4005,7 +4002,7 @@ function go(){
 #dcmGasKpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:6px}.dcm-gk{border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:2px}.dcm-gk span{font-size:12px;color:var(--muted)}.dcm-gk b{font-size:16px}.dcm-gk small{font-size:11px;color:var(--muted)}`;document.head.append(st)}
  const SRC='Nguồn: Vietcap 04/09/2026 (giá khí quý, quy về chưa VAT 10%); EIA (Brent); PVCFC — dự thảo SĐBS 12 hợp đồng khí, biên bản ĐHĐCĐ 22/04 và 23/09/2026; mô hình & giả định analyst FinSuccess';
  const c1=card('dcmGasPrice','Giá khí đầu vào bình quân DCM (USD/MMBtu)',SRC);
- c1.insertAdjacentHTML('beforeend',`<p class="note">Giá giao tại nhà máy, gồm cước, chưa VAT. Cột đậm 2021–2025: bình quân 4 quý Vietcap (gồm VAT) ÷ 1,1 — doanh nghiệp không công bố giá USD/MMBtu (BCTN 2024: giá khí +2% so 2023; 9T/2026: cao hơn kế hoạch 27%). Ô thoi 6T/2026: Q1–Q2/2026 cùng nguồn. Cột nhạt: dự phóng theo nguồn khí, tính lại khi đổi kịch bản; đường đứt: dầu thấp ${FA.brentCases.low} / dầu cao ${FA.brentCases.high} USD/thùng từ 2027. Mức "vượt 11 USD" nêu tại ĐHĐCĐ 09/2026 là giá thực trả tại thời điểm họp (gồm VAT), không phải bình quân năm. Mô hình tái tạo lịch sử 2021–2025 sai số bình quân ${fmt(G.calib.rmse,2)} USD/MMBtu. ${SRC}.</p>`);
+ c1.insertAdjacentHTML('beforeend',`<p class="note">Giá giao tại nhà máy, gồm cước, chưa VAT. Cột đậm 2021–2025: bình quân 4 quý Vietcap (gồm VAT) ÷ 1,1 — doanh nghiệp không công bố giá USD/MMBtu (BCTN 2024: giá khí +2% so 2023; 9T/2026: cao hơn kế hoạch 27%). Cột nhạt: dự phóng theo nguồn khí, tính lại khi đổi kịch bản. Mức "vượt 11 USD" nêu tại ĐHĐCĐ 09/2026 là giá thực trả tại thời điểm họp (gồm VAT), không phải bình quân năm. Mô hình tái tạo lịch sử 2021–2025 sai số bình quân ${fmt(G.calib.rmse,2)} USD/MMBtu. ${SRC}.</p>`);
  const c2=card('dcmGasMix','Cơ cấu nguồn khí đầu vào DCM (% nhu cầu năng lượng)',SRC);
  c2.insertAdjacentHTML('beforeend',`<p class="note">Tỷ trọng theo MMBtu (nhiệt trị tham chiếu hợp đồng 37,3 MJ/Sm³ cho mọi nguồn, nên bằng tỷ trọng thể tích). 2021–2025: ước tính CTCK (VNDirect, BSC, VDSC), doanh nghiệp không công bố. Từ 2026: PM3 chia 50/50 phần Việt Nam – Petronas; NDUM theo tỷ trọng ổn định đang chọn, năm khí đầu tiên tính theo tháng (vận hành thử, tăng dần), giảm sau 55 tháng bình ổn. "Thiếu hụt" = nhu cầu chưa có nguồn xác định (khi PM3 suy giảm hoặc Petronas không gia hạn), không tự bù bằng nguồn tiềm năng (Hoa Mai, Khánh Mỹ – Đầm Dơi, Lô B). Khối lượng trong chú thích theo lượng giao năm hợp đồng 495 triệu Sm³ ≈ ${fmt(ACQ,2)} triệu MMBtu. ${SRC}.</p>`);
  const c3=card('dcmGasSrc','So sánh giá khí theo nguồn (USD/MMBtu)',SRC);
@@ -11760,7 +11757,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='dcm',BUILD='9dbbeb711ea7',URL_JSON='../version.json';
+  const PAGE='dcm',BUILD='8e1b47fa0af1',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
