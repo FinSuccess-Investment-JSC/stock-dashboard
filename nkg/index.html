@@ -1878,6 +1878,9 @@ html[data-theme="dark"] .re-gt-name,html[data-theme="dark"] .re-gt-grp{color:#59
 @media(max-width:900px){#governanceBox .gov-grid{grid-template-columns:1fr}#governanceBox .gov-grid>.gov-section{height:auto!important;max-height:440px}}
 @media print{#governanceBox .gov-grid>.gov-section{height:auto!important;max-height:none!important;overflow:visible!important}}
 
+/* Khung "Trong tab" nổi trên thanh tab/sub-tab dính (người dùng báo 26/11/2026) */
+.mkt-toc{z-index:60!important}
+
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet"><style>
 .stock-search{max-width:1440px;margin:16px auto 0;padding:0 24px}
@@ -11526,7 +11529,7 @@ body.fs-arr-on .fs-arr-size{display:block;position:absolute;right:2px;bottom:2px
 /* Báo bản cập nhật mới: GitHub Pages cho phép cache trang tới 10 phút. Trang so mã phiên bản của mình với
    version.json (đọc không qua cache); khác thì hiện thanh "Có bản cập nhật mới", bấm để tải lại bỏ qua cache. */
 (function(){
-  const PAGE='nkg',BUILD='e83b26483319',URL_JSON='../version.json';
+  const PAGE='nkg',BUILD='b3f7ef9b217d',URL_JSON='../version.json';
   async function check(){
     try{
       const r=await fetch(URL_JSON+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;
